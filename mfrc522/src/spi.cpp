@@ -1,4 +1,4 @@
-#include "library.h"
+#include <mfrc522/spi.h>
 
 #include <cstdint>
 #include <fcntl.h>
@@ -8,7 +8,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-namespace Spi {
+namespace Mfrc522::Spi {
 
 DeviceOpenOption withMode(uint8_t mode)
 {

@@ -4,17 +4,15 @@
 #include <functional>
 #include <string>
 
-/*!
- * Based on https://github.com/lthiery/SPI-Py,
- * the non-working library https://github.com/mxgxw/MFRC522-python,
- * and its working fork https://github.com/ukleinek/MFRC522-python.
- *
- * Parts licensed under GPL-2.0 and LGPL-3.0 because the Python library are
- * that as well, and that's only nice to do.
- */
+//! The Mfrc522 namespace
+namespace Mfrc522 { // NOLINT
 
-//! The Spi namespace.
-namespace Spi {
+//! The Spi namespace
+namespace Spi {}
+
+} // namespace Mfrc522
+
+namespace Mfrc522::Spi {
 
 //! DeviceOpenOptions contains options for opening a device.
 struct DeviceOpenOptions
@@ -95,4 +93,4 @@ private:
     std::string m_what;
 };
 
-} // namespace Spi
+} // namespace Mfrc522::Spi
