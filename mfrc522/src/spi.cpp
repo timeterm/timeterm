@@ -84,10 +84,37 @@ Device::Device(std::initializer_list<DeviceOpenOption> opts)
 
 Device::~Device()
 {
-    close(m_fd.value());
+    close(m_fd);
 }
 
-void Device::transfer() {}
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
+void Device::transfer(const std::vector<uint8_t> &tx, std::vector<uint8_t> &rx)
+{
+    if (rx.size() > UINT32_MAX) {
+        throw PayloadTooLargeException();
+    }
+
+    // Make rx the size of tx, because we're reading as much bytes
+    // as we're writing (apparently).
+    rx.resize(tx.size());
+
+    struct spi_ioc_transfer transfer = {
+        .tx_buf = (uintptr_t) tx.data(),
+        .rx_buf = (uintptr_t) rx.data(),
+        .len = (uint32_t) rx.size(),
+        .speed_hz = m_options.speed,
+        .delay_usecs = m_options.delay,
+        .bits_per_word = m_options.bits,
+        .cs_change = 0,
+    };
+
+    int ret = ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer);
+    if (ret < 1) {
+        throw SpiSendMessageException(errno);
+    }
+}
+#pragma clang diagnostic pop
 
 DeviceOpenException::DeviceOpenException(int err)
     : std::runtime_error(std::string("could not open device: ") + strerror(err))
@@ -99,4 +126,13 @@ DeviceConfigureException::DeviceConfigureException(const std::string &msg, int e
     , m_errno(err)
 {}
 
-} // namespace Spi
+PayloadTooLargeException::PayloadTooLargeException()
+    : std::runtime_error("payload is too large (max is UINT32_MAX)")
+{}
+
+SpiSendMessageException::SpiSendMessageException(int err)
+    : std::runtime_error(std::string("could not send SPI message: ") + strerror(err))
+    , m_errno(err)
+{}
+
+} // namespace Mfrc522::Spi

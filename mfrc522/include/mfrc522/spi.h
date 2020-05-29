@@ -67,11 +67,11 @@ public:
 
     ~Device();
 
-    void transfer();
+    void transfer(const std::vector<uint8_t> &bytes, std::vector<uint8_t> &rx);
 
 private:
     DeviceOpenOptions m_options;
-    std::optional<int> m_fd = std::nullopt;
+    int m_fd;
 };
 
 class DeviceOpenException : public std::runtime_error
@@ -90,7 +90,21 @@ public:
 
 private:
     int m_errno;
-    std::string m_what;
+};
+
+class PayloadTooLargeException : public std::runtime_error
+{
+public:
+    PayloadTooLargeException();
+};
+
+class SpiSendMessageException : public std::runtime_error
+{
+public:
+    explicit SpiSendMessageException(int err);
+
+private:
+    int m_errno;
 };
 
 } // namespace Mfrc522::Spi
