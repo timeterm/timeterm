@@ -100,15 +100,17 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx)
     // as we're writing (apparently).
     rx.resize(tx.size());
 
-    struct spi_ioc_transfer transfer = {
-        .tx_buf = (uintptr_t) tx.data(),
-        .rx_buf = (uintptr_t) rx.data(),
-        .len = (uint32_t) rx.size(),
-        .speed_hz = m_options.speed,
-        .delay_usecs = m_options.delay,
-        .bits_per_word = m_options.bits,
-        .cs_change = 0,
-    };
+    struct spi_ioc_transfer transfer
+    {};
+    memset(&transfer, 0, sizeof(transfer));
+
+    transfer.tx_buf = (uintptr_t) tx.data();
+    transfer.rx_buf = (uintptr_t) rx.data();
+    transfer.len = (uint32_t) rx.size();
+    transfer.speed_hz = m_options.speed;
+    transfer.delay_usecs = m_options.delay;
+    transfer.bits_per_word = m_options.bits;
+    transfer.cs_change = 0;
 
     int ret = ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer);
     if (ret < 1) {
