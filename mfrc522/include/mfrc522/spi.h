@@ -4,10 +4,10 @@
 #include <functional>
 #include <string>
 
-//! The Mfrc522 namespace
+//! The Mfrc522 namespace.
 namespace Mfrc522 { // NOLINT
 
-//! The Spi namespace
+//! The Spi namespace.
 namespace Spi {}
 
 } // namespace Mfrc522
@@ -67,7 +67,7 @@ public:
 
     ~Device();
 
-    void transfer(const std::vector<uint8_t> &bytes, std::vector<uint8_t> &rx);
+    std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes);
 
 private:
     DeviceOpenOptions m_options;

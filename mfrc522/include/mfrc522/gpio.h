@@ -5,6 +5,13 @@
 #include <unistd.h>
 #include <unordered_set>
 
+namespace Mfrc522 { // NOLINT
+
+//! The Gpio namespace.
+namespace Gpio {}
+
+}
+
 namespace Mfrc522::Gpio {
 
 enum class PinDirection {

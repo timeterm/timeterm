@@ -89,12 +89,13 @@ Device::~Device()
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
-void Device::transfer(const std::vector<uint8_t> &tx, std::vector<uint8_t> &rx)
+std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx)
 {
-    if (rx.size() > UINT32_MAX) {
+    if (tx.size() > UINT32_MAX) {
         throw PayloadTooLargeException();
     }
 
+    std::vector<uint8_t> rx;
     // Make rx the size of tx, because we're reading as much bytes
     // as we're writing (apparently).
     rx.resize(tx.size());

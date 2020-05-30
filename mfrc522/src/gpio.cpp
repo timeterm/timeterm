@@ -74,7 +74,7 @@ void _writePin(uint8_t pin, uint8_t value)
     close(fd);
 }
 
-GlobalManager &GlobalManager::singleton()
+GlobalManager &GlobalManager::singleton() noexcept
 {
     static GlobalManager instance;
     return instance;
