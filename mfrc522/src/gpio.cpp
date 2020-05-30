@@ -91,6 +91,8 @@ void GlobalManager::exportPin(uint8_t pin, PinDirection direction)
 
     _exportPin(pin);
     _setPinDirection(pin, direction);
+
+    m_exportedPins.insert(pin);
 }
 
 GlobalManager::~GlobalManager()
