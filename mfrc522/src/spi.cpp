@@ -82,9 +82,6 @@ Device::Device(std::initializer_list<DeviceOpenOption> opts)
         throw DeviceConfigureException("can't read max speed (in Hz)", errno);
 
     m_fd = fd;
-
-    transfer({'a'});
-    std::cout << "TRANSFERRED A BYTE!" << std::endl;
 }
 #pragma clang diagnostic pop
 
@@ -114,10 +111,10 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
     transfer.delay_usecs = m_options.delay;
     transfer.bits_per_word = m_options.bits;
 
-    std::cout << "Writing to SPI file descriptor " << m_fd << " with a buffer length of "
-              << tx.size() << " a speed of " << m_options.speed << " a delay in microseconds of "
-              << m_options.delay << " and " << std::to_string(m_options.bits)
-              << " bits per word and " << std::endl;
+//    std::cout << "Writing to SPI file descriptor " << m_fd << " with a buffer length of "
+//              << tx.size() << " a speed of " << m_options.speed << " a delay in microseconds of "
+//              << m_options.delay << " and " << std::to_string(m_options.bits)
+//              << " bits per word and " << std::endl;
 
     int ret = ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer);
     if (ret < 1) {
