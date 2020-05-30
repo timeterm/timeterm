@@ -44,10 +44,11 @@ Device::Device(std::initializer_list<DeviceOpenOption> opts)
     }
 
     int fd = open(m_options.device.c_str(), O_RDWR);
-    if (fd == -1) {
+    if (fd < 0) {
         throw DeviceOpenException(errno);
     }
 
+    // Set mode of SPI device
     int ret = ioctl(fd, SPI_IOC_WR_MODE, &m_options.mode);
     if (ret == -1) {
         throw DeviceConfigureException("can't write SPI mode", errno);
@@ -58,24 +59,36 @@ Device::Device(std::initializer_list<DeviceOpenOption> opts)
         throw DeviceConfigureException("can't read SPI mode", errno);
     }
 
+    /*
+     * bits per word
+     */
     ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &m_options.bits);
-    if (ret == -1) {
+    if (ret == -1)
         throw DeviceConfigureException("can't write bits per word", errno);
-    }
 
     ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &m_options.bits);
-    if (ret == -1) {
+    if (ret == -1)
         throw DeviceConfigureException("can't read bits per word", errno);
-    }
 
+    /*
+     * max speed hz
+     */
     ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &m_options.speed);
-    if (ret == -1) {
+    if (ret == -1)
         throw DeviceConfigureException("can't write max speed (in Hz)", errno);
-    }
 
     ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &m_options.speed);
-    if (ret == -1) {
+    if (ret == -1)
         throw DeviceConfigureException("can't read max speed (in Hz)", errno);
+
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &m_options.mode);
+    if (ret == -1) {
+        throw DeviceConfigureException("can't write SPI mode", errno);
+    }
+
+    ret = ioctl(fd, SPI_IOC_RD_MODE, &m_options.mode);
+    if (ret == -1) {
+        throw DeviceConfigureException("can't read SPI mode", errno);
     }
 
     m_fd = fd;

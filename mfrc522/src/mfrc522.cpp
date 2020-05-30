@@ -178,7 +178,7 @@ void Device::write(Register reg, uint8_t cmd)
 {
     auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu);
 
-    m_spiDevice.transfer({addr, cmd});
+    auto _ = m_spiDevice.transfer({addr, cmd});
 }
 
 void Device::init()

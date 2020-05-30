@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <functional>
+#include <linux/spi/spidev.h>
 #include <string>
 
 //! The Mfrc522 namespace.
@@ -24,7 +25,7 @@ struct DeviceOpenOptions
     //! `SPI_MODE_0`, `SPI_MODE_1`, `SPI_MODE_3` or `SPI_MODE_4`.
     //! Can be set using withMode()
     //! \sa https://www.kernel.org/doc/Documentation/spi/spidev
-    uint8_t mode = 0;
+    uint8_t mode = SPI_MODE_0;
 
     //! Speed in Hz (Hertz).
     //! Can be set using withSpeed()
@@ -67,7 +68,7 @@ public:
 
     ~Device();
 
-    std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes) const;
+    [[nodiscard]] std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes) const;
 
 private:
     DeviceOpenOptions m_options;

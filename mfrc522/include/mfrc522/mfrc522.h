@@ -109,7 +109,9 @@ enum class PiccCommand {
 class Device
 {
 public:
-    Device(std::initializer_list<Spi::DeviceOpenOption> options = {});
+    Device(std::initializer_list<Spi::DeviceOpenOption> options = {
+               Spi::withSpeed(1000000),
+           });
 
     void init();
     void write(Register reg, uint8_t cmd);
@@ -120,7 +122,7 @@ public:
     void antennaOn();
     void antennaOff();
     std::tuple<Status, std::vector<uint8_t>, size_t> toCard(PcdCommand cmd,
-                                                            const std::vector<uint8_t>& data);
+                                                            const std::vector<uint8_t> &data);
     std::tuple<Status, size_t> request(PiccCommand reqMode);
     std::tuple<Status, std::vector<uint8_t>> antiColl();
     void reset();
