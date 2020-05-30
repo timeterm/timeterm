@@ -114,6 +114,8 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx)
     if (ret < 1) {
         throw SpiSendMessageException(errno);
     }
+
+    return rx;
 }
 #pragma clang diagnostic pop
 

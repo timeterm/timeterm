@@ -74,7 +74,7 @@ void _writePin(uint8_t pin, uint8_t value)
     close(fd);
 }
 
-GlobalManager &GlobalManager::singleton() noexcept
+GlobalManager &GlobalManager::singleton()
 {
     static GlobalManager instance;
     return instance;
@@ -141,6 +141,9 @@ std::string_view pinDirectionToStringView(PinDirection direction)
         return "out";
     case PinDirection::In:
         return "in";
+    default:
+        // TODO(rutgerbrf): custom exception
+        throw std::runtime_error("invalid PinDirection");
     }
 }
 
