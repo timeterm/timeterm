@@ -89,16 +89,15 @@ Device::~Device()
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
-std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx)
+std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
 {
     if (tx.size() > UINT32_MAX) {
         throw PayloadTooLargeException();
     }
 
-    std::vector<uint8_t> rx;
-    // Make rx the size of tx, because we're reading as much bytes
+    // Make rx with the size of tx, because we're reading as much bytes
     // as we're writing (apparently).
-    rx.resize(tx.size());
+    std::vector<uint8_t> rx(tx.size());
 
     struct spi_ioc_transfer transfer
     {};
@@ -106,7 +105,7 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx)
 
     transfer.tx_buf = (uintptr_t) tx.data();
     transfer.rx_buf = (uintptr_t) rx.data();
-    transfer.len = (uint32_t) rx.size();
+    transfer.len = (uint32_t) tx.size();
     transfer.speed_hz = m_options.speed;
     transfer.delay_usecs = m_options.delay;
     transfer.bits_per_word = m_options.bits;

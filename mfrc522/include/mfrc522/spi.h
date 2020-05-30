@@ -67,7 +67,7 @@ public:
 
     ~Device();
 
-    std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes);
+    std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes) const;
 
 private:
     DeviceOpenOptions m_options;
