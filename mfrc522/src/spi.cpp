@@ -39,6 +39,8 @@ DeviceOpenOption withDelay(uint16_t delay)
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
 Device::Device(std::initializer_list<DeviceOpenOption> opts)
 {
+    std::cout << "SPI::Device constructor called" << std::endl;
+
     for (auto &opt : opts) {
         opt(m_options);
     }
@@ -110,11 +112,6 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
     transfer.speed_hz = m_options.speed;
     transfer.delay_usecs = m_options.delay;
     transfer.bits_per_word = m_options.bits;
-
-//    std::cout << "Writing to SPI file descriptor " << m_fd << " with a buffer length of "
-//              << tx.size() << " a speed of " << m_options.speed << " a delay in microseconds of "
-//              << m_options.delay << " and " << std::to_string(m_options.bits)
-//              << " bits per word and " << std::endl;
 
     int ret = ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer);
     if (ret < 1) {

@@ -5,9 +5,8 @@ const uint8_t RESET_PIN = 22;
 namespace Mfrc522 {
 
 Device::Device(std::initializer_list<Spi::DeviceOpenOption> options)
+    : m_spiDevice(options)
 {
-    m_spiDevice = new Spi::Device(options);
-
     Gpio::exportPin(RESET_PIN, Gpio::PinDirection::Out);
     Gpio::writePin(RESET_PIN, 1);
 
