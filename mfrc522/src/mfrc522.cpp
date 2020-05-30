@@ -168,7 +168,7 @@ uint8_t Device::read(Register reg)
     auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu
                                      | 0x80u);
 
-    return m_spiDevice.transfer({addr, 0})[1];
+    return m_spiDevice->transfer({addr, 0})[1];
 }
 
 void Device::writePcdCommand(PcdCommand cmd)
@@ -180,7 +180,7 @@ void Device::write(Register reg, uint8_t cmd)
 {
     auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu);
 
-    auto _ = m_spiDevice.transfer({addr, cmd});
+    auto _ = m_spiDevice->transfer({addr, cmd});
 }
 
 void Device::init()
