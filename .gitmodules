@@ -1,0 +1,9 @@
+[submodule "mfrc522/docs/ext/breathe"]
+	path = mfrc522/docs/ext/breathe
+	url = https://github.com/michaeljones/breathe
+[submodule "mfrc522/docs/ext/exhale"]
+	path = mfrc522/docs/ext/exhale
+	url = https://github.com/svenevs/exhale
+[submodule "mfrc522/docs/ext/sphinx_rtd_theme"]
+	path = mfrc522/docs/ext/sphinx_rtd_theme
+	url = https://github.com/readthedocs/sphinx_rtd_theme

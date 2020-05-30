@@ -7,6 +7,7 @@ namespace Mfrc522 {
 
 class Device
 {
+public:
     Device(std::initializer_list<Spi::DeviceOpenOption> options);
 
 private:
