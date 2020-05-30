@@ -122,7 +122,10 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
     transfer.speed_hz = m_options.speed;
     transfer.delay_usecs = m_options.delay;
     transfer.bits_per_word = m_options.bits;
-    transfer.cs_change = 0;
+
+    std::cout << "Writing to SPI file descriptor " << m_fd << " with a buffer length of "
+              << tx.size() << " a speed of " << m_options.speed << " a delay in microseconds of "
+              << m_options.delay << " and " << m_options.bits << " bits per word " << std::endl;
 
     int ret = ioctl(m_fd, SPI_IOC_MESSAGE(1), &transfer);
     if (ret < 1) {
