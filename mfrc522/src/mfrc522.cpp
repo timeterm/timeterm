@@ -1,6 +1,8 @@
 #include "mfrc522/mfrc522.h"
 
-const uint8_t RESET_PIN = 22;
+// Physical pin 22, see the 'gpio readall' utility from wiringPi (2.52 required for RPi 4B!).
+// Also very useful: https://www.ics.com/blog/gpio-programming-using-sysfs-interface
+const uint8_t RESET_PIN = 25;
 
 namespace Mfrc522 {
 
@@ -167,7 +169,7 @@ uint8_t Device::read(Register reg)
     auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu
                                      | 0x80u);
 
-    return m_spiDevice->transfer({addr, 0})[1];
+    return m_spiDevice.transfer({addr, 0})[1];
 }
 
 void Device::writePcdCommand(PcdCommand cmd)
@@ -179,7 +181,7 @@ void Device::write(Register reg, uint8_t cmd)
 {
     auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu);
 
-    auto _ = m_spiDevice->transfer({addr, cmd});
+    auto _ = m_spiDevice.transfer({addr, cmd});
 }
 
 void Device::init()
