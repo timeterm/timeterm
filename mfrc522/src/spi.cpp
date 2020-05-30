@@ -82,6 +82,9 @@ Device::Device(std::initializer_list<DeviceOpenOption> opts)
         throw DeviceConfigureException("can't read max speed (in Hz)", errno);
 
     m_fd = fd;
+
+    transfer({'a'});
+    std::cout << "TRANSFERRED A BYTE!" << std::endl;
 }
 #pragma clang diagnostic pop
 
@@ -99,12 +102,10 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
     }
 
     // Make rx with the size of tx, because we're reading as much bytes
-    // as we're writing (apparently).
+    // as we're writing (this is the way SPI works).
     std::vector<uint8_t> rx(tx.size());
 
-    struct spi_ioc_transfer transfer
-    {};
-    memset(&transfer, 0, sizeof(transfer));
+    struct spi_ioc_transfer transfer = {};
 
     transfer.tx_buf = (uintptr_t) tx.data();
     transfer.rx_buf = (uintptr_t) rx.data();

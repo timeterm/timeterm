@@ -128,7 +128,7 @@ public:
     void reset();
 
 private:
-    Spi::Device m_spiDevice;
+    Spi::Device *m_spiDevice;
 };
 
 } // namespace Mfrc522

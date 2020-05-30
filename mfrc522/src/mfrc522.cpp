@@ -6,7 +6,7 @@ namespace Mfrc522 {
 
 Device::Device(std::initializer_list<Spi::DeviceOpenOption> options)
 {
-    m_spiDevice = Spi::Device(options);
+    m_spiDevice = new Spi::Device(options);
 
     Gpio::exportPin(RESET_PIN, Gpio::PinDirection::Out);
     Gpio::writePin(RESET_PIN, 1);
@@ -62,7 +62,7 @@ std::tuple<Status, size_t> Device::request(PiccCommand reqMode)
 }
 
 std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
-                                                                const std::vector<uint8_t>& data)
+                                                                const std::vector<uint8_t> &data)
 {
     uint8_t irqEn = 0x00;
     uint8_t waitIRq = 0x00;
