@@ -97,6 +97,10 @@ std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
 
     writePcdCommand(cmd);
 
+    if (cmd == PcdCommand::Transceive) {
+        setBitMask(Register::BitFraming, 0x80);
+    }
+
     int i = 2000;
     uint8_t n;
     while (true) {
@@ -110,10 +114,10 @@ std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
     clearBitMask(Register::BitFraming, 0x80);
 
     if (i != 0) {
-        if ((read(Register::Error) & 0x1bu) == 0) {
+        if ((read(Register::Error) & 0x1Bu) == 0) {
             status = Status::Ok;
 
-            if (n & static_cast<uint8_t>(irqEn & 0x01u)) {
+            if (static_cast<uint8_t>(n & irqEn) & 0x01u) {
                 status = Status::NoTagErr;
             }
 
