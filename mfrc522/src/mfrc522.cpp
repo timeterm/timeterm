@@ -6,6 +6,7 @@ const uint8_t RESET_PIN = 25;
 
 namespace Mfrc522 {
 
+// Ok.
 Device::Device(std::initializer_list<Spi::DeviceOpenOption> options)
     : m_spiDevice(options)
 {
@@ -15,29 +16,30 @@ Device::Device(std::initializer_list<Spi::DeviceOpenOption> options)
     init();
 }
 
+// Ok.
 void Device::reset()
 {
     writePcdCommand(PcdCommand::ResetPhase);
 }
 
+// Ok.
 std::tuple<Status, std::vector<uint8_t>> Device::antiColl()
 {
     write(Register::BitFraming, 0x00);
 
     std::vector<uint8_t> reqData = {
         static_cast<uint8_t>(PiccCommand::Anticoll),
-        0x22u,
+        0x20,
     };
     auto [status, backData, backBits] = toCard(PcdCommand::Transceive, reqData);
 
     if (status == Status::Ok) {
-        int i = 0;
-        uint8_t serNumCheck = 0;
         if (backData.size() == 5) {
-            for (; i < 4; i++) {
+            uint8_t serNumCheck = 0;
+            for (int i = 0; i < 4; i++) {
                 serNumCheck = serNumCheck ^ backData[i];
             }
-            if (serNumCheck != backData[i]) {
+            if (serNumCheck != backData[4]) {
                 status = Status::Err;
             }
         } else {
@@ -48,6 +50,7 @@ std::tuple<Status, std::vector<uint8_t>> Device::antiColl()
     return std::make_tuple(status, backData);
 }
 
+// Ok.
 std::tuple<Status, size_t> Device::request(PiccCommand reqMode)
 {
     write(Register::BitFraming, 0x07);
@@ -62,6 +65,7 @@ std::tuple<Status, size_t> Device::request(PiccCommand reqMode)
     return std::make_tuple(status, backBits);
 }
 
+// Ok.
 std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
                                                                 const std::vector<uint8_t> &data)
 {
@@ -94,7 +98,7 @@ std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
     writePcdCommand(cmd);
 
     int i = 2000;
-    uint8_t n = 0;
+    uint8_t n;
     while (true) {
         n = read(Register::CommIrq);
         i--;
@@ -102,6 +106,8 @@ std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
             break;
         }
     }
+
+    clearBitMask(Register::BitFraming, 0x80);
 
     if (i != 0) {
         if ((read(Register::Error) & 0x1bu) == 0) {
@@ -139,11 +145,13 @@ std::tuple<Status, std::vector<uint8_t>, size_t> Device::toCard(PcdCommand cmd,
     return std::make_tuple(status, backData, backLen);
 }
 
+// Ok.
 void Device::antennaOff()
 {
     clearBitMask(Register::TxControl, 0x03);
 }
 
+// Ok.
 void Device::antennaOn()
 {
     auto tmp = read(Register::TxControl);
@@ -152,46 +160,52 @@ void Device::antennaOn()
     }
 }
 
+// Ok.
 void Device::clearBitMask(Register reg, uint8_t mask)
 {
     auto tmp = read(reg);
     write(reg, tmp & static_cast<uint8_t>(~mask));
 }
 
+// Ok.
 void Device::setBitMask(Register reg, uint8_t mask)
 {
     auto tmp = read(reg);
     write(reg, tmp | mask);
 }
 
+// Ok.
 uint8_t Device::read(Register reg)
 {
-    auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu
+    auto addr = static_cast<uint8_t>((static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7Eu)
                                      | 0x80u);
 
     return m_spiDevice.transfer({addr, 0})[1];
 }
 
+// Ok.
 void Device::writePcdCommand(PcdCommand cmd)
 {
     write(Register::Command, static_cast<uint8_t>(cmd));
 }
 
+// Ok.
 void Device::write(Register reg, uint8_t cmd)
 {
-    auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7eu);
+    auto addr = static_cast<uint8_t>(static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7Eu);
 
     auto _ = m_spiDevice.transfer({addr, cmd});
 }
 
+// Ok.
 void Device::init()
 {
     Gpio::writePin(RESET_PIN, 1);
 
     reset();
 
-    write(Register::TMode, 0x8d);
-    write(Register::TPrescaler, 0x3e);
+    write(Register::TMode, 0x8D);
+    write(Register::TPrescaler, 0x3E);
     write(Register::TReloadL, 30);
     write(Register::TReloadH, 0);
 
