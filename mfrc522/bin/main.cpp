@@ -13,7 +13,6 @@ void handleInterrupt(int)
 int main(int argc, char *argv[])
 {
     auto mfrc522 = Mfrc522::Device{};
-    mfrc522.init();
 
     std::signal(SIGINT, handleInterrupt);
 

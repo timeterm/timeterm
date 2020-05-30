@@ -10,6 +10,8 @@ Device::Device(std::initializer_list<Spi::DeviceOpenOption> options)
 
     Gpio::exportPin(RESET_PIN, Gpio::PinDirection::Out);
     Gpio::writePin(RESET_PIN, 1);
+
+    init();
 }
 
 void Device::reset()
