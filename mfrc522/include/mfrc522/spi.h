@@ -72,7 +72,7 @@ public:
 
 private:
     DeviceOpenOptions m_options;
-    int m_fd;
+    int m_fd = 0;
 };
 
 class DeviceOpenException : public std::runtime_error
