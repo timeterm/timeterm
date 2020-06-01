@@ -83,18 +83,23 @@ std::string _readAll(int fd) {
 
     std::cout << "++ reading all" << std::endl;
     while (true) {
+        auto newSize = buf.size() + readBytes;
+        std::cout << "+++ resizing buffer to " << newSize << " bytes" << std::endl;
         buf.resize(buf.size() + readBytes);
+
 
         auto n = read(fd, buf.data(), readBytes);
         if (n < readBytes) {
             if (n == -1) {
                 throw std::runtime_error("could not read all data");
             }
+            newSize = buf.size() - (readBytes - n);
+            std::cout << "+++ read " << n << " bytes, resizing to " << newSize << std::endl;
+
+            buf.resize(newSize);
 
             break;
         }
-
-        buf.resize(buf.size() - (readBytes - n));
     }
     std::cout << "-- read all" << std::endl;
 
