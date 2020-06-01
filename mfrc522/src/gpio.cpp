@@ -197,12 +197,12 @@ void writePin(uint8_t pin, uint8_t value)
     GlobalManager::singleton().writePin(pin, value);
 }
 
-void unexportAllPins()
+[[maybe_unused]] void unexportAllPins()
 {
     GlobalManager::singleton().unexportAllPins();
 }
 
-void unexportPin(uint8_t pin)
+[[maybe_unused]] void unexportPin(uint8_t pin)
 {
     GlobalManager::singleton().unexportPin(pin);
 }

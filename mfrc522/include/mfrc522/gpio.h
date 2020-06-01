@@ -47,8 +47,8 @@ private:
 
 void exportPin(uint8_t pin, PinDirection direction);
 void writePin(uint8_t pin, uint8_t value);
-void unexportAllPins();
-void unexportPin(uint8_t pin);
+[[maybe_unused]] void unexportAllPins();
+[[maybe_unused]] void unexportPin(uint8_t pin);
 uint8_t readPin(uint8_t pin);
 
 class InvalidPinDirectionException : public std::runtime_error
