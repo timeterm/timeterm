@@ -31,6 +31,11 @@ int main()
     mfrc.pcdInit();
 
     while (true) {
+        if (quit) {
+            std::cout << "Terminating" << std::endl;
+            break;
+        }
+
         // Look for a card
         if (!mfrc.piccIsNewCardPresent())
             continue;
@@ -50,11 +55,6 @@ int main()
         }
         printf("\n");
         delay(1000);
-
-        if (quit) {
-            std::cout << "Terminating" << std::endl;
-            break;
-        }
     }
     return 0;
 }
