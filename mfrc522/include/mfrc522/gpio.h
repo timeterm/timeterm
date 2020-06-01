@@ -5,16 +5,21 @@
 #include <unistd.h>
 #include <unordered_set>
 
-namespace Mfrc522 { // NOLINT
+namespace Mfrc522
+{// NOLINT
 
 //! The Gpio namespace.
-namespace Gpio {}
-
+namespace Gpio
+{
 }
 
-namespace Mfrc522::Gpio {
+}// namespace Mfrc522
 
-enum class PinDirection {
+namespace Mfrc522::Gpio
+{
+
+enum class PinDirection
+{
     Out,
     In,
 };
@@ -29,6 +34,8 @@ public:
 
     void exportPin(uint8_t pin, PinDirection direction);
     void writePin(uint8_t pin, uint8_t value);
+    uint8_t readPin(uint8_t pin);
+    void unexportPin(uint8_t pin);
     void unexportAllPins();
 
 private:
@@ -45,5 +52,8 @@ private:
 
 void exportPin(uint8_t pin, PinDirection direction);
 void writePin(uint8_t pin, uint8_t value);
+void unexportAllPins();
+void unexportPin(uint8_t pin);
+uint8_t readPin(uint8_t pin);
 
-} // namespace Mfrc522::Gpio
+}// namespace Mfrc522::Gpio

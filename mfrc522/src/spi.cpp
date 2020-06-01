@@ -1,5 +1,4 @@
 #include <mfrc522/spi.h>
-
 #include <cstdint>
 #include <fcntl.h>
 #include <iostream>
@@ -8,7 +7,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-namespace Mfrc522::Spi {
+namespace Mfrc522::Spi
+{
 
 DeviceOpenOption withMode(uint8_t mode)
 {
@@ -104,11 +104,28 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
     // as we're writing (this is the way SPI works).
     std::vector<uint8_t> rx(tx.size());
 
+    transferN(reinterpret_cast<const char *>(tx.data()), tx.size(), reinterpret_cast<const char *>(rx.data()));
+
+    return rx;
+}
+
+uint8_t Device::transfer1(uint8_t byte) const
+{
+    transferN(reinterpret_cast<const char *>(&byte), 1);
+    return byte;
+}
+
+int Device::transferN(const char *buf, uint32_t len, const char *rx) const
+{
+    if (!rx) {
+        rx = buf;
+    }
+
     struct spi_ioc_transfer transfer = {};
 
-    transfer.tx_buf = (uintptr_t) tx.data();
-    transfer.rx_buf = (uintptr_t) rx.data();
-    transfer.len = (uint32_t) tx.size();
+    transfer.tx_buf = (uintptr_t) buf;
+    transfer.rx_buf = (uintptr_t) rx;
+    transfer.len = len;
     transfer.speed_hz = m_options.speed;
     transfer.delay_usecs = m_options.delay;
     transfer.bits_per_word = m_options.bits;
@@ -118,18 +135,17 @@ std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
         throw SpiSendMessageException(errno);
     }
 
-    return rx;
+    return 0;
 }
+
 #pragma clang diagnostic pop
 
 DeviceOpenException::DeviceOpenException(int err)
-    : std::runtime_error(std::string("could not open device: ") + strerror(err))
-    , m_errno(err)
+    : std::runtime_error(std::string("could not open device: ") + strerror(err)), m_errno(err)
 {}
 
 DeviceConfigureException::DeviceConfigureException(const std::string &msg, int err)
-    : std::runtime_error("could not configure device: " + msg + ": " + strerror(err))
-    , m_errno(err)
+    : std::runtime_error("could not configure device: " + msg + ": " + strerror(err)), m_errno(err)
 {}
 
 PayloadTooLargeException::PayloadTooLargeException()
@@ -137,8 +153,7 @@ PayloadTooLargeException::PayloadTooLargeException()
 {}
 
 SpiSendMessageException::SpiSendMessageException(int err)
-    : std::runtime_error(std::string("could not send SPI message: ") + strerror(err))
-    , m_errno(err)
+    : std::runtime_error(std::string("could not send SPI message: ") + strerror(err)), m_errno(err)
 {}
 
-} // namespace Mfrc522::Spi
+}// namespace Mfrc522::Spi

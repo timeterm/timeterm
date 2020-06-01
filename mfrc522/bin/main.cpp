@@ -1,35 +1,46 @@
-#include <iostream>
 
-#include <csignal>
+#ifdef WIN32
+#include <windows.h>
+#else
 #include <mfrc522/mfrc522.h>
+#include <unistd.h>
+#endif
 
-volatile bool quit = false;
-
-void handleInterrupt(int)
-{
-    quit = true;
+void delay(int ms){
+#ifdef WIN32
+    Sleep(ms);
+#else
+    usleep(ms*1000);
+#endif
 }
 
-int main(int argc, char *argv[])
-{
-    auto mfrc522 = Mfrc522::Device{};
+int main(){
+    MFRC522 mfrc;
 
-    std::signal(SIGINT, handleInterrupt);
+    mfrc.PCD_Init();
 
-    while (!quit) {
-        auto [status, tagType] = mfrc522.request(Mfrc522::PiccCommand::ReqIdl);
-
-        if (status != Mfrc522::Status::Ok) {
+    while(1){
+        // Look for a card
+        if(!mfrc.PICC_IsNewCardPresent())
             continue;
-        }
-        std::cout << "Card detected" << std::endl;
 
-        auto [newStatus, uid] = mfrc522.antiColl();
-        if (newStatus != Mfrc522::Status::Ok) {
+        if( !mfrc.PICC_ReadCardSerial())
             continue;
-        }
 
-        std::cout << "Card UID: " << std::to_string(uid[0]) << std::to_string(uid[1])
-                  << std::to_string(uid[2]) << std::to_string(uid[3]) << std::endl;
+        // Print UID
+        for(uint8_t i = 0; i < mfrc.uid.size; ++i){
+            if(mfrc.uid.uidByte[i] < 0x10){
+                printf(" 0");
+                printf("%X",mfrc.uid.uidByte[i]);
+            }
+            else{
+                printf(" ");
+                printf("%X", mfrc.uid.uidByte[i]);
+            }
+
+        }
+        printf("\n");
+        delay(1000);
     }
+    return 0;
 }

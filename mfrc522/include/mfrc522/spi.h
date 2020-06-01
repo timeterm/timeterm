@@ -69,6 +69,8 @@ public:
     ~Device();
 
     [[nodiscard]] std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes) const;
+    int transferN(const char *buf, uint32_t len, const char *rx = nullptr) const;
+    [[nodiscard]] uint8_t transfer1(uint8_t byte) const;
 
 private:
     DeviceOpenOptions m_options;
