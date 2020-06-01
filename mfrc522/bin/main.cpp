@@ -26,7 +26,7 @@ void handleSignal(int) {
 int main()
 {
     Mfrc522::Device mfrc;
-    signal(SIGTERM, handleSignal);
+    signal(SIGINT, handleSignal);
 
     mfrc.pcdInit();
 
