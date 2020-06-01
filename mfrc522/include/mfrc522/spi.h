@@ -68,9 +68,13 @@ public:
 
     ~Device();
 
-    [[nodiscard]] std::vector<uint8_t> transfer(const std::vector<uint8_t> &bytes) const;
-    int transferN(const char *buf, uint32_t len, const char *rx = nullptr) const;
-    [[nodiscard]] uint8_t transfer1(uint8_t byte) const;
+    void transferNU(const uint8_t *buf, uint32_t len) const;
+
+    void transferN(const char *buf, uint32_t len, const char *rx = nullptr) const;
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "modernize-use-nodiscard"
+    uint8_t transfer1(uint8_t byte) const;
+#pragma clang diagnostic pop
 
 private:
     DeviceOpenOptions m_options;

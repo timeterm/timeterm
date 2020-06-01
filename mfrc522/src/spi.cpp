@@ -92,30 +92,15 @@ Device::~Device()
     close(m_fd);
 }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "hicpp-signed-bitwise"
-std::vector<uint8_t> Device::transfer(const std::vector<uint8_t> &tx) const
-{
-    if (tx.size() > UINT32_MAX) {
-        throw PayloadTooLargeException();
-    }
-
-    // Make rx with the size of tx, because we're reading as much bytes
-    // as we're writing (this is the way SPI works).
-    std::vector<uint8_t> rx(tx.size());
-
-    transferN(reinterpret_cast<const char *>(tx.data()), tx.size(), reinterpret_cast<const char *>(rx.data()));
-
-    return rx;
-}
-
 uint8_t Device::transfer1(uint8_t byte) const
 {
     transferN(reinterpret_cast<const char *>(&byte), 1);
     return byte;
 }
 
-int Device::transferN(const char *buf, uint32_t len, const char *rx) const
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-signed-bitwise"
+void Device::transferN(const char *buf, uint32_t len, const char *rx) const
 {
     if (!rx) {
         rx = buf;
@@ -134,11 +119,13 @@ int Device::transferN(const char *buf, uint32_t len, const char *rx) const
     if (ret < 1) {
         throw SpiSendMessageException(errno);
     }
-
-    return 0;
 }
-
 #pragma clang diagnostic pop
+
+void Device::transferNU(const uint8_t *buf, uint32_t len) const
+{
+    transferN(reinterpret_cast<const char *>(buf), len);
+}
 
 DeviceOpenException::DeviceOpenException(int err)
     : std::runtime_error(std::string("could not open device: ") + strerror(err)), m_errno(err)
