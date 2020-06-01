@@ -30,13 +30,13 @@ int main()
             continue;
 
         // Print UID
-        for (uint8_t i = 0; i < mfrc.uid.size; ++i) {
-            if (mfrc.uid.uidByte[i] < 0x10) {
+        for (uint8_t i = 0; i < mfrc.getUid().size; ++i) {
+            if (mfrc.getUid().uidByte[i] < 0x10) {
                 printf(" 0");
-                printf("%X", mfrc.uid.uidByte[i]);
+                printf("%X", mfrc.getUid().uidByte[i]);
             } else {
                 printf(" ");
-                printf("%X", mfrc.uid.uidByte[i]);
+                printf("%X", mfrc.getUid().uidByte[i]);
             }
         }
         printf("\n");
