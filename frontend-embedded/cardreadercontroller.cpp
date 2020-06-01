@@ -8,7 +8,7 @@ CardReaderController::CardReaderController(CardReader *cardReader,
     connect(&cardReaderThread, &QThread::finished, m_cardReader, &QObject::deleteLater);
     connect(m_cardReader, &CardReader::cardRead, this, &CardReaderController::cardRead);
     connect(this, &CardReaderController::runCardReader, m_cardReader, &CardReader::start);
-    emit runCardReader(QPrivateSignal());
+    emit runCardReader();
 }
 
 CardReaderController::~CardReaderController() {
