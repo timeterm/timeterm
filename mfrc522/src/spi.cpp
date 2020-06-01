@@ -39,8 +39,6 @@ DeviceOpenOption withDelay(uint16_t delay)
 #pragma ide diagnostic ignored "hicpp-signed-bitwise"
 Device::Device(std::initializer_list<DeviceOpenOption> opts)
 {
-    std::cout << "SPI::Device constructor called" << std::endl;
-
     for (auto &opt : opts) {
         opt(m_options);
     }

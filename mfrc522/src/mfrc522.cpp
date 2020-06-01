@@ -275,7 +275,7 @@ uint8_t Device::pcdGetAntennaGain() const
 // Functions for communicating with PICCs
 //-----------------------------------------------------------------------------------
 
-uint8_t Device::PCD_TransceiveData(uint8_t *sendData,
+uint8_t Device::pcdTransceiveData(uint8_t *sendData,
                                    uint8_t sendLen,
                                    uint8_t *backData,
                                    uint8_t *backLen,
@@ -284,18 +284,18 @@ uint8_t Device::PCD_TransceiveData(uint8_t *sendData,
                                    bool checkCrc) const
 {
     uint8_t waitIRq = 0x30; // RxIRq and IdleIRq
-    return PCD_CommunicateWithPICC(PcdTransceive,
-                                   waitIRq,
-                                   sendData,
-                                   sendLen,
-                                   backData,
-                                   backLen,
-                                   validBits,
-                                   rxAlign,
-                                   checkCrc);
+    return pcdCommunicateWithPicc(PcdTransceive,
+                                  waitIRq,
+                                  sendData,
+                                  sendLen,
+                                  backData,
+                                  backLen,
+                                  validBits,
+                                  rxAlign,
+                                  checkCrc);
 }
 
-uint8_t Device::PCD_CommunicateWithPICC(uint8_t command,
+uint8_t Device::pcdCommunicateWithPicc(uint8_t command,
                                         uint8_t waitIRq,
                                         uint8_t *sendData,
                                         uint8_t sendLen,
@@ -396,17 +396,17 @@ uint8_t Device::PCD_CommunicateWithPICC(uint8_t command,
     return StatusOk;
 }
 
-uint8_t Device::PICC_RequestA(uint8_t *bufferAtqa, uint8_t *bufferSize) const
+uint8_t Device::piccRequestA(uint8_t *bufferAtqa, uint8_t *bufferSize) const
 {
-    return PICC_ReqaOrWupa(PiccCmdReqa, bufferAtqa, bufferSize);
+    return piccReqaOrWupa(PiccCmdReqa, bufferAtqa, bufferSize);
 }
 
-uint8_t Device::PICC_WakeupA(uint8_t *bufferAtqa, uint8_t *bufferSize) const
+uint8_t Device::piccWakeupA(uint8_t *bufferAtqa, uint8_t *bufferSize) const
 {
-    return PICC_ReqaOrWupa(PiccCmdWupa, bufferAtqa, bufferSize);
+    return piccReqaOrWupa(PiccCmdWupa, bufferAtqa, bufferSize);
 }
 
-uint8_t Device::PICC_ReqaOrWupa(uint8_t command, uint8_t *bufferAtqa, uint8_t *bufferSize) const
+uint8_t Device::piccReqaOrWupa(uint8_t command, uint8_t *bufferAtqa, uint8_t *bufferSize) const
 {
     uint8_t validBits;
     uint8_t status;
@@ -418,7 +418,7 @@ uint8_t Device::PICC_ReqaOrWupa(uint8_t command, uint8_t *bufferAtqa, uint8_t *b
                             0x80); // ValuesAfterColl=1 => Bits received after collision are cleared.
     validBits
         = 7; // For REQA and WUPA we need the short frame format - transmit only 7 bits of the last (and only) uint8_t. TxLastBits = BitFramingReg[2..0]
-    status = PCD_TransceiveData(&command, 1, bufferAtqa, bufferSize, &validBits);
+    status = pcdTransceiveData(&command, 1, bufferAtqa, bufferSize, &validBits);
     if (status != StatusOk) {
         return status;
     }
@@ -428,7 +428,7 @@ uint8_t Device::PICC_ReqaOrWupa(uint8_t command, uint8_t *bufferAtqa, uint8_t *b
     return StatusOk;
 }
 
-uint8_t Device::PICC_Select(Uid *uid, uint8_t validBits) const
+uint8_t Device::piccSelect(Uid *uid, uint8_t validBits) const
 {
     bool uidComplete;
     bool selectDone;
@@ -583,12 +583,12 @@ uint8_t Device::PICC_Select(Uid *uid, uint8_t validBits) const
                     + txLastBits); // RxAlign = BitFramingReg[6..4]. TxLastBits = BitFramingReg[2..0]
 
             // Transmit the buffer and receive the response.
-            result = PCD_TransceiveData(buffer,
-                                        bufferUsed,
-                                        responseBuffer,
-                                        &responseLength,
-                                        &txLastBits,
-                                        rxAlign);
+            result = pcdTransceiveData(buffer,
+                                       bufferUsed,
+                                       responseBuffer,
+                                       &responseLength,
+                                       &txLastBits,
+                                       rxAlign);
             if (result == StatusCollision) { // More than one PICC in the field => collision.
                 result = pcdReadRegister(
                     CollReg); // CollReg[7..0] bits are: ValuesAfterColl reserved CollPosNotValid CollPos[4:0]
@@ -658,7 +658,7 @@ uint8_t Device::PICC_Select(Uid *uid, uint8_t validBits) const
     return StatusOk;
 }
 
-uint8_t Device::PICC_HaltA() const
+uint8_t Device::piccHaltA() const
 {
     uint8_t result;
     uint8_t buffer[4];
@@ -677,7 +677,7 @@ uint8_t Device::PICC_HaltA() const
     //		If the PICC responds with any modulation during a period of 1 ms after the end of the frame containing the
     //		HLTA command, this response shall be interpreted as 'not acknowledge'.
     // We interpret that this way: Only StatusTimeout is an success.
-    result = PCD_TransceiveData(buffer, sizeof(buffer), nullptr, nullptr);
+    result = pcdTransceiveData(buffer, sizeof(buffer), nullptr, nullptr);
     if (result == StatusTimeout) {
         return StatusOk;
     }
@@ -691,7 +691,7 @@ uint8_t Device::PICC_HaltA() const
 // Functions for communicating with MIFARE PICCs
 //-----------------------------------------------------------------------------------
 
-uint8_t Device::PCD_Authenticate(uint8_t command, uint8_t blockAddr, MifareKey *key, Uid *uid) const
+uint8_t Device::pcdAuthenticate(uint8_t command, uint8_t blockAddr, MifareKey *key, Uid *uid) const
 {
     uint8_t waitIRq = 0x10; // IdleIRq
 
@@ -707,10 +707,10 @@ uint8_t Device::PCD_Authenticate(uint8_t command, uint8_t blockAddr, MifareKey *
     }
 
     // Start the authentication.
-    return PCD_CommunicateWithPICC(PcdMfAuthent, waitIRq, &sendData[0], sizeof(sendData));
+    return pcdCommunicateWithPicc(PcdMfAuthent, waitIRq, &sendData[0], sizeof(sendData));
 }
 
-void Device::PCD_StopCrypto1() const
+void Device::pcdStopCrypto1() const
 {
     // Clear MFCrypto1On bit
     pcdClearRegisterBitMask(
@@ -718,7 +718,7 @@ void Device::PCD_StopCrypto1() const
         0x08); // Status2Reg[7..0] bits are: TempSensClear I2CForceHS reserved reserved MFCrypto1On ModemState[2:0]
 }
 
-uint8_t Device::MIFARE_Read(uint8_t blockAddr, uint8_t *buffer, uint8_t *bufferSize) const
+uint8_t Device::mifareRead(uint8_t blockAddr, uint8_t *buffer, uint8_t *bufferSize) const
 {
     uint8_t result;
 
@@ -737,10 +737,10 @@ uint8_t Device::MIFARE_Read(uint8_t blockAddr, uint8_t *buffer, uint8_t *bufferS
     }
 
     // Transmit the buffer and receive the response, validate CRC_A.
-    return PCD_TransceiveData(buffer, 4, buffer, bufferSize, nullptr, 0, true);
+    return pcdTransceiveData(buffer, 4, buffer, bufferSize, nullptr, 0, true);
 }
 
-uint8_t Device::MIFARE_Write(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferSize) const
+uint8_t Device::mifareWrite(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferSize) const
 {
     uint8_t result;
 
@@ -754,15 +754,15 @@ uint8_t Device::MIFARE_Write(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferS
     uint8_t cmdBuffer[2];
     cmdBuffer[0] = PiccCmdMfWrite;
     cmdBuffer[1] = blockAddr;
-    result = PCD_MIFARE_Transceive(cmdBuffer,
-                                   2); // Adds CRC_A and checks that the response is MfAck.
+    result = pcdMifareTransceive(cmdBuffer,
+                                 2); // Adds CRC_A and checks that the response is MfAck.
     if (result != StatusOk) {
         return result;
     }
 
     // Step 2: Transfer the data
-    result = PCD_MIFARE_Transceive(buffer,
-                                   bufferSize); // Adds CRC_A and checks that the response is MfAck.
+    result = pcdMifareTransceive(buffer,
+                                 bufferSize); // Adds CRC_A and checks that the response is MfAck.
     if (result != StatusOk) {
         return result;
     }
@@ -770,7 +770,7 @@ uint8_t Device::MIFARE_Write(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferS
     return StatusOk;
 }
 
-[[maybe_unused]] uint8_t Device::MIFARE_Ultralight_Write(uint8_t page,
+[[maybe_unused]] uint8_t Device::mifareUltralightWrite(uint8_t page,
                                                          uint8_t *buffer,
                                                          uint8_t bufferSize) const
 {
@@ -788,32 +788,32 @@ uint8_t Device::MIFARE_Write(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferS
     memcpy(&cmdBuffer[2], buffer, 4);
 
     // Perform the write
-    result = PCD_MIFARE_Transceive(cmdBuffer,
-                                   6); // Adds CRC_A and checks that the response is MfAck.
+    result = pcdMifareTransceive(cmdBuffer,
+                                 6); // Adds CRC_A and checks that the response is MfAck.
     if (result != StatusOk) {
         return result;
     }
     return StatusOk;
 }
 
-[[maybe_unused]] uint8_t Device::MIFARE_Decrement(uint8_t blockAddr, long delta)
+[[maybe_unused]] uint8_t Device::mifareDecrement(uint8_t blockAddr, long delta)
 {
-    return MIFARE_TwoStepHelper(PiccCmdMfDecrement, blockAddr, delta);
+    return mifareTwoStepHelper(PiccCmdMfDecrement, blockAddr, delta);
 }
 
-[[maybe_unused]] uint8_t Device::MIFARE_Increment(uint8_t blockAddr, long delta)
+[[maybe_unused]] uint8_t Device::mifareIncrement(uint8_t blockAddr, long delta)
 {
-    return MIFARE_TwoStepHelper(PiccCmdMfIncrement, blockAddr, delta);
+    return mifareTwoStepHelper(PiccCmdMfIncrement, blockAddr, delta);
 }
 
-[[maybe_unused]] uint8_t Device::MIFARE_Restore(uint8_t blockAddr)
+[[maybe_unused]] uint8_t Device::mifareRestore(uint8_t blockAddr)
 {
     // The datasheet describes Restore as a two step operation, but does not explain what data to transfer in step 2.
     // Doing only a single step does not work, so I chose to transfer 0L in step two.
-    return MIFARE_TwoStepHelper(PiccCmdMfRestore, blockAddr, 0L);
+    return mifareTwoStepHelper(PiccCmdMfRestore, blockAddr, 0L);
 }
 
-uint8_t Device::MIFARE_TwoStepHelper(uint8_t command, uint8_t blockAddr, long data) const
+uint8_t Device::mifareTwoStepHelper(uint8_t command, uint8_t blockAddr, long data) const
 {
     uint8_t result;
     uint8_t cmdBuffer[2]; // We only need room for 2 bytes.
@@ -821,16 +821,16 @@ uint8_t Device::MIFARE_TwoStepHelper(uint8_t command, uint8_t blockAddr, long da
     // Step 1: Tell the PICC the command and block address
     cmdBuffer[0] = command;
     cmdBuffer[1] = blockAddr;
-    result = PCD_MIFARE_Transceive(cmdBuffer,
-                                   2); // Adds CRC_A and checks that the response is MfAck.
+    result = pcdMifareTransceive(cmdBuffer,
+                                 2); // Adds CRC_A and checks that the response is MfAck.
     if (result != StatusOk) {
         return result;
     }
 
     // Step 2: Transfer the data
-    result = PCD_MIFARE_Transceive((uint8_t *) &data,
-                                   4,
-                                   true); // Adds CRC_A and accept timeout as success.
+    result = pcdMifareTransceive((uint8_t *) &data,
+                                 4,
+                                 true); // Adds CRC_A and accept timeout as success.
     if (result != StatusOk) {
         return result;
     }
@@ -838,7 +838,7 @@ uint8_t Device::MIFARE_TwoStepHelper(uint8_t command, uint8_t blockAddr, long da
     return StatusOk;
 }
 
-[[maybe_unused]] uint8_t Device::MIFARE_Transfer(uint8_t blockAddr) const
+[[maybe_unused]] uint8_t Device::mifareTransfer(uint8_t blockAddr) const
 {
     uint8_t result;
     uint8_t cmdBuffer[2]; // We only need room for 2 bytes.
@@ -846,22 +846,22 @@ uint8_t Device::MIFARE_TwoStepHelper(uint8_t command, uint8_t blockAddr, long da
     // Tell the PICC we want to transfer the result into block blockAddr.
     cmdBuffer[0] = PiccCmdMfTransfer;
     cmdBuffer[1] = blockAddr;
-    result = PCD_MIFARE_Transceive(cmdBuffer,
-                                   2); // Adds CRC_A and checks that the response is MfAck.
+    result = pcdMifareTransceive(cmdBuffer,
+                                 2); // Adds CRC_A and checks that the response is MfAck.
     if (result != StatusOk) {
         return result;
     }
     return StatusOk;
 }
 
-uint8_t Device::MIFARE_GetValue(uint8_t blockAddr, long *value) const
+uint8_t Device::mifareGetValue(uint8_t blockAddr, long *value) const
 {
     uint8_t status;
     uint8_t buffer[18];
     uint8_t size = sizeof(buffer);
 
     // Read the block
-    status = MIFARE_Read(blockAddr, buffer, &size);
+    status = mifareRead(blockAddr, buffer, &size);
     if (status == StatusOk) {
         // Extract the value
         *value = (long(buffer[3]) << 24) | (long(buffer[2]) << 16) | (long(buffer[1]) << 8)
@@ -870,7 +870,7 @@ uint8_t Device::MIFARE_GetValue(uint8_t blockAddr, long *value) const
     return status;
 }
 
-uint8_t Device::MIFARE_SetValue(uint8_t blockAddr, long value) const
+uint8_t Device::mifareSetValue(uint8_t blockAddr, long value) const
 {
     uint8_t buffer[18];
 
@@ -889,14 +889,14 @@ uint8_t Device::MIFARE_SetValue(uint8_t blockAddr, long value) const
     buffer[13] = buffer[15] = ~blockAddr;
 
     // Write the whole data block
-    return MIFARE_Write(blockAddr, buffer, 16);
+    return mifareWrite(blockAddr, buffer, 16);
 }
 
 //-----------------------------------------------------------------------------------
 // Support functions
 //-----------------------------------------------------------------------------------
 
-uint8_t Device::PCD_MIFARE_Transceive(uint8_t *sendData, uint8_t sendLen, bool acceptTimeout) const
+uint8_t Device::pcdMifareTransceive(uint8_t *sendData, uint8_t sendLen, bool acceptTimeout) const
 {
     uint8_t result;
     uint8_t cmdBuffer[18]; // We need room for 16 bytes data and 2 bytes CRC_A.
@@ -918,13 +918,13 @@ uint8_t Device::PCD_MIFARE_Transceive(uint8_t *sendData, uint8_t sendLen, bool a
     uint8_t waitIRq = 0x30; // RxIRq and IdleIRq
     uint8_t cmdBufferSize = sizeof(cmdBuffer);
     uint8_t validBits = 0;
-    result = PCD_CommunicateWithPICC(PcdTransceive,
-                                     waitIRq,
-                                     cmdBuffer,
-                                     sendLen,
-                                     cmdBuffer,
-                                     &cmdBufferSize,
-                                     &validBits);
+    result = pcdCommunicateWithPicc(PcdTransceive,
+                                    waitIRq,
+                                    cmdBuffer,
+                                    sendLen,
+                                    cmdBuffer,
+                                    &cmdBufferSize,
+                                    &validBits);
     if (acceptTimeout && result == StatusTimeout) {
         return StatusOk;
     }
@@ -941,7 +941,7 @@ uint8_t Device::PCD_MIFARE_Transceive(uint8_t *sendData, uint8_t sendLen, bool a
     return StatusOk;
 }
 
-std::string Device::GetStatusCodeName(uint8_t code)
+std::string Device::getStatusCodeName(uint8_t code)
 {
     switch (code) {
     case StatusOk:
@@ -967,7 +967,7 @@ std::string Device::GetStatusCodeName(uint8_t code)
     }
 }
 
-uint8_t Device::PICC_GetType(uint8_t sak)
+uint8_t Device::piccGetType(uint8_t sak)
 {
     if (sak & 0x04u) { // UID not complete
         return PiccTypeNotComplete;
@@ -1008,9 +1008,9 @@ uint8_t Device::PICC_GetType(uint8_t sak)
     return PiccTypeUnknown;
 }
 
-std::string Device::PICC_GetTypeName(uint8_t piccType)
+std::string Device::piccGetTypeName(uint8_t type)
 {
-    switch (piccType) {
+    switch (type) {
     case PiccTypeIso14443_4:
         return "PICC compliant with ISO/IEC 14443-4";
     case PiccTypeIso18092:
@@ -1035,7 +1035,7 @@ std::string Device::PICC_GetTypeName(uint8_t piccType)
     }
 }
 
-[[maybe_unused]] void Device::PICC_DumpToSerial(Uid *uid) const
+[[maybe_unused]] void Device::piccDumpToSerial(Uid *uid) const
 {
     MifareKey key;
 
@@ -1051,10 +1051,10 @@ std::string Device::PICC_GetTypeName(uint8_t piccType)
     printf("\n");
 
     // PICC type
-    uint8_t piccType = PICC_GetType(uid->sak);
+    uint8_t piccType = piccGetType(uid->sak);
     printf("PICC type: ");
-    //Serial.println(PICC_GetTypeName(piccType));
-    printf("%s", PICC_GetTypeName(piccType).c_str());
+    //Serial.println(piccGetTypeName(piccType));
+    printf("%s", piccGetTypeName(piccType).c_str());
 
     // Dump contents
     switch (piccType) {
@@ -1065,11 +1065,11 @@ std::string Device::PICC_GetTypeName(uint8_t piccType)
         for (unsigned char &i : key.keyByte) {
             i = 0xFF;
         }
-        PICC_DumpMifareClassicToSerial(uid, piccType, &key);
+        piccDumpMifareClassicToSerial(uid, piccType, &key);
         break;
 
     case PiccTypeMifareUl:
-        PICC_DumpMifareUltralightToSerial();
+        piccDumpMifareUltralightToSerial();
         break;
 
     case PiccTypeIso14443_4:
@@ -1086,10 +1086,10 @@ std::string Device::PICC_GetTypeName(uint8_t piccType)
     }
 
     printf("\n");
-    PICC_HaltA(); // Already done if it was a MIFARE Classic PICC.
+    piccHaltA(); // Already done if it was a MIFARE Classic PICC.
 }
 
-void Device::PICC_DumpMifareClassicToSerial(Uid *uid, uint8_t piccType, MifareKey *key) const
+void Device::piccDumpMifareClassicToSerial(Uid *uid, uint8_t piccType, MifareKey *key) const
 {
     uint8_t amountOfSectors = 0;
     switch (piccType) {
@@ -1116,14 +1116,14 @@ void Device::PICC_DumpMifareClassicToSerial(Uid *uid, uint8_t piccType, MifareKe
     if (amountOfSectors) {
         printf("Sector Block   0  1  2  3   4  5  6  7   8  9 10 11  12 13 14 15  AccessBits\n");
         for (char i = static_cast<char>(amountOfSectors - 1); i >= 0; i--) {
-            PICC_DumpMifareClassicSectorToSerial(uid, key, i);
+            piccDumpMifareClassicSectorToSerial(uid, key, i);
         }
     }
-    PICC_HaltA(); // Halt the PICC before stopping the encrypted session.
-    PCD_StopCrypto1();
+    piccHaltA(); // Halt the PICC before stopping the encrypted session.
+    pcdStopCrypto1();
 }
 
-void Device::PICC_DumpMifareClassicSectorToSerial(Uid *uid, MifareKey *key, uint8_t sector) const
+void Device::piccDumpMifareClassicSectorToSerial(Uid *uid, MifareKey *key, uint8_t sector) const
 {
     uint8_t status;
     uint8_t firstBlock;   // Address of lowest address to dump actually last block dumped)
@@ -1187,19 +1187,19 @@ void Device::PICC_DumpMifareClassicSectorToSerial(Uid *uid, MifareKey *key, uint
         printf("  ");
         // Establish encrypted communications before reading the first block
         if (isSectorTrailer) {
-            status = PCD_Authenticate(PiccCmdMfAuthKeyA, firstBlock, key, uid);
+            status = pcdAuthenticate(PiccCmdMfAuthKeyA, firstBlock, key, uid);
             if (status != StatusOk) {
-                printf("PCD_Authenticate() failed: ");
-                printf("%s\n", GetStatusCodeName(status).c_str());
+                printf("pcdAuthenticate() failed: ");
+                printf("%s\n", getStatusCodeName(status).c_str());
                 return;
             }
         }
         // Read block
         uint8_tCount = sizeof(buffer);
-        status = MIFARE_Read(blockAddr, buffer, &uint8_tCount);
+        status = mifareRead(blockAddr, buffer, &uint8_tCount);
         if (status != StatusOk) {
-            printf("MIFARE_Read() failed: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("mifareRead() failed: ");
+            printf("%s\n", getStatusCodeName(status).c_str());
             continue;
         }
         // Dump data
@@ -1265,7 +1265,7 @@ void Device::PICC_DumpMifareClassicSectorToSerial(Uid *uid, MifareKey *key, uint
     }
 }
 
-void Device::PICC_DumpMifareUltralightToSerial() const
+void Device::piccDumpMifareUltralightToSerial() const
 {
     uint8_t status;
     uint8_t uint8_tCount;
@@ -1277,10 +1277,10 @@ void Device::PICC_DumpMifareUltralightToSerial() const
     for (uint8_t page = 0; page < 16; page += 4) { // Read returns data for 4 pages at a time.
         // Read pages
         uint8_tCount = sizeof(buffer);
-        status = MIFARE_Read(page, buffer, &uint8_tCount);
+        status = mifareRead(page, buffer, &uint8_tCount);
         if (status != StatusOk) {
-            printf("MIFARE_Read() failed: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("mifareRead() failed: ");
+            printf("%s\n", getStatusCodeName(status).c_str());
             break;
         }
         // Dump data
@@ -1305,7 +1305,7 @@ void Device::PICC_DumpMifareUltralightToSerial() const
     }
 }
 
-[[maybe_unused]] void Device::MIFARE_SetAccessBits(
+[[maybe_unused]] void Device::mifareSetAccessBits(
     uint8_t *accessBitBuffer, uint8_t g0, uint8_t g1, uint8_t g2, uint8_t g3)
 {
     uint8_t c1 = ((g3 & 4) << 1) | ((g2 & 4) << 0) | ((g1 & 4) >> 1) | ((g0 & 4) >> 2);
@@ -1318,7 +1318,7 @@ void Device::PICC_DumpMifareUltralightToSerial() const
     accessBitBuffer[2] = c3 << 4u | c2;
 }
 
-bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
+bool Device::mifareOpenUidBackdoor(bool logErrors) const
 {
     // Magic sequence:
     // > 50 00 57 CD (HALT + CRC)
@@ -1328,26 +1328,26 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     // < A (4 bits only)
     // Then you can write to sector 0 without authenticating
 
-    PICC_HaltA(); // 50 00 57 CD
+    piccHaltA(); // 50 00 57 CD
 
     uint8_t cmd = 0x40;
     uint8_t validBits = 7; /* Our command is only 7 bits. After receiving card response,
 			 this will contain amount of valid response bits. */
     uint8_t response[32];  // Card's response is written here
     uint8_t received;
-    uint8_t status = PCD_TransceiveData(&cmd,
-                                        (uint8_t) 1,
-                                        response,
-                                        &received,
-                                        &validBits,
-                                        (uint8_t) 0,
-                                        false); // 40
+    uint8_t status = pcdTransceiveData(&cmd,
+                                       (uint8_t) 1,
+                                       response,
+                                       &received,
+                                       &validBits,
+                                       (uint8_t) 0,
+                                       false); // 40
     if (status != StatusOk) {
         if (logErrors) {
             printf("Card did not respond to 0x40 after HALT command. Are you sure it is a UID "
                    "changeable one?");
             printf("Error name: ");
-            printf("%s", GetStatusCodeName(status).c_str());
+            printf("%s", getStatusCodeName(status).c_str());
         }
         return false;
     }
@@ -1364,18 +1364,18 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
 
     cmd = 0x43;
     validBits = 8;
-    status = PCD_TransceiveData(&cmd,
-                                (uint8_t) 1,
-                                response,
-                                &received,
-                                &validBits,
-                                (uint8_t) 0,
-                                false); // 43
+    status = pcdTransceiveData(&cmd,
+                               (uint8_t) 1,
+                               response,
+                               &received,
+                               &validBits,
+                               (uint8_t) 0,
+                               false); // 43
     if (status != StatusOk) {
         if (logErrors) {
             printf("Error in communication at command 0x43, after successfully executing 0x40");
             printf("Error name: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("%s\n", getStatusCodeName(status).c_str());
         }
         return false;
     }
@@ -1394,7 +1394,7 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     return true;
 }
 
-[[maybe_unused]] bool Device::MIFARE_SetUid(const uint8_t *newUid, uint8_t uidSize, bool logErrors)
+[[maybe_unused]] bool Device::mifareSetUid(const uint8_t *newUid, uint8_t uidSize, bool logErrors)
 {
     // UID + BCC uint8_t can not be larger than 16 together
     if (!newUid || !uidSize || uidSize > 15) {
@@ -1406,7 +1406,7 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
 
     // Authenticate for reading
     MifareKey key = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t status = PCD_Authenticate(Device::PiccCmdMfAuthKeyA, (uint8_t) 1, &key, &m_uid);
+    uint8_t status = pcdAuthenticate(Device::PiccCmdMfAuthKeyA, (uint8_t) 1, &key, &m_uid);
     if (status != StatusOk) {
         if (status == StatusTimeout) {
             // We get a read timeout if no card is selected yet, so let's select one
@@ -1414,27 +1414,27 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
             // Wake the card up again if sleeping
             //			  uint8_t atqa_answer[2];
             //			  uint8_t atqa_size = 2;
-            //			  PICC_WakeupA(atqa_answer, &atqa_size);
+            //			  piccWakeupA(atqa_answer, &atqa_size);
 
-            if (!PICC_IsNewCardPresent() || !PICC_ReadCardSerial()) {
+            if (!piccIsNewCardPresent() || !piccReadCardSerial()) {
                 printf(
                     "No card was previously selected, and none are available. Failed to set UID.");
                 return false;
             }
 
-            status = PCD_Authenticate(Device::PiccCmdMfAuthKeyA, (uint8_t) 1, &key, &m_uid);
+            status = pcdAuthenticate(Device::PiccCmdMfAuthKeyA, (uint8_t) 1, &key, &m_uid);
             if (status != StatusOk) {
                 // We tried, time to give up
                 if (logErrors) {
                     printf("Failed to authenticate to card for reading, could not set UID: ");
-                    printf("%s\n", GetStatusCodeName(status).c_str());
+                    printf("%s\n", getStatusCodeName(status).c_str());
                 }
                 return false;
             }
         } else {
             if (logErrors) {
-                printf("PCD_Authenticate() failed: ");
-                printf("%s\n", GetStatusCodeName(status).c_str());
+                printf("pcdAuthenticate() failed: ");
+                printf("%s\n", getStatusCodeName(status).c_str());
             }
             return false;
         }
@@ -1443,11 +1443,11 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     // Read block 0
     uint8_t block0_buffer[18];
     uint8_t uint8_tCount = sizeof(block0_buffer);
-    status = MIFARE_Read((uint8_t) 0, block0_buffer, &uint8_tCount);
+    status = mifareRead((uint8_t) 0, block0_buffer, &uint8_tCount);
     if (status != StatusOk) {
         if (logErrors) {
-            printf("MIFARE_Read() failed: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("mifareRead() failed: ");
+            printf("%s\n", getStatusCodeName(status).c_str());
             printf("Are you sure your KEY A for sector 0 is 0xFFFFFFFFFFFF?");
         }
         return false;
@@ -1464,10 +1464,10 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     block0_buffer[uidSize] = bcc;
 
     // Stop encrypted traffic so we can send raw bytes
-    PCD_StopCrypto1();
+    pcdStopCrypto1();
 
     // Activate UID backdoor
-    if (!MIFARE_OpenUidBackdoor(logErrors)) {
+    if (!mifareOpenUidBackdoor(logErrors)) {
         if (logErrors) {
             printf("Activating the UID backdoor failed.");
         }
@@ -1475,11 +1475,11 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     }
 
     // Write modified block 0 back to card
-    status = MIFARE_Write((uint8_t) 0, block0_buffer, (uint8_t) 16);
+    status = mifareWrite((uint8_t) 0, block0_buffer, (uint8_t) 16);
     if (status != StatusOk) {
         if (logErrors) {
-            printf("MIFARE_Write() failed: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("mifareWrite() failed: ");
+            printf("%s\n", getStatusCodeName(status).c_str());
         }
         return false;
     }
@@ -1487,14 +1487,14 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
     // Wake the card up again
     uint8_t atqa_answer[2];
     uint8_t atqa_size = 2;
-    PICC_WakeupA(atqa_answer, &atqa_size);
+    piccWakeupA(atqa_answer, &atqa_size);
 
     return true;
 }
 
-[[maybe_unused]] bool Device::MIFARE_UnbrickUidSector(bool logErrors) const
+[[maybe_unused]] bool Device::mifareUnbrickUidSector(bool logErrors) const
 {
-    MIFARE_OpenUidBackdoor(logErrors);
+    mifareOpenUidBackdoor(logErrors);
 
     uint8_t block0_buffer[] = {0x01,
                                0x02,
@@ -1514,11 +1514,11 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
                                0x00};
 
     // Write modified block 0 back to card
-    uint8_t status = MIFARE_Write((uint8_t) 0, block0_buffer, (uint8_t) 16);
+    uint8_t status = mifareWrite((uint8_t) 0, block0_buffer, (uint8_t) 16);
     if (status != StatusOk) {
         if (logErrors) {
-            printf("MIFARE_Write() failed: ");
-            printf("%s\n", GetStatusCodeName(status).c_str());
+            printf("mifareWrite() failed: ");
+            printf("%s\n", getStatusCodeName(status).c_str());
         }
         return false;
     }
@@ -1529,17 +1529,17 @@ bool Device::MIFARE_OpenUidBackdoor(bool logErrors) const
 // Convenience functions - does not add extra functionality
 //-----------------------------------------------------------------------------------
 
-bool Device::PICC_IsNewCardPresent() const
+bool Device::piccIsNewCardPresent() const
 {
     uint8_t bufferATQA[2];
     uint8_t bufferSize = sizeof(bufferATQA);
-    uint8_t result = PICC_RequestA(bufferATQA, &bufferSize);
+    uint8_t result = piccRequestA(bufferATQA, &bufferSize);
     return (result == StatusOk || result == StatusCollision);
 }
 
-bool Device::PICC_ReadCardSerial()
+bool Device::piccReadCardSerial()
 {
-    uint8_t result = PICC_Select(&m_uid);
+    uint8_t result = piccSelect(&m_uid);
     return (result == StatusOk);
 }
 

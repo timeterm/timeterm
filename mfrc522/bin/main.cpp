@@ -1,8 +1,9 @@
+#include <iostream>
+#include <mfrc522/mfrc522.h>
 
 #ifdef WIN32
 #include <windows.h>
 #else
-#include <mfrc522/mfrc522.h>
 #include <unistd.h>
 #endif
 
@@ -15,6 +16,12 @@ void delay(int ms)
 #endif
 }
 
+volatile bool quit = false;
+
+void handleInterrupt(int) {
+    quit = true;
+}
+
 int main()
 {
     Mfrc522::Device mfrc;
@@ -23,10 +30,10 @@ int main()
 
     while (true) {
         // Look for a card
-        if (!mfrc.PICC_IsNewCardPresent())
+        if (!mfrc.piccIsNewCardPresent())
             continue;
 
-        if (!mfrc.PICC_ReadCardSerial())
+        if (!mfrc.piccReadCardSerial())
             continue;
 
         // Print UID
@@ -41,6 +48,11 @@ int main()
         }
         printf("\n");
         delay(1000);
+
+        if (quit) {
+            std::cout << "Terminating" << std::endl;
+            break;
+        }
     }
     return 0;
 }
