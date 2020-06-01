@@ -4,6 +4,7 @@
 #ifdef WIN32
 #include <windows.h>
 #else
+#include <csignal>
 #include <unistd.h>
 #endif
 
@@ -25,6 +26,7 @@ void handleInterrupt(int) {
 int main()
 {
     Mfrc522::Device mfrc;
+    signal(SIGTERM, handleInterrupt);
 
     mfrc.pcdInit();
 
