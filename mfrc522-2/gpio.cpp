@@ -77,38 +77,6 @@ void _writePin(uint8_t pin, uint8_t value)
     close(fd);
 }
 
-std::string _readAll(int fd) {
-    std::string buf;
-    size_t readBytes = 64;
-
-    std::cout << "++ reading all" << std::endl;
-    while (true) {
-        auto newSize = buf.size() + readBytes;
-        std::cout << "+++ resizing buffer to " << newSize << " bytes" << std::endl;
-        sleep(1);
-        buf.resize(buf.size() + readBytes);
-
-        auto n = read(fd, buf.data(), readBytes);
-        std::cout << "+++ current buffer data: " << buf << std::endl;
-        sleep(1);
-        if (n < readBytes) {
-            if (n == -1) {
-                throw std::runtime_error("could not read all data");
-            }
-            newSize = buf.size() - (readBytes - n);
-            std::cout << "+++ read " << n << " bytes, resizing to " << newSize << std::endl;
-            sleep(1);
-
-            buf.resize(newSize);
-
-            break;
-        }
-    }
-    std::cout << "-- read all" << std::endl;
-
-    return buf;
-}
-
 uint8_t _readPin(uint8_t pin)
 {
     auto pinStr = std::to_string(pin);
@@ -120,9 +88,9 @@ uint8_t _readPin(uint8_t pin)
         throw std::runtime_error("could not set pin value (not enough permissions?)");
     }
 
-
-    auto valueStr = _readAll(fd);
-    auto byte = std::stoul(valueStr);
+    char bytes[4];
+    auto valueStr = read(fd, &bytes, 4);
+    auto byte = atoi(reinterpret_cast<const char *>(valueStr));
     if (byte > UINT8_MAX) {
         throw std::runtime_error("invalid pin value");
     }
