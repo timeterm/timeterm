@@ -85,8 +85,8 @@ std::string _readAll(int fd) {
     while (true) {
         auto newSize = buf.size() + readBytes;
         std::cout << "+++ resizing buffer to " << newSize << " bytes" << std::endl;
+        sleep(1);
         buf.resize(buf.size() + readBytes);
-
 
         auto n = read(fd, buf.data(), readBytes);
         if (n < readBytes) {
@@ -94,6 +94,7 @@ std::string _readAll(int fd) {
                 throw std::runtime_error("could not read all data");
             }
             newSize = buf.size() - (readBytes - n);
+            sleep(1);
             std::cout << "+++ read " << n << " bytes, resizing to " << newSize << std::endl;
 
             buf.resize(newSize);
