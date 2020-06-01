@@ -9,12 +9,10 @@
 #define LOW 0
 #define HIGH 1
 
-using namespace std;
-
 namespace Mfrc522 {
 
-Device::Device()
-    : m_spiDev({Spi::withSpeed(4000000)})
+Device::Device(std::initializer_list<Spi::DeviceOpenOption> spiOptions)
+    : m_spiDev(spiOptions)
 {
     Gpio::exportPin(RSTPIN, Gpio::PinDirection::Out);
     Gpio::writePin(RSTPIN, LOW);

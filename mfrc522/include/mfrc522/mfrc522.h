@@ -228,7 +228,9 @@ public:
      * Constructor.
      * Prepares the output pins.
      */
-    Device();
+    Device(std::initializer_list<Spi::DeviceOpenOption> spiOptions = {
+               Spi::withSpeed(4000000),
+           });
 
     //-----------------------------------------------------------------------------------
     // Basic interface functions for communicating with the MFRC522

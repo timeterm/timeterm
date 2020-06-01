@@ -1,3 +1,6 @@
-Based on https://github.com/lthiery/SPI-Py, the non-working library https://github.com/mxgxw/MFRC522-python, and its working fork https://github.com/pelwell/MFRC522-python.
+# mfrc522
 
-Parts licensed under GPL-2.0 and LGPL-3.0 because the Python library are that as well, and that's only nice to do.
+A C++ library for reading (and writing) with the MFRC522.
+Works with the Raspberry Pi 4, but should work perfectly well with other devices supporting SPI and GPIO through the Linux kernel. 
+
+Based on https://github.com/paguz/RPi-RFID.
