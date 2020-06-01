@@ -14,11 +14,10 @@ public:
     explicit Mfrc522Device(QObject *parent = nullptr);
     ~Mfrc522Device() = default;
 
-    void run();
-
     QString makeUidString(Mfrc522::Device::Uid uid);
 
 public slots:
+    void start();
     void shutDown();
 
 signals:

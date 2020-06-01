@@ -13,6 +13,7 @@ public:
     virtual ~CardReader() = default;
 
 public slots:
+    virtual void start() = 0;
     virtual void shutDown() = 0;
 
 signals:

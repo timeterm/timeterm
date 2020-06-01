@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     QScopedPointer<CardReaderController> cardReader(new CardReaderController(
                                                         new Mfrc522Device()));
 
+    qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderController", "singleton");
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "cardReader", cardReader.get());
 
     QQmlApplicationEngine engine;
