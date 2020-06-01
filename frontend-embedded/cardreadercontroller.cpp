@@ -12,10 +12,11 @@ CardReaderController::CardReaderController(CardReader *cardReader,
 
     cardReaderThread.start();
 
-    emit runCardReader();
+    emit runCardReader(QPrivateSignal());
 }
 
-CardReaderController::~CardReaderController() {
+CardReaderController::~CardReaderController()
+{
     m_cardReader->shutDown();
 
     cardReaderThread.quit();

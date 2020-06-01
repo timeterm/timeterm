@@ -8,7 +8,8 @@ Mfrc522Device::Mfrc522Device(QObject *parent)
     m_mfrcDev.pcdInit();
 }
 
-void Mfrc522Device::start() {
+void Mfrc522Device::start()
+{
     while (!m_shutDown) {
         if (!m_mfrcDev.piccIsNewCardPresent())
             continue;
@@ -25,7 +26,8 @@ void Mfrc522Device::start() {
     }
 }
 
-QString Mfrc522Device::makeUidString(Mfrc522::Device::Uid uid) {
+QString Mfrc522Device::makeUidString(Mfrc522::Device::Uid uid)
+{
     QString result;
 
     QTextStream ts(&result);
@@ -41,6 +43,7 @@ QString Mfrc522Device::makeUidString(Mfrc522::Device::Uid uid) {
     return result;
 }
 
-void Mfrc522Device::shutDown() {
+void Mfrc522Device::shutDown()
+{
     m_shutDown = true;
 }

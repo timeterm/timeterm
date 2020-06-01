@@ -4,13 +4,13 @@
 #include <QObject>
 #include <QString>
 
-class CardReader : public QObject
+class CardReader: public QObject
 {
     Q_OBJECT
 
 public:
     explicit CardReader(QObject *parent = nullptr);
-    virtual ~CardReader() = default;
+    ~CardReader() override = default;
 
 public slots:
     virtual void start() = 0;
@@ -20,4 +20,4 @@ signals:
     void cardRead(const QString &uid);
 };
 
-#endif // CARDREADER_H
+#endif// CARDREADER_H
