@@ -17,7 +17,7 @@ public slots:
     virtual void shutDown() = 0;
 
 signals:
-    virtual void cardRead(const QString &uid) = 0;
+    void cardRead(const QString &uid);
 };
 
 #endif // CARDREADER_H

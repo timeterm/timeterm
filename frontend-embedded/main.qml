@@ -11,7 +11,7 @@ Window {
     title: qsTr("Hello World")
 
     Connections {
-        target: cardReader
+        target: CardReader
         onCardRead: {
             window.title = uid
         }

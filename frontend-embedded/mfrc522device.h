@@ -20,9 +20,6 @@ public slots:
     void start();
     void shutDown();
 
-signals:
-    void cardRead(const QString &uid);
-
 private:
     Mfrc522::Device m_mfrcDev;
     bool m_shutDown = false;

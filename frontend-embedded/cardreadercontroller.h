@@ -15,6 +15,7 @@ public:
 
 signals:
     void cardRead(const QString &uid);
+    void runCardReader(QPrivateSignal);
 
 private:
     CardReader *m_cardReader;

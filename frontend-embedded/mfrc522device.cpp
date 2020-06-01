@@ -5,6 +5,7 @@
 Mfrc522Device::Mfrc522Device(QObject *parent)
     : CardReader(parent)
 {
+    m_mfrcDev.pcdInit();
 }
 
 void Mfrc522Device::start() {
