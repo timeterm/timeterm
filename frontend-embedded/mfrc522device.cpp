@@ -7,7 +7,7 @@ Mfrc522Device::Mfrc522Device(QObject *parent)
 {
 }
 
-void Mfrc522Device::run() {
+void Mfrc522Device::start() {
     while (!m_shutDown) {
         if (!m_mfrcDev.piccIsNewCardPresent())
             continue;
