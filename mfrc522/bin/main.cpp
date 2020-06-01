@@ -25,10 +25,10 @@ void handleSignal(int) {
 
 int main()
 {
-    Mfrc522::Device mfrc;
+    Mfrc522::Device rfidReader;
     signal(SIGINT, handleSignal);
 
-    mfrc.pcdInit();
+    rfidReader.pcdInit();
 
     while (true) {
         if (quit) {
@@ -37,20 +37,20 @@ int main()
         }
 
         // Look for a card
-        if (!mfrc.piccIsNewCardPresent())
+        if (!rfidReader.piccIsNewCardPresent())
             continue;
 
-        if (!mfrc.piccReadCardSerial())
+        if (!rfidReader.piccReadCardSerial())
             continue;
 
         // Print UID
-        for (uint8_t i = 0; i < mfrc.getUid().size; ++i) {
-            if (mfrc.getUid().uidByte[i] < 0x10) {
+        for (uint8_t i = 0; i < rfidReader.getUid().size; ++i) {
+            if (rfidReader.getUid().uidByte[i] < 0x10) {
                 printf(" 0");
-                printf("%X", mfrc.getUid().uidByte[i]);
+                printf("%X", rfidReader.getUid().uidByte[i]);
             } else {
                 printf(" ");
-                printf("%X", mfrc.getUid().uidByte[i]);
+                printf("%X", rfidReader.getUid().uidByte[i]);
             }
         }
         printf("\n");

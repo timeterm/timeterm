@@ -1,22 +1,19 @@
-#include <mfrc522/gpio.h>
 #include <iostream>
+#include <mfrc522/gpio.h>
 #include <vector>
 
-namespace Mfrc522::Gpio
-{
+namespace Mfrc522::Gpio {
 
 void _exportPin(uint8_t pin)
 {
     int fd = open("/sys/class/gpio/export", O_WRONLY);
     if (fd == -1) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not export pin (not enough permissions?)");
+        throw ExportOpenException();
     }
 
     auto pinStr = std::to_string(pin);
     if (write(fd, pinStr.c_str(), pinStr.length()) != pinStr.length()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not export pin (error writing pin export)");
+        throw PinExportException();
     }
 
     close(fd);
@@ -28,15 +25,13 @@ void _setPinDirection(uint8_t pin, PinDirection direction)
     auto path = "/sys/class/gpio/gpio" + pinStr + "/direction";
 
     int fd = open(path.c_str(), O_WRONLY);
-    if (fd == -1) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not set pin direction (not enough permissions?)");
+    if (fd == -1) {r
+        throw DirectionOpenException();
     }
 
     auto directionStr = pinDirectionToStringView(direction);
     if (write(fd, directionStr.data(), directionStr.length()) != directionStr.length()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not set pin direction (error writing pin direction)");
+        throw PinDirectionSetException();
     }
 }
 
@@ -44,14 +39,12 @@ void _unexportPin(uint8_t pin)
 {
     int fd = open("/sys/class/gpio/unexport", O_WRONLY);
     if (fd == -1) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not unexport pin (not enough permissions?)");
+        throw UnexportOpenException();
     }
 
     auto pinStr = std::to_string(pin);
     if (write(fd, pinStr.c_str(), pinStr.length()) != pinStr.length()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not unexport pin (error writing pin unexport)");
+        throw PinUnexportException();
     }
 
     close(fd);
@@ -64,14 +57,12 @@ void _writePin(uint8_t pin, uint8_t value)
 
     int fd = open(path.c_str(), O_WRONLY);
     if (fd == -1) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not set pin value (not enough permissions?)");
+        throw PinOpenException();
     }
 
     auto valueStr = std::to_string(value);
     if (write(fd, valueStr.c_str(), valueStr.length()) != valueStr.length()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not set pin value (error writing pin value)");
+        throw PinValueSetException();
     }
 
     close(fd);
@@ -84,15 +75,14 @@ uint8_t _readPin(uint8_t pin)
 
     int fd = open(path.c_str(), O_WRONLY);
     if (fd == -1) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("could not set pin value (not enough permissions?)");
+        throw PinOpenException();
     }
 
     char bytes[4] = {0};
     read(fd, bytes, 4);
-    auto byte = atoi(bytes);
+    auto byte = strtoul(bytes, nullptr, 10);
     if (byte > UINT8_MAX) {
-        throw std::runtime_error("invalid pin value");
+        throw InvalidPinValueException();
     }
 
     close(fd);
@@ -127,8 +117,7 @@ GlobalManager::~GlobalManager()
         // An exception is currently propagating.
         try {
             unexportAllPins();
-        }
-        catch (...) {
+        } catch (...) {
             // We're currently in the destructor. In the case of an exception already propagating
             // we don't want the program to completely shut down due to another exception being
             // thrown, hence the catch-all.
@@ -169,19 +158,18 @@ void GlobalManager::writePin(uint8_t pin, uint8_t value)
     auto guard = std::lock_guard{m_mtx};
 
     if (m_exportedPins.find(pin) == m_exportedPins.end()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("write to unexported pin");
+        throw UnexportedPinWriteException();
     }
 
     _writePin(pin, value);
 }
 
-uint8_t GlobalManager::readPin(uint8_t pin) {
+uint8_t GlobalManager::readPin(uint8_t pin)
+{
     auto guard = std::lock_guard{m_mtx};
 
     if (m_exportedPins.find(pin) == m_exportedPins.end()) {
-        // TODO(rutgerbrf): custom exception
-        throw std::runtime_error("write to unexported pin");
+        throw UnexportedPinReadException();
     }
 
     return _readPin(pin);
@@ -190,13 +178,12 @@ uint8_t GlobalManager::readPin(uint8_t pin) {
 std::string_view pinDirectionToStringView(PinDirection direction)
 {
     switch (direction) {
-        case PinDirection::Out:
-            return "out";
-        case PinDirection::In:
-            return "in";
-        default:
-            // TODO(rutgerbrf): custom exception
-            throw std::runtime_error("invalid PinDirection");
+    case PinDirection::Out:
+        return "out";
+    case PinDirection::In:
+        return "in";
+    default:
+        throw InvalidPinDirectionException();
     }
 }
 
@@ -210,16 +197,19 @@ void writePin(uint8_t pin, uint8_t value)
     GlobalManager::singleton().writePin(pin, value);
 }
 
-void unexportAllPins() {
+void unexportAllPins()
+{
     GlobalManager::singleton().unexportAllPins();
 }
 
-void unexportPin(uint8_t pin) {
+void unexportPin(uint8_t pin)
+{
     GlobalManager::singleton().unexportPin(pin);
 }
 
-uint8_t readPin(uint8_t pin) {
+uint8_t readPin(uint8_t pin)
+{
     return GlobalManager::singleton().readPin(pin);
 }
 
-}// namespace Mfrc522::Gpio
+} // namespace Mfrc522::Gpio
