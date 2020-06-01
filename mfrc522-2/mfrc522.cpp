@@ -19,6 +19,14 @@
 using namespace std;
 using namespace Mfrc522;
 
+void delay(int ms) {
+    timespec ts = {
+        .tv_sec = 0,
+        .tv_nsec = 50 * 1000000,
+    };
+    nanosleep(&ts, nullptr);
+}
+
 /**
  * Constructor.
  * Prepares the output pins.
@@ -191,11 +199,7 @@ void MFRC522::PCD_Init()
         Gpio::writePin(RSTPIN, HIGH);  // Exit power down mode. This triggers a hard reset.
         // Section 8.8.2 in the datasheet says the oscillator start-up time is the start up time of the crystal + 37,74�s. Let us be generous: 50ms.
 
-        timespec ts = {
-            .tv_sec = 0,
-            .tv_nsec = 50 * 1000000,
-        };
-        nanosleep(&ts, nullptr);
+        delay(50);
     }
     else {// Perform a soft reset
         PCD_Reset();
@@ -553,7 +557,7 @@ uint8_t MFRC522::PICC_Select(Uid *uid,        ///< Pointer to Uid struct. Normal
     uint8_t result;
     uint8_t count;
     uint8_t index;
-    uint8_t uidIndex;                 // The first index in uid->uiduint8_t[] that is used in the current Cascade Level.
+    uint8_t uidIndex;                 // The first index in uid->uidByte[] that is used in the current Cascade Level.
     signed char currentLevelKnownBits;// The number of known UID bits in the current Cascade Level.
     uint8_t buffer[9];                // The SELECT/ANTICOLLISION commands uses a 7 uint8_t standard frame + 2 uint8_ts CRC_A
     uint8_t bufferUsed;               // The number of uint8_ts used in the buffer, ie the number of uint8_ts to transfer to the FIFO.
@@ -625,7 +629,7 @@ uint8_t MFRC522::PICC_Select(Uid *uid,        ///< Pointer to Uid struct. Normal
         if (currentLevelKnownBits < 0) {
             currentLevelKnownBits = 0;
         }
-        // Copy the known bits from uid->uiduint8_t[] to buffer[]
+        // Copy the known bits from uid->uidByte[] to buffer[]
         index = 2;// destination index in buffer[]
         if (useCascadeTag) {
             buffer[index++] = PICC_CMD_CT;
@@ -637,7 +641,7 @@ uint8_t MFRC522::PICC_Select(Uid *uid,        ///< Pointer to Uid struct. Normal
                 uint8_tsToCopy = maxuint8_ts;
             }
             for (count = 0; count < uint8_tsToCopy; count++) {
-                buffer[index++] = uid->uiduint8_t[uidIndex + count];
+                buffer[index++] = uid->uidByte[uidIndex + count];
             }
         }
         // Now that the data has been copied we need to include the 8 bits in CT in currentLevelKnownBits
@@ -719,7 +723,7 @@ uint8_t MFRC522::PICC_Select(Uid *uid,        ///< Pointer to Uid struct. Normal
 
         // We do not check the CBB - it was constructed by us above.
 
-        // Copy the found UID uint8_ts from buffer[] to uid->uiduint8_t[]
+        // Copy the found UID uint8_ts from buffer[] to uid->uidByte[]
         index = (buffer[2] == PICC_CMD_CT) ? 3 : 2;// source index in buffer[]
         uint8_tsToCopy = (buffer[2] == PICC_CMD_CT) ? 3 : 4;
         for (count = 0; count < uint8_tsToCopy; count++) {
@@ -820,7 +824,7 @@ uint8_t MFRC522::PCD_Authenticate(uint8_t command,  ///< PICC_CMD_MF_AUTH_KEY_A 
         sendData[2 + i] = key->keyuint8_t[i];
     }
     for (uint8_t i = 0; i < 4; i++) {// The first 4 uint8_ts of the UID
-        sendData[8 + i] = uid->uiduint8_t[i];
+        sendData[8 + i] = uid->uidByte[i];
     }
 
     // Start the authentication.
