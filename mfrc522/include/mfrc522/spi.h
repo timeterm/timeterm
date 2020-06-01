@@ -6,18 +6,21 @@
 #include <string>
 
 //! The Mfrc522 namespace.
-namespace Mfrc522 { // NOLINT
+namespace Mfrc522
+{// NOLINT
 
 //! The Spi namespace.
-namespace Spi {}
+namespace Spi
+{
+}
 
-} // namespace Mfrc522
+}// namespace Mfrc522
 
-namespace Mfrc522::Spi {
+namespace Mfrc522::Spi
+{
 
 //! DeviceOpenOptions contains options for opening a device.
-struct DeviceOpenOptions
-{
+struct DeviceOpenOptions {
     //! The path to the device to open.
     //! Can be set using withDevicePath()
     std::string device = "/dev/spidev0.0";
@@ -81,7 +84,7 @@ private:
     int m_fd = 0;
 };
 
-class DeviceOpenException : public std::runtime_error
+class DeviceOpenException: public std::runtime_error
 {
 public:
     explicit DeviceOpenException(int err);
@@ -90,7 +93,7 @@ private:
     int m_errno;
 };
 
-class DeviceConfigureException : public std::runtime_error
+class DeviceConfigureException: public std::runtime_error
 {
 public:
     explicit DeviceConfigureException(const std::string &msg, int err);
@@ -99,13 +102,13 @@ private:
     int m_errno;
 };
 
-class PayloadTooLargeException : public std::runtime_error
+class PayloadTooLargeException: public std::runtime_error
 {
 public:
     PayloadTooLargeException();
 };
 
-class SpiSendMessageException : public std::runtime_error
+class SpiSendMessageException: public std::runtime_error
 {
 public:
     explicit SpiSendMessageException(int err);
@@ -114,4 +117,4 @@ private:
     int m_errno;
 };
 
-} // namespace Mfrc522::Spi
+}// namespace Mfrc522::Spi

@@ -5,16 +5,21 @@
 #include <unistd.h>
 #include <unordered_set>
 
-namespace Mfrc522 { // NOLINT
+namespace Mfrc522// NOLINT
+{
 
 //! The Gpio namespace.
-namespace Gpio {}
+namespace Gpio
+{
+}
 
-} // namespace Mfrc522
+}// namespace Mfrc522
 
-namespace Mfrc522::Gpio {
+namespace Mfrc522::Gpio
+{
 
-enum class PinDirection {
+enum class PinDirection
+{
     Out,
     In,
 };
@@ -51,7 +56,7 @@ void writePin(uint8_t pin, uint8_t value);
 [[maybe_unused]] void unexportPin(uint8_t pin);
 uint8_t readPin(uint8_t pin);
 
-class InvalidPinDirectionException : public std::runtime_error
+class InvalidPinDirectionException: public std::runtime_error
 {
 public:
     InvalidPinDirectionException()
@@ -59,7 +64,7 @@ public:
     {}
 };
 
-class UnexportedPinWriteException : public std::runtime_error
+class UnexportedPinWriteException: public std::runtime_error
 {
 public:
     UnexportedPinWriteException()
@@ -67,7 +72,7 @@ public:
     {}
 };
 
-class UnexportedPinReadException : public std::runtime_error
+class UnexportedPinReadException: public std::runtime_error
 {
 public:
     UnexportedPinReadException()
@@ -75,7 +80,7 @@ public:
     {}
 };
 
-class InvalidPinValueException : public std::runtime_error
+class InvalidPinValueException: public std::runtime_error
 {
 public:
     InvalidPinValueException()
@@ -83,7 +88,7 @@ public:
     {}
 };
 
-class PinOpenException : public std::runtime_error
+class PinOpenException: public std::runtime_error
 {
 public:
     PinOpenException()
@@ -91,7 +96,7 @@ public:
     {}
 };
 
-class DirectionOpenException : public std::runtime_error
+class DirectionOpenException: public std::runtime_error
 {
 public:
     DirectionOpenException()
@@ -99,7 +104,7 @@ public:
     {}
 };
 
-class PinDirectionSetException : public std::runtime_error
+class PinDirectionSetException: public std::runtime_error
 {
 public:
     PinDirectionSetException()
@@ -107,7 +112,7 @@ public:
     {}
 };
 
-class PinValueSetException : public std::runtime_error
+class PinValueSetException: public std::runtime_error
 {
 public:
     PinValueSetException()
@@ -115,7 +120,7 @@ public:
     {}
 };
 
-class PinExportException : public std::runtime_error
+class PinExportException: public std::runtime_error
 {
 public:
     PinExportException()
@@ -123,7 +128,7 @@ public:
     {}
 };
 
-class PinUnexportException : public std::runtime_error
+class PinUnexportException: public std::runtime_error
 {
 public:
     PinUnexportException()
@@ -131,7 +136,7 @@ public:
     {}
 };
 
-class ExportOpenException : public std::runtime_error
+class ExportOpenException: public std::runtime_error
 {
 public:
     ExportOpenException()
@@ -139,7 +144,7 @@ public:
     {}
 };
 
-class UnexportOpenException : public std::runtime_error
+class UnexportOpenException: public std::runtime_error
 {
 public:
     UnexportOpenException()
@@ -147,4 +152,4 @@ public:
     {}
 };
 
-} // namespace Mfrc522::Gpio
+}// namespace Mfrc522::Gpio
