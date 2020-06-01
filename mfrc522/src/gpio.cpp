@@ -25,7 +25,7 @@ void _setPinDirection(uint8_t pin, PinDirection direction)
     auto path = "/sys/class/gpio/gpio" + pinStr + "/direction";
 
     int fd = open(path.c_str(), O_WRONLY);
-    if (fd == -1) {r
+    if (fd == -1) {
         throw DirectionOpenException();
     }
 
