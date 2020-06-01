@@ -1,4 +1,5 @@
 #include "mfrc522/mfrc522.h"
+#include <iostream>
 
 // Physical pin 22, see the 'gpio readall' utility from wiringPi (2.52 required for RPi 4B!).
 // Also very useful: https://www.ics.com/blog/gpio-programming-using-sysfs-interface
@@ -184,7 +185,10 @@ uint8_t Device::read(Register reg)
     auto addr = static_cast<uint8_t>((static_cast<uint8_t>(static_cast<uint8_t>(reg) << 1u) & 0x7Eu)
                                      | 0x80u);
 
-    return m_spiDevice.transfer({addr, 0})[1];
+    auto byte = m_spiDevice.transfer({addr, 0})[1];
+    std::cout << "Got a byte: " << std::hex << std::to_string(byte) << std::dec << std::endl;
+
+    return byte;
 }
 
 // Ok.
