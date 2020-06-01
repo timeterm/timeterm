@@ -101,6 +101,7 @@ std::string _readAll(int fd) {
 
             break;
         }
+        std::cout << "+++ current buffer data: " << buf << std::endl;
     }
     std::cout << "-- read all" << std::endl;
 
