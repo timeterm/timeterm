@@ -19,7 +19,7 @@
 using namespace std;
 using namespace Mfrc522;
 
-void delay(int ms) {
+void msdelay(int ms) {
     timespec ts = {
         .tv_sec = 0,
         .tv_nsec = 50 * 1000000,
@@ -199,7 +199,7 @@ void MFRC522::PCD_Init()
         Gpio::writePin(RSTPIN, HIGH);  // Exit power down mode. This triggers a hard reset.
         // Section 8.8.2 in the datasheet says the oscillator start-up time is the start up time of the crystal + 37,74�s. Let us be generous: 50ms.
 
-        delay(50);
+        msdelay(50);
     }
     else {// Perform a soft reset
         PCD_Reset();
@@ -227,7 +227,7 @@ void MFRC522::PCD_Reset()
     // The datasheet does not mention how long the SoftRest command takes to complete.
     // But the MFRC522 might have been in soft power-down mode (triggered by bit 4 of CommandReg)
     // Section 8.8.2 in the datasheet says the oscillator start-up time is the start up time of the crystal + 37,74�s. Let us be generous: 50ms.
-    delay(50);
+    msdelay(50);
     // Wait for the PowerDown bit in CommandReg to be cleared
     while (PCD_ReadRegister(CommandReg) & (1 << 4)) {
         // PCD still restarting - unlikely after waiting 50ms, but better safe than sorry.
