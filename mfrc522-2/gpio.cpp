@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include <iostream>
 #include <vector>
 
 namespace Mfrc522::Gpio
@@ -80,6 +81,7 @@ std::string _readAll(int fd) {
     std::string buf;
     size_t readBytes = 64;
 
+    std::cout << "++ reading all" << std::endl;
     while (true) {
         buf.resize(buf.size() + readBytes);
 
@@ -94,6 +96,7 @@ std::string _readAll(int fd) {
 
         buf.resize(buf.size() - (readBytes - n));
     }
+    std::cout << "-- read all" << std::endl;
 
     return buf;
 }
