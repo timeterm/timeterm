@@ -1,0 +1,13 @@
+openapi: 3.0.0
+info:
+  title: Timeterm
+  version: '1.0'
+  contact:
+    name: Timeterm
+    email: support@timeterm.nl
+  description: The Timeterm API
+servers:
+  - url: 'http://localhost:3000'
+paths: {}
+components:
+  schemas: {}
