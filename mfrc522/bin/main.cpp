@@ -19,7 +19,7 @@ int main()
 {
     Mfrc522::Device mfrc;
 
-    mfrc.PCD_Init();
+    mfrc.pcdInit();
 
     while (true) {
         // Look for a card

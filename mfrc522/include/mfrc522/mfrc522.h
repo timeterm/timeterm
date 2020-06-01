@@ -134,68 +134,68 @@ public:
     /// Commands sent to the PICC.
     enum PiccCommand {
         // The commands used by the PCD to manage communication with several PICCs (ISO 14443-3, Type A, section 6.4)
-        PICC_CMD_REQA
+        PiccCmdReqa
         = 0x26, ///< REQuest command, Type A. Invites PICCs in state IDLE to go to READY and prepare for anticollision or selection. 7 bit frame.
-        PICC_CMD_WUPA
+        PiccCmdWupa
         = 0x52, ///< Wake-UP command, Type A. Invites PICCs in state IDLE and HALT to go to READY(*) and prepare for anticollision or selection. 7 bit frame.
-        PICC_CMD_CT = 0x88, ///< Cascade Tag. Not really a command, but used during anti collision.
-        PICC_CMD_SEL_CL1 = 0x93, ///< Anti collision/Select, Cascade Level 1
-        PICC_CMD_SEL_CL2 = 0x95, ///< Anti collision/Select, Cascade Level 2
-        PICC_CMD_SEL_CL3 = 0x97, ///< Anti collision/Select, Cascade Level 3
-        PICC_CMD_HLTA = 0x50, ///< HaLT command, Type A. Instructs an ACTIVE PICC to go to state HALT.
+        PiccCmdCt = 0x88, ///< Cascade Tag. Not really a command, but used during anti collision.
+        PiccCmdSelCl1 = 0x93, ///< Anti collision/Select, Cascade Level 1
+        PiccCmdSelCl2 = 0x95, ///< Anti collision/Select, Cascade Level 2
+        PiccCmdSelCl3 = 0x97, ///< Anti collision/Select, Cascade Level 3
+        PiccCmdHlta = 0x50, ///< HaLT command, Type A. Instructs an ACTIVE PICC to go to state HALT.
 
         // The commands used for MIFARE Classic (from http://www.nxp.com/documents/data_sheet/MF1S503x.pdf, Section 9)
         // Use PcdMfAuthent to authenticate access to a sector, then use these commands to read/write/modify the blocks on the sector.
         // The read/write commands can also be used for MIFARE Ultralight.
-        PICC_CMD_MF_AUTH_KEY_A = 0x60, ///< Perform authentication with Key A
-        PICC_CMD_MF_AUTH_KEY_B = 0x61, ///< Perform authentication with Key B
-        PICC_CMD_MF_READ
+        PiccCmdMfAuthKeyA = 0x60, ///< Perform authentication with Key A
+        PiccCmdMfAuthKeyB = 0x61, ///< Perform authentication with Key B
+        PiccCmdMfRead
         = 0x30, ///< Reads one 16 uint8_t block from the authenticated sector of the PICC. Also used for MIFARE Ultralight.
-        PICC_CMD_MF_WRITE
+        PiccCmdMfWrite
         = 0xA0, ///< Writes one 16 uint8_t block to the authenticated sector of the PICC. Called "COMPATIBILITY WRITE" for MIFARE Ultralight.
-        PICC_CMD_MF_DECREMENT
+        PiccCmdMfDecrement
         = 0xC0, ///< Decrements the contents of a block and stores the result in the internal data register.
-        PICC_CMD_MF_INCREMENT
+        PiccCmdMfIncrement
         = 0xC1, ///< Increments the contents of a block and stores the result in the internal data register.
-        PICC_CMD_MF_RESTORE = 0xC2, ///< Reads the contents of a block into the internal data register.
-        PICC_CMD_MF_TRANSFER = 0xB0, ///< Writes the contents of the internal data register to a block.
+        PiccCmdMfRestore = 0xC2, ///< Reads the contents of a block into the internal data register.
+        PiccCmdMfTransfer = 0xB0, ///< Writes the contents of the internal data register to a block.
 
         // The commands used for MIFARE Ultralight (from http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf, Section 8.6)
-        // The PICC_CMD_MF_READ and PICC_CMD_MF_WRITE can also be used for MIFARE Ultralight.
-        PICC_CMD_UL_WRITE = 0xA2 ///< Writes one 4 uint8_t page to the PICC.
+        // The PiccCmdMfRead and PiccCmdMfWrite can also be used for MIFARE Ultralight.
+        PiccCmdUlWrite = 0xA2 ///< Writes one 4 uint8_t page to the PICC.
     };
 
     /// MIFARE constants that does not fit anywhere else
-    enum MIFARE_Misc {
-        MF_ACK = 0xA, ///< The MIFARE Classic uses a 4 bit ACK/NAK. Any other value than 0xA is NAK.
-        MF_KEY_SIZE = 6 ///< A Mifare Crypto1 key is 6 bytes.
+    enum MifareMisc {
+        MfAck = 0xA,  ///< The MIFARE Classic uses a 4 bit ACK/NAK. Any other value than 0xA is NAK.
+        MfKeySize = 6 ///< A Mifare Crypto1 key is 6 bytes.
     };
 
     /// PICC types we can detect. Remember to update PICC_GetTypeName() if you add more.
-    enum PICC_Type {
-        PICC_TYPE_UNKNOWN = 0,
-        PICC_TYPE_ISO_14443_4 = 1, ///< PICC compliant with ISO/IEC 14443-4
-        PICC_TYPE_ISO_18092 = 2,   ///< PICC compliant with ISO/IEC 18092 (NFC)
-        PICC_TYPE_MIFARE_MINI = 3, ///< MIFARE Classic protocol, 320 bytes
-        PICC_TYPE_MIFARE_1K = 4,   ///< MIFARE Classic protocol, 1KB
-        PICC_TYPE_MIFARE_4K = 5,   ///< MIFARE Classic protocol, 4KB
-        PICC_TYPE_MIFARE_UL = 6,   ///< MIFARE Ultralight or Ultralight C
-        PICC_TYPE_MIFARE_PLUS = 7, ///< MIFARE Plus
-        PICC_TYPE_TNP3XXX = 8, ///< Only mentioned in NXP AN 10833 MIFARE Type Identification Procedure
-        PICC_TYPE_NOT_COMPLETE = 255 ///< SAK indicates UID is not complete.
+    enum PiccType {
+        PiccTypeUnknown = 0,
+        PiccTypeIso14443_4 = 1, ///< PICC compliant with ISO/IEC 14443-4
+        PiccTypeIso18092 = 2,   ///< PICC compliant with ISO/IEC 18092 (NFC)
+        PiccTypeMifareMini = 3, ///< MIFARE Classic protocol, 320 bytes
+        PiccTypeMifare1K = 4,   ///< MIFARE Classic protocol, 1KB
+        PiccTypeMifare4K = 5,   ///< MIFARE Classic protocol, 4KB
+        PiccTypeMifareUl = 6,   ///< MIFARE Ultralight or Ultralight C
+        PiccTypeMifarePlus = 7, ///< MIFARE Plus
+        PiccTypeTnp3xxx = 8, ///< Only mentioned in NXP AN 10833 MIFARE Type Identification Procedure
+        PiccTypeNotComplete = 255 ///< SAK indicates UID is not complete.
     };
 
     /// Return codes from the functions in this class. Remember to update GetStatusCodeName() if you add more.
     enum StatusCode {
-        STATUS_OK = 1,             ///< Success
-        STATUS_ERROR = 2,          ///< Error in communication
-        STATUS_COLLISION = 3,      ///< Collission detected
-        STATUS_TIMEOUT = 4,        ///< Timeout in communication.
-        STATUS_NO_ROOM = 5,        ///< A buffer is not big enough.
-        STATUS_INTERNAL_ERROR = 6, ///< Internal error in the code. Should not happen ;-)
-        STATUS_INVALID = 7,        ///< Invalid argument.
-        STATUS_CRC_WRONG = 8,      ///< The CRC_A does not match
-        STATUS_MIFARE_NACK = 9     ///< A MIFARE PICC responded with NAK.
+        StatusOk = 1,            ///< Success
+        StatusError = 2,         ///< Error in communication
+        StatusCollision = 3,     ///< Collission detected
+        StatusTimeout = 4,       ///< Timeout in communication.
+        StatusNoRoom = 5,        ///< A buffer is not big enough.
+        StatusInternalError = 6, ///< Internal error in the code. Should not happen ;-)
+        StatusInvalid = 7,       ///< Invalid argument.
+        StatusCrcWrong = 8,      ///< The CRC_A does not match
+        StatusMifareNack = 9     ///< A MIFARE PICC responded with NAK.
     };
 
     /// A struct used for passing the UID of a PICC.
@@ -214,11 +214,11 @@ public:
     /// A struct used for passing a MIFARE Crypto1 key
     typedef struct
     {
-        uint8_t keyByte[MF_KEY_SIZE];
+        uint8_t keyByte[MfKeySize];
     } MifareKey;
 
     /// Size of the MFRC522 FIFO
-    [[maybe_unused]] static const uint8_t FIFO_SIZE = 64; // The FIFO is 64 bytes.
+    [[maybe_unused]] static const uint8_t kFifoSize = 64; // The FIFO is 64 bytes.
 
     //-----------------------------------------------------------------------------------
     // Functions for setting up the Raspberry Pi
@@ -240,7 +240,7 @@ public:
      * \param reg The register to write to. One of the PcdRegister enums.
      * \param value The value to write.
      */
-    void PCD_WriteRegister(uint8_t reg, uint8_t value) const;
+    void pcdWriteRegister(uint8_t reg, uint8_t value) const;
 
     /**
      * Writes a number of bytes to the specified register in the MFRC522 chip.
@@ -249,14 +249,14 @@ public:
      * \param count The number of bytes to write to the register
      * \param values The values to write. uint8_t array.
      */
-    void PCD_WriteRegister(uint8_t reg, uint8_t count, uint8_t *values) const;
+    void pcdWriteRegister(uint8_t reg, uint8_t count, uint8_t *values) const;
 
     /**
      * Reads a uint8_t from the specified register in the MFRC522 chip.
      * The interface is described in the datasheet section 8.1.2.
      * \param reg The register to read from. One of the PcdRegister enums.
      */
-    [[nodiscard]] uint8_t PCD_ReadRegister(uint8_t reg) const;
+    [[nodiscard]] uint8_t pcdReadRegister(uint8_t reg) const;
 
     /**
      * Reads a number of bytes from the specified register in the MFRC522 chip.
@@ -266,21 +266,21 @@ public:
      * \param values uint8_t array to store the values in.
      * \param rxAlign Only bit positions rxAlign..7 in values[0] are updated.
      */
-    void PCD_ReadRegister(uint8_t reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0) const;
+    void pcdReadRegister(uint8_t reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0) const;
 
     /**
      * Sets the bits given in mask in register reg.
      * \param reg The register to update. One of the PcdRegister enums.
      * \param mask The bits to set.
      */
-    void PCD_SetRegisterBitMask(uint8_t reg, uint8_t mask) const;
+    void pcdSetRegisterBitMask(uint8_t reg, uint8_t mask) const;
 
     /**
      * Clears the bits given in mask from register reg.
      * \param reg The register to update. One of the PcdRegister enums.
      * \param mask The bits to clear.
      */
-    void PCD_ClearRegisterBitMask(uint8_t reg, uint8_t mask) const;
+    void pcdClearRegisterBitMask(uint8_t reg, uint8_t mask) const;
 
     /**
      * Use the CRC coprocessor in the MFRC522 to calculate a CRC_A.
@@ -289,9 +289,9 @@ public:
      * \param length In: The number of bytes to transfer.
      * \param result Out: Pointer to result buffer. Result is written to result[0..1], low uint8_t first.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
-    uint8_t PCD_CalculateCRC(uint8_t *data, uint8_t length, uint8_t *result) const;
+    uint8_t pcdCalculateCrc(uint8_t *data, uint8_t length, uint8_t *result) const;
 
     //-----------------------------------------------------------------------------------
     // Functions for manipulating the MFRC522
@@ -300,23 +300,23 @@ public:
     /**
      * Initializes the MFRC522 chip.
      */
-    void PCD_Init() const;
+    void pcdInit() const;
 
     /**
      * Performs a soft reset on the MFRC522 chip and waits for it to be ready again.
      */
-    void PCD_Reset() const;
+    void pcdReset() const;
 
     /**
      * Turns the antenna on by enabling pins TX1 and TX2.
      * After a reset these pins are disabled.
      */
-    void PCD_AntennaOn() const;
+    void pcdAntennaOn() const;
 
     /**
      * Turns the antenna off by disabling pins TX1 and TX2.
      */
-    [[maybe_unused]] void PCD_AntennaOff() const;
+    [[maybe_unused]] void pcdAntennaOff() const;
 
     /**
      * Get the current MFRC522 Receiver Gain (RxGain[2:0]) value.
@@ -325,23 +325,22 @@ public:
      *
      * \return Value of the RxGain, scrubbed to the 3 bits used.
      */
-    [[nodiscard]] uint8_t PCD_GetAntennaGain() const;
+    [[nodiscard]] uint8_t pcdGetAntennaGain() const;
 
     /**
      * Set the MFRC522 Receiver Gain (RxGain) to value specified by given mask.
      * See 9.3.3.6 / table 98 in http://www.nxp.com/documents/data_sheet/MFRC522.pdf
      * NOTE: Given mask is scrubbed with (0x07<<4)=01110000b as RCFfgReg may use reserved bits.
      */
-    [[maybe_unused]] void PCD_SetAntennaGain(uint8_t mask) const;
+    [[maybe_unused]] void pcdSetAntennaGain(uint8_t mask) const;
 
-    [[maybe_unused]] /**
+    /**
      * Performs a self-test of the MFRC522
      * See 16.1.1 in http://www.nxp.com/documents/data_sheet/MFRC522.pdf
      *
      * \return Whether or not the test passed.
      */
-    [[maybe_unused]] [[nodiscard]] bool
-    PCD_PerformSelfTest() const;
+    [[maybe_unused]] [[nodiscard]] bool pcdPerformSelfTest() const;
 
     //-----------------------------------------------------------------------------------
     // Functions for communicating with PICCs
@@ -359,7 +358,7 @@ public:
      * \param rxAlign In: Defines the bit position in backData[0] for the first bit received. Default 0.
      * \param checkCrc In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PCD_TransceiveData(uint8_t *sendData,
                                uint8_t sendLen,
@@ -383,7 +382,7 @@ public:
      * \param rxAlign In: Defines the bit position in backData[0] for the first bit received. Default 0.
      * \param checkCrc In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PCD_CommunicateWithPICC(uint8_t command,
                                     uint8_t waitIRq,
@@ -397,35 +396,35 @@ public:
 
     /**
      * Transmits a REQuest command, Type A. Invites PICCs in state IDLE to go to READY and prepare for anticollision or selection. 7 bit frame.
-     * Beware: When two PICCs are in the field at the same time I often get STATUS_TIMEOUT - probably due do bad antenna design.
+     * Beware: When two PICCs are in the field at the same time I often get StatusTimeout - probably due do bad antenna design.
      *
      * \param bufferAtqa The buffer to store the ATQA (Answer to request) in
-     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if STATUS_OK.
+     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if StatusOk.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PICC_RequestA(uint8_t *bufferAtqa, uint8_t *bufferSize) const;
 
     /**
      * Transmits a Wake-UP command, Type A. Invites PICCs in state IDLE and HALT to go to READY(*) and prepare for anticollision or selection. 7 bit frame.
-     * Beware: When two PICCs are in the field at the same time I often get STATUS_TIMEOUT - probably due do bad antenna design.
+     * Beware: When two PICCs are in the field at the same time I often get StatusTimeout - probably due do bad antenna design.
      *
      * \param bufferAtqa The buffer to store the ATQA (Answer to request) in
-     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if STATUS_OK.
+     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if StatusOk.
      *
-     * @return STATUS_OK on success, STATUS_??? otherwise.
+     * @return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PICC_WakeupA(uint8_t *bufferAtqa, uint8_t *bufferSize) const;
 
     /**
      * Transmits REQA or WUPA commands.
-     * Beware: When two PICCs are in the field at the same time I often get STATUS_TIMEOUT - probably due do bad antenna design.
+     * Beware: When two PICCs are in the field at the same time I often get StatusTimeout - probably due do bad antenna design.
      *
-     * \param command The command to send - PICC_CMD_REQA or PICC_CMD_WUPA
+     * \param command The command to send - PiccCmdReqa or PiccCmdWupa
      * \param bufferAtqa The buffer to store the ATQA (Answer to request) in
-     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if STATUS_OK.
+     * \param bufferSize Buffer size, at least two bytes. Also number of bytes returned if StatusOk.
      *
-     * @return STATUS_OK on success, STATUS_??? otherwise.
+     * @return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PICC_ReqaOrWupa(uint8_t command, uint8_t *bufferAtqa, uint8_t *bufferSize) const;
 
@@ -447,7 +446,7 @@ public:
      * \param uid Pointer to Uid struct. Normally output, but can also be used to supply a known UID.
      * \param validBits The number of known UID bits supplied in *uid. Normally 0. If set you must also supply uid->size.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PICC_Select(Uid *uid, uint8_t validBits = 0) const;
 
@@ -456,7 +455,7 @@ public:
     /**
      * Instructs a PICC in state ACTIVE(*) to go to state HALT.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PICC_HaltA() const;
 #pragma clang diagnostic pop
@@ -475,12 +474,12 @@ public:
      *
      * All keys are set to FFFFFFFFFFFFh at chip delivery.
      *
-     * \param command PICC_CMD_MF_AUTH_KEY_A or PICC_CMD_MF_AUTH_KEY_B
+     * \param command PiccCmdMfAuthKeyA or PiccCmdMfAuthKeyB
      * \param blockAddr The block number. See numbering in the comments in the .h file.
      * \param key Pointer to the Crypteo1 key to use (6 bytes)
      * \param uid Pointer to Uid struct. The first 4 bytes of the UID is used.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise. Probably STATUS_TIMEOUT if you supply the wrong key.
+     * \return StatusOk on success, STATUS_??? otherwise. Probably StatusTimeout if you supply the wrong key.
      */
     uint8_t PCD_Authenticate(uint8_t command, uint8_t blockAddr, MifareKey *key, Uid *uid) const;
 
@@ -502,13 +501,13 @@ public:
      * A roll-back is implemented: If blockAddr is 0Eh, then the contents of pages 0Eh, 0Fh, 00h and 01h are returned.
      *
      * The buffer must be at least 18 bytes because a CRC_A is also returned.
-     * Checks the CRC_A before returning STATUS_OK.
+     * Checks the CRC_A before returning StatusOk.
      *
      * \param blockAddr MIFARE Classic: The block (0-0xff) number. MIFARE Ultralight: The first page to return data from.
      * \param buffer The buffer to store the data in
-     * \param bufferSize Buffer size, at least 18 bytes. Also number of bytes returned if STATUS_OK.
+     * \param bufferSize Buffer size, at least 18 bytes. Also number of bytes returned if StatusOk.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t MIFARE_Read(uint8_t blockAddr, uint8_t *buffer, uint8_t *bufferSize) const;
 
@@ -525,7 +524,7 @@ public:
      * \param buffer The 16 bytes to write to the PICC
      * \param bufferSize Buffer size, must be at least 16 bytes. Exactly 16 bytes are written.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t MIFARE_Write(uint8_t blockAddr, uint8_t *buffer, uint8_t bufferSize) const;
 
@@ -538,7 +537,7 @@ public:
      * \param blockAddr The block (0-0xff) number.
      * \param delta This number is subtracted from the value of block blockAddr.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t
     MIFARE_Decrement(uint8_t blockAddr, long delta);
@@ -552,7 +551,7 @@ public:
      * \param blockAddr The block (0-0xff) number.
      * \param delta This number is added to the value of block blockAddr.
      *
-     * @return STATUS_OK on success, STATUS_??? otherwise.
+     * @return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t
     MIFARE_Increment(uint8_t blockAddr, long delta);
@@ -565,7 +564,7 @@ public:
      *
      * \param blockAddr The block (0-0xff) number.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t
     MIFARE_Restore(uint8_t blockAddr);
@@ -577,7 +576,7 @@ public:
      *
      * \param blockAddr The block (0-0xff) number.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     [[maybe_unused]] [[nodiscard]] uint8_t
     MIFARE_Transfer(uint8_t blockAddr) const;
@@ -589,7 +588,7 @@ public:
      * \param buffer The 4 bytes to write to the PICC
      * \param bufferSize Buffer size, must be at least 4 bytes. Exactly 4 bytes are written.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t
     MIFARE_Ultralight_Write(uint8_t page, uint8_t *buffer, uint8_t bufferSize) const;
@@ -604,7 +603,7 @@ public:
      * \param[in]   blockAddr   The block (0x00-0xff) number.
      * \param[out]  value       Current value of the Value Block.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     [[maybe_unused]] [[nodiscard]] uint8_t MIFARE_GetValue(uint8_t blockAddr, long *value) const;
 
@@ -618,7 +617,7 @@ public:
      * \param[in]   blockAddr   The block (0x00-0xff) number.
      * \param[in]   value       New value of the Value Block.
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     [[maybe_unused]] [[nodiscard]] uint8_t MIFARE_SetValue(uint8_t blockAddr, long value) const;
 
@@ -628,13 +627,13 @@ public:
 
     /**
      * Wrapper for MIFARE protocol communication.
-     * Adds CRC_A, executes the Transceive command and checks that the response is MF_ACK or a timeout.
+     * Adds CRC_A, executes the Transceive command and checks that the response is MfAck or a timeout.
      *
      * \param sendData Pointer to the data to transfer to the FIFO. Do NOT include the CRC_A.
      * \param sendLen Number of bytes in sendData.
      * \param acceptTimeout True => A timeout is also success
      *
-     * @return STATUS_OK on success, STATUS_??? otherwise.
+     * @return StatusOk on success, STATUS_??? otherwise.
      */
     uint8_t PCD_MIFARE_Transceive(uint8_t *sendData,
                                   uint8_t sendLen,
@@ -652,14 +651,14 @@ public:
      *
      * \param sak The SAK uint8_t returned from PICC_Select().
      *
-     * \return PICC_Type
+     * \return PiccType
      */
     static uint8_t PICC_GetType(uint8_t sak);
 
     /**
      * Returns a String pointer to the PICC type name.
      *
-     * \param type One of the PICC_Type enums.
+     * \param type One of the PiccType enums.
      */
     static std::string PICC_GetTypeName(uint8_t type);
 
@@ -677,7 +676,7 @@ public:
      * On success the PICC is halted after dumping the data.
      *
      * \param uid Pointer to Uid struct returned from a successful PICC_Select().
-     * \param piccType One of the PICC_Type enums.
+     * \param piccType One of the PiccType enums.
      * \param key Key A used for all sectors.
      */
     void PICC_DumpMifareClassicToSerial(Uid *uid, uint8_t piccType, MifareKey *key) const;
@@ -685,7 +684,7 @@ public:
     /**
      * Dumps memory contents of a sector of a MIFARE Classic PICC.
      * Uses PCD_Authenticate(), MIFARE_Read() and PCD_StopCrypto1.
-     * Always uses PICC_CMD_MF_AUTH_KEY_A because only Key A can always read the sector trailer access bits.
+     * Always uses PiccCmdMfAuthKeyA because only Key A can always read the sector trailer access bits.
      *
      * \param uid Pointer to Uid struct returned from a successful PICC_Select().
      * \param key Key A for the sector.
@@ -746,7 +745,7 @@ public:
     //-----------------------------------------------------------------------------------
 
     /**
-     * Returns true if a PICC responds to PICC_CMD_REQA.
+     * Returns true if a PICC responds to PiccCmdReqa.
      * Only "new" cards in state IDLE are invited. Sleeping cards in state HALT are ignored.
      *
      * @return Whether the new card is present or not.
@@ -773,7 +772,7 @@ private:
      * \param blockAddr The block (0-0xff) number.
      * \param data The data to transfer in step 2
      *
-     * \return STATUS_OK on success, STATUS_??? otherwise.
+     * \return StatusOk on success, STATUS_??? otherwise.
      */
     [[nodiscard]] uint8_t MIFARE_TwoStepHelper(uint8_t command, uint8_t blockAddr, long data) const;
 
