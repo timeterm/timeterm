@@ -88,9 +88,9 @@ uint8_t _readPin(uint8_t pin)
         throw std::runtime_error("could not set pin value (not enough permissions?)");
     }
 
-    char bytes[4];
-    auto valueStr = read(fd, &bytes, 4);
-    auto byte = atoi(reinterpret_cast<const char *>(valueStr));
+    char bytes[4] = {0};
+    read(fd, bytes, 4);
+    auto byte = atoi(bytes);
     if (byte > UINT8_MAX) {
         throw std::runtime_error("invalid pin value");
     }
