@@ -19,14 +19,14 @@ void delay(int ms)
 
 volatile bool quit = false;
 
-void handleInterrupt(int) {
+void handleSignal(int) {
     quit = true;
 }
 
 int main()
 {
     Mfrc522::Device mfrc;
-    signal(SIGTERM, handleInterrupt);
+    signal(SIGTERM, handleSignal);
 
     mfrc.pcdInit();
 
