@@ -12,7 +12,7 @@ Window {
 
     Connections {
         target: CardReader
-        onCardRead: {
+        function onCardRead(uid) {
             window.title = uid
         }
     }

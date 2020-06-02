@@ -2,6 +2,7 @@
 #define FAKECARDREADER_H
 
 #include "cardreader.h"
+#include <QtNetwork/QLocalServer>
 
 class FakeCardReader: public CardReader
 {
@@ -14,9 +15,13 @@ public:
 public slots:
     void start() override;
     void shutDown() override;
+    void handleConnection();
+
+signals:
+    void shutDownInternal();
 
 private:
-    bool m_shutDown = false;
+    QLocalServer *m_server;
 };
 
 #endif// FAKECARDREADER_H
