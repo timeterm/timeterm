@@ -3,8 +3,7 @@
 
 #include <QProcessEnvironment>
 #include <QThread>
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
+#include <QtNetwork>
 
 FakeCardReader::FakeCardReader(QObject *parent)
     : CardReader(parent),
@@ -29,15 +28,27 @@ void FakeCardReader::shutDown()
 void FakeCardReader::handleConnection()
 {
     QLocalSocket *conn = m_server->nextPendingConnection();
-    connect(this, &FakeCardReader::shutDownInternal, conn, &QLocalSocket::close);
+    connect(conn, &QLocalSocket::disconnected, conn, &QLocalSocket::deleteLater);
+    auto closeConn = connect(this, &FakeCardReader::shutDownInternal, conn, &QLocalSocket::close);
 
-    while (conn->isOpen()) {
-        conn->waitForBytesWritten();
+    conn->waitForConnected();
+    conn->waitForReadyRead();
 
-        if (!conn->canReadLine())
-            continue;
+    QDataStream in(conn);
+    in.setVersion(QDataStream::Qt_5_14);
+    quint32 blockSize = 0;
 
-        QByteArray line = conn->readLine();
-        emit cardRead(line);
-    }
+    if (conn->bytesAvailable() < (int) sizeof(quint32))
+        return;
+    in >> blockSize;
+
+    if (conn->bytesAvailable() < blockSize || in.atEnd())
+        return;
+
+    QString cardUid;
+    in >> cardUid;
+
+    emit cardRead(cardUid);
+
+    disconnect(closeConn);
 }
