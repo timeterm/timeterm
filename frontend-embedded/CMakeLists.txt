@@ -61,6 +61,8 @@ target_link_libraries(frontend-embedded
 if(RASPBERRYPI)
     add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)
 
+    target_compile_definitions(frontend-embedded PRIVATE RASPBERRYPI)
+
     target_link_libraries(frontend-embedded
       PRIVATE mfrc522)
 endif()
