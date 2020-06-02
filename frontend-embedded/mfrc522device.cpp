@@ -1,3 +1,5 @@
+#ifdef RASPBERRYPI
+
 #include "mfrc522device.h"
 
 #include <QTextStream>
@@ -47,3 +49,5 @@ void Mfrc522Device::shutDown()
 {
     m_shutDown = true;
 }
+
+#endif// RASPBERRYPI

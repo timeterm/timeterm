@@ -1,3 +1,5 @@
+#ifdef RASPBERRYPI
+
 #ifndef MFRC522DEVICE_H
 #define MFRC522DEVICE_H
 
@@ -26,3 +28,5 @@ private:
 };
 
 #endif// MFRC522DEVICE_H
+
+#endif// RASPBERRPI

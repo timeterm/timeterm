@@ -28,37 +28,41 @@ find_package(Qt5 COMPONENTS Core Quick LinguistTools REQUIRED)
 
 set(TS_FILES frontend-embedded_nl_NL.ts)
 
+set(SOURCE_FILES
+  main.cpp
+  qml.qrc
+  mfrc522device.cpp
+  mfrc522device.h
+  cardreader.h
+  cardreader.cpp
+  cardreadercontroller.cpp
+  cardreadercontroller.h
+  fakecardreader.cpp
+  fakecardreader.h
+)
+
 if(ANDROID)
     add_library(frontend-embedded SHARED
-      main.cpp
-      qml.qrc
-      mfrc522device.cpp
-      mfrc522device.h
-      cardreader.h
-      cardreader.cpp
-      cardreadercontroller.cpp
-      cardreadercontroller.h
+      ${SOURCE_FILES}
       ${TS_FILES}
     )
 else()
     add_executable(frontend-embedded
-      main.cpp
-      qml.qrc
-      mfrc522device.cpp
-      mfrc522device.h
-      cardreader.h
-      cardreader.cpp
-      cardreadercontroller.cpp
-      cardreadercontroller.h
+      ${SOURCE_FILES}
       ${TS_FILES}
     )
 endif()
 
-add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)
-
 target_compile_definitions(frontend-embedded
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(frontend-embedded
-  PRIVATE Qt5::Core Qt5::Quick mfrc522)
+  PRIVATE Qt5::Core Qt5::Quick)
+
+if(RASPBERRYPI)
+    add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)
+
+    target_link_libraries(frontend-embedded
+      PRIVATE mfrc522)
+endif()
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
