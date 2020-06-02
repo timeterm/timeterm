@@ -4,8 +4,8 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="main.qml" line="11"/>
-        <source>Hello World</source>
+        <location filename="main.qml" line="12"/>
+        <source>Timeterm</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

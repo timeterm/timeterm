@@ -6,6 +6,7 @@ import Timeterm.Rfid 1.0
 Window {
     id: window
     visible: true
+    visibility: Qt.WindowFullScreen
     width: 640
     height: 480
     title: qsTr("Timeterm")

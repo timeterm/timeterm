@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReader", cardReader.get());
+    qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderController", "singleton");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
