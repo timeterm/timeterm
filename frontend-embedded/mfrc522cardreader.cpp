@@ -1,16 +1,16 @@
 #ifdef RASPBERRYPI
 
-#include "mfrc522device.h"
+#include "mfrc522cardreader.h"
 
 #include <QTextStream>
 
-Mfrc522Device::Mfrc522Device(QObject *parent)
+Mfrc522CardReader::Mfrc522CardReader(QObject *parent)
     : CardReader(parent)
 {
     m_mfrcDev.pcdInit();
 }
 
-void Mfrc522Device::start()
+void Mfrc522CardReader::start()
 {
     while (!m_shutDown) {
         if (!m_mfrcDev.piccIsNewCardPresent())
@@ -28,7 +28,7 @@ void Mfrc522Device::start()
     }
 }
 
-QString Mfrc522Device::makeUidString(Mfrc522::Device::Uid uid)
+QString Mfrc522CardReader::makeUidString(Mfrc522::Device::Uid uid)
 {
     QString result;
 
@@ -45,7 +45,7 @@ QString Mfrc522Device::makeUidString(Mfrc522::Device::Uid uid)
     return result;
 }
 
-void Mfrc522Device::shutDown()
+void Mfrc522CardReader::shutDown()
 {
     m_shutDown = true;
 }

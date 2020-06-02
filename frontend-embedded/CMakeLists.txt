@@ -31,8 +31,8 @@ set(TS_FILES frontend-embedded_nl_NL.ts)
 set(SOURCE_FILES
   main.cpp
   qml.qrc
-  mfrc522device.cpp
-  mfrc522device.h
+        mfrc522cardreader.cpp
+        mfrc522cardreader.h
   cardreader.h
   cardreader.cpp
   cardreadercontroller.cpp

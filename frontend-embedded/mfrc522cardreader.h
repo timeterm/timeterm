@@ -1,20 +1,20 @@
 #ifdef RASPBERRYPI
 
-#ifndef MFRC522DEVICE_H
-#define MFRC522DEVICE_H
+#ifndef MFRC522CARDREADER_H
+#define MFRC522CARDREADER_H
 
 #include "cardreader.h"
 #include <QObject>
 #include <QThread>
 #include <mfrc522/mfrc522.h>
 
-class Mfrc522Device: public CardReader
+class Mfrc522CardReader: public CardReader
 {
     Q_OBJECT
 
 public:
-    explicit Mfrc522Device(QObject *parent = nullptr);
-    ~Mfrc522Device() override = default;
+    explicit Mfrc522CardReader(QObject *parent = nullptr);
+    ~Mfrc522CardReader() override = default;
 
     static QString makeUidString(Mfrc522::Device::Uid uid);
 
@@ -27,6 +27,6 @@ private:
     bool m_shutDown = false;
 };
 
-#endif// MFRC522DEVICE_H
+#endif// MFRC522CARDREADER_H
 
 #endif// RASPBERRPI

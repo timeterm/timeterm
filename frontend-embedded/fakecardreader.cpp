@@ -1,5 +1,5 @@
 #include "fakecardreader.h"
-#include "mfrc522device.h"
+#include "mfrc522cardreader.h"
 
 #include <QTextStream>
 #include <QThread>

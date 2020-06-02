@@ -7,7 +7,7 @@
 #include <QThread>
 
 #ifdef RASPBERRYPI
-#include "mfrc522device.h"
+#include "mfrc522cardreader.h"
 #endif
 
 class CardReaderController: public QObject
@@ -16,12 +16,14 @@ class CardReaderController: public QObject
     QThread cardReaderThread;
 
 public:
-    explicit CardReaderController(CardReader *cardReader, QObject *parent = nullptr);
+    explicit CardReaderController(CardReader *cardReader = defaultCardReader(),
+                                  QObject *parent = nullptr);
     ~CardReaderController() override;
 
-    static CardReader *defaultCardReader() {
+    static CardReader *defaultCardReader()
+    {
 #ifdef RASPBERRYPI
-        return new Mfrc522Device();
+        return new Mfrc522CardReader();
 #else
         return new FakeCardReader();
 #endif

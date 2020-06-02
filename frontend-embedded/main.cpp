@@ -2,7 +2,6 @@
 #include <QQmlApplicationEngine>
 
 #include "cardreadercontroller.h"
-#include "mfrc522device.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,8 +10,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
-    QScopedPointer<CardReaderController> cardReader(new CardReaderController(
-        CardReaderController::defaultCardReader()));
+    QScopedPointer<CardReaderController> cardReader(new CardReaderController());
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReader", cardReader.get());
 
