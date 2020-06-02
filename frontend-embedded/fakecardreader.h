@@ -19,4 +19,4 @@ private:
     bool m_shutDown = false;
 };
 
-#endif // FAKECARDREADER_H
+#endif// FAKECARDREADER_H
