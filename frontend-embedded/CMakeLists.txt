@@ -24,15 +24,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Core Quick LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Core Quick QuickControls2 LinguistTools REQUIRED)
 
 set(TS_FILES frontend-embedded_nl_NL.ts)
 
 set(SOURCE_FILES
   main.cpp
   qml.qrc
-        mfrc522cardreader.cpp
-        mfrc522cardreader.h
+  mfrc522cardreader.cpp
+  mfrc522cardreader.h
   cardreader.h
   cardreader.cpp
   cardreadercontroller.cpp
@@ -56,7 +56,7 @@ endif()
 target_compile_definitions(frontend-embedded
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(frontend-embedded
-  PRIVATE Qt5::Core Qt5::Quick)
+  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2)
 
 if(RASPBERRYPI)
     add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)

@@ -6,8 +6,139 @@ info:
     name: Timeterm
     email: support@timeterm.nl
   description: The Timeterm API
+
+security:
+  - ApiKeyAuth: []
+
 servers:
   - url: 'http://localhost:3000'
-paths: {}
+
+paths:
+  /zermelo/appointment:
+    get:
+      summary: Get a list of appointments
+      parameters:
+        - name: X-User-Card-Uid
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of appointments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointments"
+
+  /organization/{organizationId}/user:
+    post:
+      summary: Create a user in an organization
+      responses:
+        '200':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+    get:
+      summary: Get a list of users in an organization
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+
+  /device:
+    post:
+      summary: Create a new device
+      responses:
+        '200':
+          description: Device created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceAuth"
+
+  /device/{id}:
+    get:
+      summary: Get a device
+      responses:
+        '200':
+          description: Device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+
 components:
-  schemas: {}
+  schemas:
+    Appointments:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
+        links:
+          type: object
+          properties:
+            choices:
+              type: string
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+        appointmentInstance:
+          type: string
+
+    User:
+      type: object
+      properties:
+        cardUid:
+          type: string
+          format: byte
+        tokens:
+          type: object
+          properties:
+            zermelo:
+              type: string
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        organizationId:
+          type: string
+
+    DeviceAuth:
+      type: object
+      properties:
+        token:
+          type: string
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
