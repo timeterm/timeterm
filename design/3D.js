@@ -68,8 +68,6 @@ function drawDevice() {
     }
     rotateX(-y * TWO_PI);
     rotateY(-x * TWO_PI);
-    //normalMaterial();
-    //ambientMaterial(150);
     fill(200, 200, 200);
     model(device);
 }
@@ -78,11 +76,10 @@ function drawLogin() {
     noLights();
 
     push();
-    translate(-11, -1, 47.5);  // -42, -3, 48.5 OF -13, -1, 49.5
+    translate(-11, -1, 47.5);
     scale(1, -1);
     texture(loginScreen);
-    //plane(257, 257*loginScreen.height/loginScreen.width); // gat is 257, 175
-    plane(175*loginScreen.width/loginScreen.height, 175); // gat is 257, 175
+    plane(175*loginScreen.width/loginScreen.height, 175);
     pop();
 }
 
@@ -101,7 +98,7 @@ function drawCard(x, y, z) {
     noLights();
 
     push();
-    translate(x, y, z); // 183, 0, 50
+    translate(x, y, z);
     scale(1, -1);
     texture(pas);
     plane(85.60, 53.98);
