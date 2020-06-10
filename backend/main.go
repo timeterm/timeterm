@@ -3,18 +3,19 @@ package main
 import (
 	"context"
 
+	_ "github.com/lib/pq"
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
 	"go.uber.org/zap"
-	_ "github.com/lib/pq"
 )
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func() { _ = logger.Sync() }()
+
 	sugar := logger.Sugar()
 
-	db, err := database.Open("postgres://postgres:postgres@localhost/timeterm?sslmode=disable")
+	db, err := database.New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", logger)
 	if err != nil {
 		sugar.Fatalf("Could not open database: %v", err)
 	}

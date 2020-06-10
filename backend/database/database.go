@@ -6,6 +6,7 @@ import (
 	"unicode"
 
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 
 	gomigrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -16,11 +17,12 @@ const version = 1
 
 // Wrapper wraps the PostgreSQL database.
 type Wrapper struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	logger *zap.Logger
 }
 
-// Open opens the database.
-func Open(url string) (*Wrapper, error) {
+// New opens the database and creates a new database wrapper.
+func New(url string, logger *zap.Logger) (*Wrapper, error) {
 	db, err := connect(url)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to database: %w", err)
@@ -33,7 +35,7 @@ func Open(url string) (*Wrapper, error) {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	return &Wrapper{db: db}, nil
+	return &Wrapper{db: db, logger: logger}, nil
 }
 
 func (w *Wrapper) Close() error {
