@@ -5,8 +5,6 @@ services:
     image: postgres:12.3-alpine
     ports:
       - "5432:5432"
-    expose:
-      - "5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -17,6 +15,4 @@ services:
     image: adminer:latest
     restart: always
     ports:
-      - "8080:8080"
-    expose:
-      - "8080"
+      - "8432:8080"
