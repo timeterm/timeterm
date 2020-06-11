@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "api"
+		},
+		{
+			"path": "os"
+		},
+		{
+			"path": "backend"
+		},
+		{
+			"path": "design"
+		},
+		{
+			"path": "frontend-admin"
+		},
+		{
+			"path": "frontend-embedded"
+		},
+		{
+			"path": "frontend-embedded-devtools"
+		},
+		{
+			"path": "mfrc522"
+		}
+	],
+	"settings": {}
+}
