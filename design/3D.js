@@ -2,7 +2,7 @@ function preload() {
     device = loadModel('assets/device/device-without-RFID.obj');
     loginScreen = loadImage('assets/images/login.svg');
     dayScreen = loadImage('assets/images/day.svg');
-    pas = loadImage('assets/images/pas.svg');
+    card = loadImage('assets/images/card.svg');
 }
 
 function setup() {
@@ -100,7 +100,7 @@ function drawCard(x, y, z) {
     push();
     translate(x, y, z);
     scale(1, -1);
-    texture(pas);
+    texture(card);
     plane(85.60, 53.98);
     pop();
 }
