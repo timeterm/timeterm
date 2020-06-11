@@ -18,7 +18,7 @@ paths:
     get:
       summary: Get a list of appointments
       parameters:
-        - name: X-User-Card-Uid
+        - name: X-Card-Uid
           in: header
           required: true
           schema:
@@ -30,6 +30,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Appointments"
+  
+  /user/self:
+    get:
+      summary: Get information about the current user
+      parameters:
+        - name: X-Card-Uid
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
 
   /organization/{organizationId}/user:
     post:
@@ -42,19 +59,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-    get:
-      summary: Get a list of users in an organization
-      responses:
-        '200':
-          description: A list of users
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Users"
-
-  /device:
+  /organization/{organizationId}/device:
     post:
-      summary: Create a new device
+      summary: Create a new device in an organization
       responses:
         '200':
           description: Device created
@@ -96,23 +103,52 @@ components:
           type: string
         appointmentInstance:
           type: string
-
+        online:
+          type: boolean
+        optional:
+          type: boolean
+        studentEnrolled:
+          type: boolean
+        startTimeSlot:
+          type: integer
+        endTimeSlot:
+          type: integer
+        canceled:
+          type: boolean
+        subjects:
+          type: array
+          items:
+            type: string
+        locations:
+          type: array
+          items:
+            type: string
+        capacity:
+          type: integer
+        availableSpace:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        
+    # Note: primary key for a user should absolutely not be the card UID!
+    # Rather, it should be a combination of the card UID and the organization ID.
     User:
       type: object
       properties:
         cardUid:
           type: string
           format: byte
-        tokens:
-          type: object
-          properties:
-            zermelo:
-              type: string
-        links:
-          type: object
-          properties:
-            self:
-              type: string
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        studentCode:
+          type: string
 
     Device:
       type: object
