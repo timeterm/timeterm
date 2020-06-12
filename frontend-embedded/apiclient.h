@@ -25,7 +25,7 @@ private:
     QString m_cardId;
 };
 
-class Appointment: public QObject
+class ZermeloAppointment: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(qint64 id WRITE setId READ id NOTIFY idChanged)
@@ -45,7 +45,7 @@ class Appointment: public QObject
     Q_PROPERTY(bool isCanceled WRITE setIsCanceled READ isCanceled NOTIFY isCanceledChanged)
 
 public:
-    explicit Appointment(QObject *parent = nullptr);
+    explicit ZermeloAppointment(QObject *parent = nullptr);
 
     void setId(qint64 id);
     qint64 id() const;
@@ -113,24 +113,25 @@ private:
     bool m_isCanceled = false;
 };
 
-class Appointments: public QObject
+class ZermeloAppointments: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<Appointment> appointments READ appointments NOTIFY appointmentsChanged)
+    Q_PROPERTY(QQmlListProperty<ZermeloAppointment> data READ data NOTIFY dataChanged)
 
 public:
-    explicit Appointments(QObject *parent = nullptr);
+    explicit ZermeloAppointments(QObject *parent = nullptr);
 
-    void append(Appointment *appointment);
+    void append(ZermeloAppointment *appointment);
 
-    QQmlListProperty<Appointment> appointments();
+    QQmlListProperty<ZermeloAppointment> data();
 
 signals:
-    void appointmentsChanged();
+    void dataChanged();
 
 private:
-    QList<Appointment *> m_appointments;
-    void append(const QList<Appointment *> &appointments);
+    void append(const QList<ZermeloAppointment *> &appointments);
+
+    QList<ZermeloAppointment *> m_data;
 };
 
 #endif//APICLIENT_H

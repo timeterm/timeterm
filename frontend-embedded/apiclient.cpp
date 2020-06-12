@@ -17,32 +17,32 @@ void ApiClient::setCardId(const QString &cardId)
     }
 }
 
-Appointments::Appointments(QObject *parent) : QObject(parent)
+ZermeloAppointments::ZermeloAppointments(QObject *parent) : QObject(parent)
 {
 }
 
-void Appointments::append(Appointment *appointment)
+void ZermeloAppointments::append(ZermeloAppointment *appointment)
 {
-    m_appointments.append(appointment);
-    emit appointmentsChanged();
+    m_data.append(appointment);
+    emit dataChanged();
 }
 
-void Appointments::append(const QList<Appointment *> &appointments)
+void ZermeloAppointments::append(const QList<ZermeloAppointment *> &appointments)
 {
-    m_appointments.append(appointments);
-    emit appointmentsChanged();
+    m_data.append(appointments);
+    emit dataChanged();
 }
 
-QQmlListProperty<Appointment> Appointments::appointments()
+QQmlListProperty<ZermeloAppointment> ZermeloAppointments::data()
 {
-    return {this, &m_appointments};
+    return {this, &m_data};
 }
 
-Appointment::Appointment(QObject *parent) : QObject(parent)
+ZermeloAppointment::ZermeloAppointment(QObject *parent) : QObject(parent)
 {
 }
 
-void Appointment::setId(qint64 id)
+void ZermeloAppointment::setId(qint64 id)
 {
     if (id != m_id) {
         m_id = id;
@@ -50,12 +50,12 @@ void Appointment::setId(qint64 id)
     }
 }
 
-qint64 Appointment::id() const
+qint64 ZermeloAppointment::id() const
 {
     return m_id;
 }
 
-void Appointment::setAppointmentInstance(qint64 appointmentInstance)
+void ZermeloAppointment::setAppointmentInstance(qint64 appointmentInstance)
 {
     if (appointmentInstance != m_appointmentInstance) {
         m_appointmentInstance = appointmentInstance;
@@ -63,12 +63,12 @@ void Appointment::setAppointmentInstance(qint64 appointmentInstance)
     }
 }
 
-qint64 Appointment::appointmentInstance() const
+qint64 ZermeloAppointment::appointmentInstance() const
 {
     return m_appointmentInstance;
 }
 
-void Appointment::setStartTimeSlot(qint32 startTimeSlot)
+void ZermeloAppointment::setStartTimeSlot(qint32 startTimeSlot)
 {
     if (startTimeSlot != m_startTimeSlot) {
         m_startTimeSlot = startTimeSlot;
@@ -76,12 +76,12 @@ void Appointment::setStartTimeSlot(qint32 startTimeSlot)
     }
 }
 
-qint32 Appointment::startTimeSlot() const
+qint32 ZermeloAppointment::startTimeSlot() const
 {
     return m_startTimeSlot;
 }
 
-void Appointment::setEndTimeSlot(qint32 endTimeSlot)
+void ZermeloAppointment::setEndTimeSlot(qint32 endTimeSlot)
 {
     if (endTimeSlot != m_endTimeSlot) {
         m_endTimeSlot = endTimeSlot;
@@ -89,12 +89,12 @@ void Appointment::setEndTimeSlot(qint32 endTimeSlot)
     }
 }
 
-qint32 Appointment::endTimeSlot() const
+qint32 ZermeloAppointment::endTimeSlot() const
 {
     return m_endTimeSlot;
 }
 
-void Appointment::setCapacity(qint32 capacity)
+void ZermeloAppointment::setCapacity(qint32 capacity)
 {
     if (capacity != m_capacity) {
         m_capacity = capacity;
@@ -102,12 +102,12 @@ void Appointment::setCapacity(qint32 capacity)
     }
 }
 
-qint32 Appointment::capacity() const
+qint32 ZermeloAppointment::capacity() const
 {
     return m_capacity;
 }
 
-void Appointment::setAvailableSpace(qint32 availableSpace)
+void ZermeloAppointment::setAvailableSpace(qint32 availableSpace)
 {
     if (availableSpace != m_availableSpace) {
         m_availableSpace = availableSpace;
@@ -115,12 +115,12 @@ void Appointment::setAvailableSpace(qint32 availableSpace)
     }
 }
 
-qint32 Appointment::availableSpace() const
+qint32 ZermeloAppointment::availableSpace() const
 {
     return m_availableSpace;
 }
 
-void Appointment::setStartTime(const QDateTime &startTime)
+void ZermeloAppointment::setStartTime(const QDateTime &startTime)
 {
     if (startTime != m_startTime) {
         m_startTime = startTime;
@@ -128,12 +128,12 @@ void Appointment::setStartTime(const QDateTime &startTime)
     }
 }
 
-QDateTime Appointment::startTime() const
+QDateTime ZermeloAppointment::startTime() const
 {
     return m_startTime;
 }
 
-void Appointment::setEndTime(const QDateTime &endTime)
+void ZermeloAppointment::setEndTime(const QDateTime &endTime)
 {
     if (endTime != m_endTime) {
         m_endTime = endTime;
@@ -141,12 +141,12 @@ void Appointment::setEndTime(const QDateTime &endTime)
     }
 }
 
-QDateTime Appointment::endTime() const
+QDateTime ZermeloAppointment::endTime() const
 {
     return m_endTime;
 }
 
-void Appointment::setSubjects(const QStringList &subjects)
+void ZermeloAppointment::setSubjects(const QStringList &subjects)
 {
     if (subjects != m_subjects) {
         m_subjects = subjects;
@@ -154,12 +154,12 @@ void Appointment::setSubjects(const QStringList &subjects)
     }
 }
 
-QStringList Appointment::subjects() const
+QStringList ZermeloAppointment::subjects() const
 {
     return m_subjects;
 }
 
-void Appointment::setLocations(const QStringList &locations)
+void ZermeloAppointment::setLocations(const QStringList &locations)
 {
     if (locations != m_locations) {
         m_locations = locations;
@@ -167,12 +167,12 @@ void Appointment::setLocations(const QStringList &locations)
     }
 }
 
-QStringList Appointment::locations() const
+QStringList ZermeloAppointment::locations() const
 {
     return m_locations;
 }
 
-void Appointment::setTeachers(const QStringList &teachers)
+void ZermeloAppointment::setTeachers(const QStringList &teachers)
 {
     if (teachers != m_teachers) {
         m_teachers = teachers;
@@ -180,12 +180,12 @@ void Appointment::setTeachers(const QStringList &teachers)
     }
 }
 
-QStringList Appointment::teachers() const
+QStringList ZermeloAppointment::teachers() const
 {
     return m_teachers;
 }
 
-void Appointment::setIsOnline(bool isOnline)
+void ZermeloAppointment::setIsOnline(bool isOnline)
 {
     if (isOnline != m_isOnline) {
         m_isOnline = isOnline;
@@ -193,12 +193,12 @@ void Appointment::setIsOnline(bool isOnline)
     }
 }
 
-bool Appointment::isOnline() const
+bool ZermeloAppointment::isOnline() const
 {
     return m_isOnline;
 }
 
-void Appointment::setIsOptional(bool isOptional)
+void ZermeloAppointment::setIsOptional(bool isOptional)
 {
     if (isOptional != m_isOptional) {
         m_isOptional = isOptional;
@@ -206,12 +206,12 @@ void Appointment::setIsOptional(bool isOptional)
     }
 }
 
-bool Appointment::isOptional() const
+bool ZermeloAppointment::isOptional() const
 {
     return m_isOptional;
 }
 
-void Appointment::setIsStudentEnrolled(bool isStudentEnrolled)
+void ZermeloAppointment::setIsStudentEnrolled(bool isStudentEnrolled)
 {
     if (isStudentEnrolled != m_isStudentEnrolled) {
         m_isStudentEnrolled = isStudentEnrolled;
@@ -219,12 +219,12 @@ void Appointment::setIsStudentEnrolled(bool isStudentEnrolled)
     }
 }
 
-bool Appointment::isStudentEnrolled() const
+bool ZermeloAppointment::isStudentEnrolled() const
 {
     return m_isStudentEnrolled;
 }
 
-void Appointment::setIsCanceled(bool isCanceled)
+void ZermeloAppointment::setIsCanceled(bool isCanceled)
 {
     if (isCanceled != m_isCanceled) {
         m_isCanceled = isCanceled;
@@ -232,7 +232,7 @@ void Appointment::setIsCanceled(bool isCanceled)
     }
 }
 
-bool Appointment::isCanceled() const
+bool ZermeloAppointment::isCanceled() const
 {
     return m_isCanceled;
 }

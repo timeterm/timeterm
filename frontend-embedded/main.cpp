@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "apiclient.h"
 #include "cardreadercontroller.h"
 
 int main(int argc, char *argv[])
@@ -14,6 +15,9 @@ int main(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReader", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderController", "singleton");
+    qmlRegisterType<ZermeloAppointment>("Timeterm.Zermelo", 1, 0, "ZermeloAppointment");
+    qmlRegisterType<ZermeloAppointments>("Timeterm.Zermelo", 1, 0, "ZermeloAppointments");
+    qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
