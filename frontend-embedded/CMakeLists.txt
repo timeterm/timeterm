@@ -39,7 +39,7 @@ set(SOURCE_FILES
   cardreadercontroller.h
   fakecardreader.cpp
   fakecardreader.h
-)
+        apiclient.cpp apiclient.h)
 
 if(ANDROID)
     add_library(frontend-embedded SHARED
