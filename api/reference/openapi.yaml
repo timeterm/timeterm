@@ -105,18 +105,18 @@ components:
         appointmentInstance:
           type: integer
           format: int64
-        online:
+        isOnline:
           type: boolean
-        optional:
+        isOptional:
           type: boolean
-        studentEnrolled:
+        isStudentEnrolled:
+          type: boolean
+        isCanceled:
           type: boolean
         startTimeSlot:
           type: integer
         endTimeSlot:
           type: integer
-        canceled:
-          type: boolean
         subjects:
           type: array
           items:
