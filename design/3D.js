@@ -16,7 +16,7 @@ function setup() {
     x = 0;
     y = 0;
     move = false;
-    cursorView = false;
+    cursorView = true;
     signedIn = false;
 
     if (!cursorView) {
