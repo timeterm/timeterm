@@ -29,7 +29,7 @@ void FakeCardReader::handleConnection()
 {
     QLocalSocket *conn = m_server->nextPendingConnection();
     connect(conn, &QLocalSocket::disconnected, conn, &QLocalSocket::deleteLater);
-    auto closeConn = connect(this, &FakeCardReader::shutDownInternal, conn, &QLocalSocket::close);
+    connect(this, &FakeCardReader::shutDownInternal, conn, &QLocalSocket::close);
 
     conn->waitForConnected();
     conn->waitForReadyRead();
@@ -49,6 +49,6 @@ void FakeCardReader::handleConnection()
     in >> cardUid;
 
     emit cardRead(cardUid);
-
-    disconnect(closeConn);
+    
+    conn->deleteLater();
 }

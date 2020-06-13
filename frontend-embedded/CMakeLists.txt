@@ -39,6 +39,8 @@ set(SOURCE_FILES
   cardreadercontroller.h
   fakecardreader.cpp
   fakecardreader.h
+  apiclient.cpp
+  apiclient.h
 )
 
 if(ANDROID)
@@ -58,13 +60,12 @@ target_compile_definitions(frontend-embedded
 target_link_libraries(frontend-embedded
   PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2)
 
+# Make sure we only compile with the MFRC522 module if we're on the Raspberry Pi.
 if(RASPBERRYPI)
     add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)
 
     target_compile_definitions(frontend-embedded PRIVATE RASPBERRYPI)
-
-    target_link_libraries(frontend-embedded
-      PRIVATE mfrc522)
+    target_link_libraries(frontend-embedded PRIVATE mfrc522)
 endif()
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
