@@ -3,31 +3,13 @@
 
 #include <QDateTime>
 #include <QList>
+#include <QNetworkAccessManager>
 #include <QObject>
 #include <QQmlListProperty>
 
-class ApiClient: public QObject
+class ZermeloAppointment
 {
-    Q_OBJECT
-    Q_PROPERTY(QString cardId WRITE setCardId READ cardId NOTIFY cardIdChanged)
-
-public:
-    explicit ApiClient(QObject *parent = nullptr);
-
-    void setCardId(const QString &cardId);
-
-    QString cardId() const;
-
-signals:
-    void cardIdChanged();
-
-private:
-    QString m_cardId;
-};
-
-class ZermeloAppointment: public QObject
-{
-    Q_OBJECT
+    Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id NOTIFY idChanged)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance NOTIFY appointmentInstanceChanged)
     Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot NOTIFY startTimeSlotChanged)
@@ -113,25 +95,80 @@ private:
     bool m_isCanceled = false;
 };
 
-class ZermeloAppointments: public QObject
+class ZermeloAppointments
 {
-    Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<ZermeloAppointment> data READ data NOTIFY dataChanged)
+    Q_GADGET
+    Q_PROPERTY(QList<ZermeloAppointment> data READ data NOTIFY dataChanged)
 
 public:
-    explicit ZermeloAppointments(QObject *parent = nullptr);
+    void append(const ZermeloAppointment& appointment);
 
-    void append(ZermeloAppointment *appointment);
-
-    QQmlListProperty<ZermeloAppointment> data();
+    QList<ZermeloAppointment> data();
 
 signals:
     void dataChanged();
 
 private:
-    void append(const QList<ZermeloAppointment *> &appointments);
+    void append(const QList<ZermeloAppointment> &appointments);
 
-    QList<ZermeloAppointment *> m_data;
+    QList<ZermeloAppointment> m_data;
+};
+
+class TimetermUser
+{
+    Q_GADGET
+
+public:
+    void setCardUid(const QString &cardUid);
+    QString cardUid();
+    void setOrganizationId(const QString &organizationId);
+    QString organizationId();
+    void setName(const QString &name);
+    QString name();
+    void setStudentCode(const QString &studentCode);
+    QString studentCode();
+
+signals:
+    void cardUidChanged();
+    void organizationIdChanged();
+    void nameChanged();
+    void studentCodeChanged();
+
+private:
+    QString m_cardUid;
+    QString m_organizationId;
+    QString m_name;
+    QString m_studentCode;
+};
+
+class ApiClient: public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString cardId WRITE setCardId READ cardId NOTIFY cardIdChanged)
+    Q_PROPERTY(QString apiKey WRITE setApiKey READ apiKey NOTIFY apiKeyChanged)
+
+public:
+    explicit ApiClient(QObject *parent = nullptr);
+
+    void setCardId(const QString &cardId);
+    QString cardId() const;
+    void setApiKey(const QString &apiKey);
+    QString apiKey() const;
+
+    Q_INVOKABLE void getCurrentUser();
+
+signals:
+    void cardIdChanged();
+    void apiKeyChanged();
+
+    void currentUserReceived(TimetermUser);
+
+private:
+    QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
+    QString m_cardId;
+    QString m_apiKey;
+    QNetworkAccessManager *m_qnam;
+    void setAuthHeaders(QNetworkRequest &req);
 };
 
 #endif//APICLIENT_H

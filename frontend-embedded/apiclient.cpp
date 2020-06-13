@@ -1,6 +1,10 @@
 #include "apiclient.h"
 
-ApiClient::ApiClient(QObject *parent) : QObject(parent)
+#include <QNetworkReply>
+
+ApiClient::ApiClient(QObject *parent)
+    : QObject(parent),
+      m_qnam(new QNetworkAccessManager(this))
 {
 }
 
@@ -17,29 +21,48 @@ void ApiClient::setCardId(const QString &cardId)
     }
 }
 
-ZermeloAppointments::ZermeloAppointments(QObject *parent) : QObject(parent)
+QString ApiClient::apiKey() const
 {
+    return m_apiKey;
 }
 
-void ZermeloAppointments::append(ZermeloAppointment *appointment)
+void ApiClient::setApiKey(const QString &apiKey)
+{
+    if (apiKey != m_apiKey) {
+        m_apiKey = apiKey;
+        emit apiKeyChanged();
+    }
+}
+
+void ApiClient::getCurrentUser()
+{
+    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("user/self")));
+
+    setAuthHeaders(req);
+
+    auto reply = m_qnam->get(req);
+}
+
+void ApiClient::setAuthHeaders(QNetworkRequest &req) {
+    req.setRawHeader("X-Api-Key", m_apiKey.toLocal8Bit());
+    req.setRawHeader("X-Card-Uid", m_cardId.toLocal8Bit());
+}
+
+void ZermeloAppointments::append(const ZermeloAppointment& appointment)
 {
     m_data.append(appointment);
     emit dataChanged();
 }
 
-void ZermeloAppointments::append(const QList<ZermeloAppointment *> &appointments)
+void ZermeloAppointments::append(const QList<ZermeloAppointment> &appointments)
 {
     m_data.append(appointments);
     emit dataChanged();
 }
 
-QQmlListProperty<ZermeloAppointment> ZermeloAppointments::data()
+QList<ZermeloAppointment> ZermeloAppointments::data()
 {
-    return {this, &m_data};
-}
-
-ZermeloAppointment::ZermeloAppointment(QObject *parent) : QObject(parent)
-{
+    return m_data;
 }
 
 void ZermeloAppointment::setId(qint64 id)
@@ -235,4 +258,56 @@ void ZermeloAppointment::setIsCanceled(bool isCanceled)
 bool ZermeloAppointment::isCanceled() const
 {
     return m_isCanceled;
+}
+
+void TimetermUser::setCardUid(const QString &cardUid)
+{
+    if (cardUid != m_cardUid) {
+        m_cardUid = cardUid;
+        emit cardUidChanged();
+    }
+}
+
+QString TimetermUser::cardUid()
+{
+    return m_cardUid;
+}
+
+void TimetermUser::setOrganizationId(const QString &organizationId)
+{
+    if (organizationId != m_organizationId) {
+        m_organizationId = organizationId;
+        emit organizationIdChanged();
+    }
+}
+
+QString TimetermUser::organizationId()
+{
+    return m_organizationId;
+}
+
+void TimetermUser::setName(const QString &name)
+{
+    if (name != m_name) {
+        m_name = name;
+        emit nameChanged();
+    }
+}
+
+QString TimetermUser::name()
+{
+    return m_name;
+}
+
+void TimetermUser::setStudentCode(const QString &studentCode)
+{
+    if (studentCode != m_studentCode) {
+        m_studentCode = studentCode;
+        emit studentCodeChanged();
+    }
+}
+
+QString TimetermUser::studentCode()
+{
+    return m_studentCode;
 }
