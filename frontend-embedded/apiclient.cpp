@@ -34,13 +34,19 @@ void ApiClient::setApiKey(const QString &apiKey)
     }
 }
 
+void ApiClient::getTimetable()
+{
+
+}
+
 void ApiClient::getCurrentUser()
 {
-    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("user/self")));
-
-    setAuthHeaders(req);
-
-    auto reply = m_qnam->get(req);
+//    emit currentUserReceived()
+//    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("user/self")));
+//
+//    setAuthHeaders(req);
+//
+//    auto reply = m_qnam->get(req);
 }
 
 void ApiClient::setAuthHeaders(QNetworkRequest &req) {
@@ -51,13 +57,11 @@ void ApiClient::setAuthHeaders(QNetworkRequest &req) {
 void ZermeloAppointments::append(const ZermeloAppointment& appointment)
 {
     m_data.append(appointment);
-    emit dataChanged();
 }
 
 void ZermeloAppointments::append(const QList<ZermeloAppointment> &appointments)
 {
     m_data.append(appointments);
-    emit dataChanged();
 }
 
 QList<ZermeloAppointment> ZermeloAppointments::data()
@@ -69,7 +73,6 @@ void ZermeloAppointment::setId(qint64 id)
 {
     if (id != m_id) {
         m_id = id;
-        emit idChanged();
     }
 }
 
@@ -82,7 +85,6 @@ void ZermeloAppointment::setAppointmentInstance(qint64 appointmentInstance)
 {
     if (appointmentInstance != m_appointmentInstance) {
         m_appointmentInstance = appointmentInstance;
-        emit appointmentInstanceChanged();
     }
 }
 
@@ -95,7 +97,6 @@ void ZermeloAppointment::setStartTimeSlot(qint32 startTimeSlot)
 {
     if (startTimeSlot != m_startTimeSlot) {
         m_startTimeSlot = startTimeSlot;
-        emit startTimeSlotChanged();
     }
 }
 
@@ -108,7 +109,6 @@ void ZermeloAppointment::setEndTimeSlot(qint32 endTimeSlot)
 {
     if (endTimeSlot != m_endTimeSlot) {
         m_endTimeSlot = endTimeSlot;
-        emit endTimeSlotChanged();
     }
 }
 
@@ -121,7 +121,6 @@ void ZermeloAppointment::setCapacity(qint32 capacity)
 {
     if (capacity != m_capacity) {
         m_capacity = capacity;
-        emit capacityChanged();
     }
 }
 
@@ -134,7 +133,6 @@ void ZermeloAppointment::setAvailableSpace(qint32 availableSpace)
 {
     if (availableSpace != m_availableSpace) {
         m_availableSpace = availableSpace;
-        emit availableSpaceChanged();
     }
 }
 
@@ -147,7 +145,6 @@ void ZermeloAppointment::setStartTime(const QDateTime &startTime)
 {
     if (startTime != m_startTime) {
         m_startTime = startTime;
-        emit startTimeChanged();
     }
 }
 
@@ -160,7 +157,6 @@ void ZermeloAppointment::setEndTime(const QDateTime &endTime)
 {
     if (endTime != m_endTime) {
         m_endTime = endTime;
-        emit endTimeChanged();
     }
 }
 
@@ -173,7 +169,6 @@ void ZermeloAppointment::setSubjects(const QStringList &subjects)
 {
     if (subjects != m_subjects) {
         m_subjects = subjects;
-        emit subjectsChanged();
     }
 }
 
@@ -186,7 +181,6 @@ void ZermeloAppointment::setLocations(const QStringList &locations)
 {
     if (locations != m_locations) {
         m_locations = locations;
-        emit locationsChanged();
     }
 }
 
@@ -199,7 +193,6 @@ void ZermeloAppointment::setTeachers(const QStringList &teachers)
 {
     if (teachers != m_teachers) {
         m_teachers = teachers;
-        emit teachersChanged();
     }
 }
 
@@ -212,7 +205,6 @@ void ZermeloAppointment::setIsOnline(bool isOnline)
 {
     if (isOnline != m_isOnline) {
         m_isOnline = isOnline;
-        emit isOnlineChanged();
     }
 }
 
@@ -225,7 +217,6 @@ void ZermeloAppointment::setIsOptional(bool isOptional)
 {
     if (isOptional != m_isOptional) {
         m_isOptional = isOptional;
-        emit isOptionalChanged();
     }
 }
 
@@ -238,7 +229,6 @@ void ZermeloAppointment::setIsStudentEnrolled(bool isStudentEnrolled)
 {
     if (isStudentEnrolled != m_isStudentEnrolled) {
         m_isStudentEnrolled = isStudentEnrolled;
-        emit isStudentEnrolledChanged();
     }
 }
 
@@ -251,7 +241,6 @@ void ZermeloAppointment::setIsCanceled(bool isCanceled)
 {
     if (isCanceled != m_isCanceled) {
         m_isCanceled = isCanceled;
-        emit isCanceledChanged();
     }
 }
 
@@ -264,7 +253,6 @@ void TimetermUser::setCardUid(const QString &cardUid)
 {
     if (cardUid != m_cardUid) {
         m_cardUid = cardUid;
-        emit cardUidChanged();
     }
 }
 
@@ -277,7 +265,6 @@ void TimetermUser::setOrganizationId(const QString &organizationId)
 {
     if (organizationId != m_organizationId) {
         m_organizationId = organizationId;
-        emit organizationIdChanged();
     }
 }
 
@@ -290,7 +277,6 @@ void TimetermUser::setName(const QString &name)
 {
     if (name != m_name) {
         m_name = name;
-        emit nameChanged();
     }
 }
 
@@ -303,7 +289,6 @@ void TimetermUser::setStudentCode(const QString &studentCode)
 {
     if (studentCode != m_studentCode) {
         m_studentCode = studentCode;
-        emit studentCodeChanged();
     }
 }
 

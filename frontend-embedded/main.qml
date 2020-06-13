@@ -2,6 +2,7 @@ import QtQuick 2.14
 import QtQuick.Window 2.14
 import QtQuick.VirtualKeyboard 2.14
 import Timeterm.Rfid 1.0
+import Timeterm.Api 1.0
 
 Window {
     id: window
@@ -16,6 +17,22 @@ Window {
         function onCardRead(uid) {
             window.title = uid
         }
+    }
+
+    Connections {
+        target: apiClient
+        function onTimetableReceived(timetable) {
+            console.log("Timetable received")
+            console.log(timetable.data[0].locations[0])
+        }
+    }
+
+    ApiClient {
+        id: apiClient
+    }
+
+    Component.onCompleted: {
+        apiClient.getTimetable()
     }
 
     InputPanel {

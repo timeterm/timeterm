@@ -15,9 +15,6 @@ int main(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReader", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderController", "singleton");
-    qmlRegisterType<ZermeloAppointment>("Timeterm.Api.Zermelo", 1, 0, "ZermeloAppointment");
-    qmlRegisterType<ZermeloAppointments>("Timeterm.Api.Zermelo", 1, 0, "ZermeloAppointments");
-    qmlRegisterType<TimetermUser>("Timeterm.Api", 1, 0, "TimetermUser");
     qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
 
     QQmlApplicationEngine engine;

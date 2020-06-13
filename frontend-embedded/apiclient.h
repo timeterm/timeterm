@@ -10,25 +10,23 @@
 class ZermeloAppointment
 {
     Q_GADGET
-    Q_PROPERTY(qint64 id WRITE setId READ id NOTIFY idChanged)
-    Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance NOTIFY appointmentInstanceChanged)
-    Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot NOTIFY startTimeSlotChanged)
-    Q_PROPERTY(qint32 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot NOTIFY endTimeSlotChanged)
-    Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity NOTIFY capacityChanged)
-    Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace NOTIFY availableSpaceChanged)
-    Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime NOTIFY startTimeChanged)
-    Q_PROPERTY(QDateTime endTime WRITE setEndTime READ endTime NOTIFY endTimeChanged)
-    Q_PROPERTY(QStringList subjects WRITE setSubjects READ subjects NOTIFY subjectsChanged)
-    Q_PROPERTY(QStringList locations WRITE setLocations READ locations NOTIFY locationsChanged)
-    Q_PROPERTY(QStringList teachers WRITE setTeachers READ teachers NOTIFY teachersChanged)
-    Q_PROPERTY(bool isOnline WRITE setIsOnline READ isOnline NOTIFY isOnlineChanged)
-    Q_PROPERTY(bool isOptional WRITE setIsOptional READ isOptional NOTIFY isOptionalChanged)
-    Q_PROPERTY(bool isStudentEnrolled WRITE setIsStudentEnrolled READ isStudentEnrolled NOTIFY isStudentEnrolledChanged)
-    Q_PROPERTY(bool isCanceled WRITE setIsCanceled READ isCanceled NOTIFY isCanceledChanged)
+    Q_PROPERTY(qint64 id WRITE setId READ id)
+    Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
+    Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
+    Q_PROPERTY(qint32 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
+    Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
+    Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
+    Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
+    Q_PROPERTY(QDateTime endTime WRITE setEndTime READ endTime)
+    Q_PROPERTY(QStringList subjects WRITE setSubjects READ subjects)
+    Q_PROPERTY(QStringList locations WRITE setLocations READ locations)
+    Q_PROPERTY(QStringList teachers WRITE setTeachers READ teachers)
+    Q_PROPERTY(bool isOnline WRITE setIsOnline READ isOnline)
+    Q_PROPERTY(bool isOptional WRITE setIsOptional READ isOptional)
+    Q_PROPERTY(bool isStudentEnrolled WRITE setIsStudentEnrolled READ isStudentEnrolled)
+    Q_PROPERTY(bool isCanceled WRITE setIsCanceled READ isCanceled)
 
 public:
-    explicit ZermeloAppointment(QObject *parent = nullptr);
-
     void setId(qint64 id);
     qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
@@ -60,23 +58,6 @@ public:
     void setIsCanceled(bool isCanceled);
     bool isCanceled() const;
 
-signals:
-    void idChanged();
-    void appointmentInstanceChanged();
-    void startTimeSlotChanged();
-    void endTimeSlotChanged();
-    void capacityChanged();
-    void availableSpaceChanged();
-    void startTimeChanged();
-    void endTimeChanged();
-    void subjectsChanged();
-    void locationsChanged();
-    void teachersChanged();
-    void isOnlineChanged();
-    void isOptionalChanged();
-    void isStudentEnrolledChanged();
-    void isCanceledChanged();
-
 private:
     qint64 m_id = 0;
     qint64 m_appointmentInstance = 0;
@@ -95,18 +76,17 @@ private:
     bool m_isCanceled = false;
 };
 
+Q_DECLARE_METATYPE(ZermeloAppointment)
+
 class ZermeloAppointments
 {
     Q_GADGET
-    Q_PROPERTY(QList<ZermeloAppointment> data READ data NOTIFY dataChanged)
+    Q_PROPERTY(QList<ZermeloAppointment> data READ data)
 
 public:
-    void append(const ZermeloAppointment& appointment);
+    void append(const ZermeloAppointment &appointment);
 
     QList<ZermeloAppointment> data();
-
-signals:
-    void dataChanged();
 
 private:
     void append(const QList<ZermeloAppointment> &appointments);
@@ -114,9 +94,15 @@ private:
     QList<ZermeloAppointment> m_data;
 };
 
+Q_DECLARE_METATYPE(ZermeloAppointments)
+
 class TimetermUser
 {
     Q_GADGET
+    Q_PROPERTY(QString cardUid READ cardUid WRITE setCardUid)
+    Q_PROPERTY(QString organizationId READ organizationId WRITE setOrganizationId)
+    Q_PROPERTY(QString name READ name WRITE setName)
+    Q_PROPERTY(QString studentCode READ studentCode WRITE setStudentCode)
 
 public:
     void setCardUid(const QString &cardUid);
@@ -128,18 +114,14 @@ public:
     void setStudentCode(const QString &studentCode);
     QString studentCode();
 
-signals:
-    void cardUidChanged();
-    void organizationIdChanged();
-    void nameChanged();
-    void studentCodeChanged();
-
 private:
     QString m_cardUid;
     QString m_organizationId;
     QString m_name;
     QString m_studentCode;
 };
+
+Q_DECLARE_METATYPE(TimetermUser)
 
 class ApiClient: public QObject
 {
@@ -156,19 +138,21 @@ public:
     QString apiKey() const;
 
     Q_INVOKABLE void getCurrentUser();
+    Q_INVOKABLE void getTimetable();
 
 signals:
     void cardIdChanged();
     void apiKeyChanged();
-
     void currentUserReceived(TimetermUser);
+    void timetableReceived(ZermeloAppointments);
 
 private:
+    void setAuthHeaders(QNetworkRequest &req);
+
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
     QString m_cardId;
     QString m_apiKey;
     QNetworkAccessManager *m_qnam;
-    void setAuthHeaders(QNetworkRequest &req);
 };
 
 #endif//APICLIENT_H
