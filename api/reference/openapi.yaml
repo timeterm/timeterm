@@ -16,6 +16,7 @@ servers:
 paths:
   /zermelo/appointment:
     get:
+      operationId: getAppointments
       summary: Get a list of appointments
       parameters:
         - name: X-Card-Uid
@@ -23,6 +24,18 @@ paths:
           required: true
           schema:
             type: string
+        - name: startTime
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date-time
       responses:
         '200':
           description: A list of appointments
@@ -33,6 +46,7 @@ paths:
   
   /user/self:
     get:
+      operationId: getUserSelf
       summary: Get information about the current user
       parameters:
         - name: X-Card-Uid
@@ -50,6 +64,7 @@ paths:
 
   /organization/{organizationId}/user:
     post:
+      operationId: createUserInOrganization
       summary: Create a user in an organization
       responses:
         '200':
@@ -61,6 +76,7 @@ paths:
 
   /organization/{organizationId}/device:
     post:
+      operationId: createDeviceInOrganization
       summary: Create a new device in an organization
       responses:
         '200':
@@ -72,6 +88,7 @@ paths:
 
   /device/{id}:
     get:
+      operationId: getDevice
       summary: Get a device
       responses:
         '200':
