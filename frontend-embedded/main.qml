@@ -32,7 +32,7 @@ Window {
     }
 
     Component.onCompleted: {
-        apiClient.getTimetable()
+        apiClient.getAppointments(new Date(), new Date())
     }
 
     InputPanel {

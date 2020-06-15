@@ -2,7 +2,6 @@
 #include "mfrc522cardreader.h"
 
 #include <QProcessEnvironment>
-#include <QThread>
 #include <QtNetwork>
 
 FakeCardReader::FakeCardReader(QObject *parent)
@@ -15,9 +14,11 @@ FakeCardReader::FakeCardReader(QObject *parent)
 
 void FakeCardReader::start()
 {
-    if (!m_server->listen("fake_card_reader")) {
+    // Simply remove the old socket, what could go wrong 😆
+    // TODO(rutgerbrf): give the socket a unique name, present that to the developer.
+    m_server->removeServer("fake_card_reader");
+    if (!m_server->listen("fake_card_reader"))
         throw std::runtime_error("Could not create fake card reader socket");
-    }
 }
 
 void FakeCardReader::shutDown()

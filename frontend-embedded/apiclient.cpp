@@ -49,16 +49,16 @@ void setTimetableQueryParams(QUrl &url, const QDateTime &start, const QDateTime 
     url.setQuery(query);
 }
 
-void ApiClient::getTimetable(const QDateTime &start, const QDateTime &end)
+void ApiClient::getAppointments(const QDateTime &start, const QDateTime &end)
 {
-    auto url = m_baseUrl.resolved(QUrl("test"));
+    auto url = m_baseUrl.resolved(QUrl("zermelo/appointment"));
     setTimetableQueryParams(url, start, end);
 
     auto req = QNetworkRequest(url);
     setAuthHeaders(req);
 
     auto reply = m_qnam->get(req);
-    connectReply(reply, &ApiClient::handleTimetableReply);
+    connectReply(reply, &ApiClient::handleGetAppointmentsReply);
 }
 
 void ApiClient::getCurrentUser()
@@ -67,7 +67,7 @@ void ApiClient::getCurrentUser()
     setAuthHeaders(req);
 
     auto reply = m_qnam->get(req);
-    connectReply(reply, &ApiClient::handleCurrentUserReply);
+    connectReply(reply, &ApiClient::handleGetCurrentUserReply);
 }
 
 void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
@@ -88,8 +88,11 @@ void ApiClient::replyFinished()
 {
     auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
 
-    (this->*m_handlers[reply])(reply);
-    m_handlers.remove(reply);
+    auto methodPointer = m_handlers[reply];
+    if (methodPointer != nullptr) {
+        (this->*methodPointer)(reply);
+        m_handlers.remove(reply);
+    }
 
     reply->deleteLater();
 }
@@ -108,7 +111,7 @@ std::optional<T> readJsonObject(QNetworkReply *reply)
     return decoded;
 }
 
-void ApiClient::handleCurrentUserReply(QNetworkReply *reply)
+void ApiClient::handleGetCurrentUserReply(QNetworkReply *reply)
 {
     auto user = readJsonObject<TimetermUser>(reply);
     if (!user.has_value())
@@ -117,7 +120,7 @@ void ApiClient::handleCurrentUserReply(QNetworkReply *reply)
     emit currentUserReceived(user.value());
 }
 
-void ApiClient::handleTimetableReply(QNetworkReply *reply)
+void ApiClient::handleGetAppointmentsReply(QNetworkReply *reply)
 {
     auto user = readJsonObject<ZermeloAppointments>(reply);
     if (!user.has_value())

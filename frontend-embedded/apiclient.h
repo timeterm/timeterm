@@ -152,7 +152,7 @@ public:
     [[nodiscard]] QString apiKey() const;
 
     Q_INVOKABLE void getCurrentUser();
-    Q_INVOKABLE void getTimetable(const QDateTime& start, const QDateTime& end);
+    Q_INVOKABLE void getAppointments(const QDateTime& start, const QDateTime& end);
 
 signals:
     void cardIdChanged();
@@ -166,8 +166,8 @@ private slots:
 
 private:
     void connectReply(QNetworkReply *reply, ReplyHandler handler);
-    void handleCurrentUserReply(QNetworkReply* reply);
-    void handleTimetableReply(QNetworkReply *reply);
+    void handleGetCurrentUserReply(QNetworkReply* reply);
+    void handleGetAppointmentsReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
