@@ -1,5 +1,7 @@
 #include "apiclient.h"
 
+#include <QJsonObject>
+#include <QJsonParseError>
 #include <QNetworkReply>
 
 ApiClient::ApiClient(QObject *parent)
@@ -36,25 +38,65 @@ void ApiClient::setApiKey(const QString &apiKey)
 
 void ApiClient::getTimetable()
 {
-
 }
 
 void ApiClient::getCurrentUser()
 {
-//    emit currentUserReceived()
-//    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("user/self")));
-//
-//    setAuthHeaders(req);
-//
-//    auto reply = m_qnam->get(req);
+    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("user/self")));
+    setAuthHeaders(req);
+
+    auto reply = m_qnam->get(req);
+    connectReply(reply, &ApiClient::handleCurrentUserReply);
 }
 
-void ApiClient::setAuthHeaders(QNetworkRequest &req) {
+void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
+{
+    m_handlers[reply] = handler;
+
+    connect(reply, &QNetworkReply::finished, this, &ApiClient::replyFinished);
+    connect(reply, &QNetworkReply::errorOccurred, this, &ApiClient::handleReplyError);
+}
+
+void ApiClient::setAuthHeaders(QNetworkRequest &req)
+{
     req.setRawHeader("X-Api-Key", m_apiKey.toLocal8Bit());
     req.setRawHeader("X-Card-Uid", m_cardId.toLocal8Bit());
 }
 
-void ZermeloAppointments::append(const ZermeloAppointment& appointment)
+void ApiClient::replyFinished()
+{
+    auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
+
+    (this->*m_handlers[reply])(reply);
+    m_handlers.remove(reply);
+
+    reply->deleteLater();
+}
+
+void ApiClient::handleCurrentUserReply(QNetworkReply *reply)
+{
+    auto bytes = reply->readAll();
+    auto json = QJsonDocument::fromJson(bytes);
+
+    if (!json.isObject())
+        return;
+
+    auto user = TimetermUser();
+    user.read(json.object());
+
+    emit currentUserReceived(user);
+}
+
+void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
+{
+    auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
+
+    m_handlers.remove(reply);
+
+    reply->deleteLater();
+}
+
+void ZermeloAppointments::append(const ZermeloAppointment &appointment)
 {
     m_data.append(appointment);
 }
@@ -256,7 +298,7 @@ void TimetermUser::setCardUid(const QString &cardUid)
     }
 }
 
-QString TimetermUser::cardUid()
+QString TimetermUser::cardUid() const
 {
     return m_cardUid;
 }
@@ -268,7 +310,7 @@ void TimetermUser::setOrganizationId(const QString &organizationId)
     }
 }
 
-QString TimetermUser::organizationId()
+QString TimetermUser::organizationId() const
 {
     return m_organizationId;
 }
@@ -280,7 +322,7 @@ void TimetermUser::setName(const QString &name)
     }
 }
 
-QString TimetermUser::name()
+QString TimetermUser::name() const
 {
     return m_name;
 }
@@ -292,7 +334,30 @@ void TimetermUser::setStudentCode(const QString &studentCode)
     }
 }
 
-QString TimetermUser::studentCode()
+QString TimetermUser::studentCode() const
 {
     return m_studentCode;
+}
+
+void TimetermUser::read(const QJsonObject &json)
+{
+    if (json.contains("cardUid") && json["cardUid"].isString())
+        setCardUid(json["cardUid"].toString());
+
+    if (json.contains("name") && json["name"].isString())
+        setName(json["name"].toString());
+
+    if (json.contains("organizationId") && json["organizationId"].isString())
+        setOrganizationId(json["organizationId"].toString());
+
+    if (json.contains("studentCode") && json["studentCode"].isString())
+        setStudentCode(json["studentCode"].toString());
+}
+
+void TimetermUser::write(QJsonObject &json) const
+{
+    json["cardUid"] = cardUid();
+    json["name"] = name();
+    json["organizationId"] = organizationId();
+    json["studentCode"] = studentCode();
 }

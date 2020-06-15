@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QList>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QObject>
 #include <QQmlListProperty>
 
@@ -106,13 +107,16 @@ class TimetermUser
 
 public:
     void setCardUid(const QString &cardUid);
-    QString cardUid();
+    QString cardUid() const;
     void setOrganizationId(const QString &organizationId);
-    QString organizationId();
+    QString organizationId() const;
     void setName(const QString &name);
-    QString name();
+    QString name() const;
     void setStudentCode(const QString &studentCode);
-    QString studentCode();
+    QString studentCode() const;
+
+    void read(const QJsonObject &json);
+    void write(QJsonObject &json) const;
 
 private:
     QString m_cardUid;
@@ -122,6 +126,10 @@ private:
 };
 
 Q_DECLARE_METATYPE(TimetermUser)
+
+class ApiClient;
+
+using ReplyHandler = void(ApiClient::*)(QNetworkReply*);
 
 class ApiClient: public QObject
 {
@@ -146,13 +154,20 @@ signals:
     void currentUserReceived(TimetermUser);
     void timetableReceived(ZermeloAppointments);
 
+private slots:
+    void replyFinished();
+    void handleReplyError(QNetworkReply::NetworkError error);
+
 private:
+    void connectReply(QNetworkReply *reply, ReplyHandler handler);
+    void handleCurrentUserReply(QNetworkReply* reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
     QString m_cardId;
     QString m_apiKey;
     QNetworkAccessManager *m_qnam;
+    QHash<QNetworkReply *, ReplyHandler> m_handlers;
 };
 
 #endif//APICLIENT_H
