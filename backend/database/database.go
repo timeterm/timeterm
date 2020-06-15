@@ -65,7 +65,7 @@ func migrate(db *sqlx.DB) error {
 
 func doMigrate(migrate *gomigrate.Migrate) error {
 	currentVersion, isDirty, err := migrate.Version()
-	if err != nil && (isDirty || currentVersion != version) {
+	if err == nil && (isDirty || currentVersion != version) {
 		err = migrate.Migrate(version)
 	}
 	return err
