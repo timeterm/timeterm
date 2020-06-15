@@ -16,19 +16,26 @@ Window {
         anchors.fill: parent
 
         TextField {
-            id: textField
-            width: 80
+            id: cardUid
+            width: 320
             height: 50
             placeholderText: qsTr("Card UID")
+        }
+
+        TextField {
+            id: serverName
+            width: 320
+            height: 50
+            placeholderText: qsTr("Server Name")
         }
 
         Button {
             id: button
             text: qsTr("Send")
             objectName: "button"
-            onClicked: sendCardUid(textField.text)
+            onClicked: sendCardUid(serverName.text, cardUid.text)
 
-            signal sendCardUid(uid: string)
+            signal sendCardUid(serverName: string, uid: string)
         }
     }
 }

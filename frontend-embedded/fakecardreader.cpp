@@ -14,11 +14,13 @@ FakeCardReader::FakeCardReader(QObject *parent)
 
 void FakeCardReader::start()
 {
-    // Simply remove the old socket, what could go wrong 😆
-    // TODO(rutgerbrf): give the socket a unique name, present that to the developer.
-    m_server->removeServer("fake_card_reader");
-    if (!m_server->listen("fake_card_reader"))
+    auto randomNumber = QRandomGenerator().generate();
+    auto serverName = "fake_card_reader_" + QString::number(randomNumber);
+
+    if (!m_server->listen(serverName))
         throw std::runtime_error("Could not create fake card reader socket");
+
+    qDebug() << "Fake card reader server listening with server name " << serverName;
 }
 
 void FakeCardReader::shutDown()

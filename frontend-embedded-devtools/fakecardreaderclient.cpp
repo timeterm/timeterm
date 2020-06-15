@@ -6,7 +6,7 @@ FakeCardReaderClient::FakeCardReaderClient(QObject *parent)
 {
 }
 
-void FakeCardReaderClient::sendCardUid(const QString &uid)
+void FakeCardReaderClient::sendCardUid(const QString &serverName, const QString &uid)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -16,7 +16,7 @@ void FakeCardReaderClient::sendCardUid(const QString &uid)
     out << uid;
 
     m_sock->abort();
-    m_sock->connectToServer("fake_card_reader");
+    m_sock->connectToServer(serverName);
     m_sock->write(block);
     m_sock->flush();
     m_sock->disconnectFromServer();

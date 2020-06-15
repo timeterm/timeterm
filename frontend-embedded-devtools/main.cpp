@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     auto *window = engine.rootObjects().first()->findChild<QObject *>("button");
     auto *client = new FakeCardReaderClient(window);
 
-    QObject::connect(window, SIGNAL(sendCardUid(QString)), client, SLOT(sendCardUid(QString)));
+    QObject::connect(window, SIGNAL(sendCardUid(QString, QString)), client, SLOT(sendCardUid(QString, QString)));
 
     return QGuiApplication::exec();
 }
