@@ -5,4 +5,4 @@ Het is een PWS-project wat nog in ontwikkeling is, het is nog (lang) niet klaar.
 
 Het is op het moment nog niet open-source, de broncode is enkel publiek beschikbaar, omdat wat licentiezaken met Qt nog duidelijk moeten worden.
 
-© 2020 Kees Blok (@keesblok), Robert van der Maas (@Robertvandermaas) en Rutger Broekhoff (@rutgerbrf)
+© 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
