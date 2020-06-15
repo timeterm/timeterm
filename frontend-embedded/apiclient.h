@@ -29,35 +29,38 @@ class ZermeloAppointment
 
 public:
     void setId(qint64 id);
-    qint64 id() const;
+    [[nodiscard]] qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
-    qint64 appointmentInstance() const;
+    [[nodiscard]] qint64 appointmentInstance() const;
     void setStartTimeSlot(qint32 startTimeSlot);
-    qint32 startTimeSlot() const;
+    [[nodiscard]] qint32 startTimeSlot() const;
     void setEndTimeSlot(qint32 endTimeSlot);
-    qint32 endTimeSlot() const;
+    [[nodiscard]] qint32 endTimeSlot() const;
     void setCapacity(qint32 capacity);
-    qint32 capacity() const;
+    [[nodiscard]] qint32 capacity() const;
     void setAvailableSpace(qint32 availableSpace);
-    qint32 availableSpace() const;
+    [[nodiscard]] qint32 availableSpace() const;
     void setStartTime(const QDateTime &startTime);
-    QDateTime startTime() const;
+    [[nodiscard]] QDateTime startTime() const;
     void setEndTime(const QDateTime &endTime);
-    QDateTime endTime() const;
+    [[nodiscard]] QDateTime endTime() const;
     void setSubjects(const QStringList &subjects);
-    QStringList subjects() const;
+    [[nodiscard]] QStringList subjects() const;
     void setLocations(const QStringList &locations);
-    QStringList locations() const;
+    [[nodiscard]] QStringList locations() const;
     void setTeachers(const QStringList &teachers);
-    QStringList teachers() const;
+    [[nodiscard]] QStringList teachers() const;
     void setIsOnline(bool isOnline);
-    bool isOnline() const;
+    [[nodiscard]] bool isOnline() const;
     void setIsOptional(bool isOptional);
-    bool isOptional() const;
+    [[nodiscard]] bool isOptional() const;
     void setIsStudentEnrolled(bool isStudentEnrolled);
-    bool isStudentEnrolled() const;
+    [[nodiscard]] bool isStudentEnrolled() const;
     void setIsCanceled(bool isCanceled);
-    bool isCanceled() const;
+    [[nodiscard]] bool isCanceled() const;
+
+    void read(const QJsonObject &json);
+    void write(QJsonObject &json) const;
 
 private:
     qint64 m_id = 0;
@@ -89,6 +92,9 @@ public:
 
     QList<ZermeloAppointment> data();
 
+    void read(const QJsonObject &json);
+    void write(QJsonObject &json) const;
+
 private:
     void append(const QList<ZermeloAppointment> &appointments);
 
@@ -107,13 +113,13 @@ class TimetermUser
 
 public:
     void setCardUid(const QString &cardUid);
-    QString cardUid() const;
+    [[nodiscard]] QString cardUid() const;
     void setOrganizationId(const QString &organizationId);
-    QString organizationId() const;
+    [[nodiscard]] QString organizationId() const;
     void setName(const QString &name);
-    QString name() const;
+    [[nodiscard]] QString name() const;
     void setStudentCode(const QString &studentCode);
-    QString studentCode() const;
+    [[nodiscard]] QString studentCode() const;
 
     void read(const QJsonObject &json);
     void write(QJsonObject &json) const;
@@ -141,12 +147,12 @@ public:
     explicit ApiClient(QObject *parent = nullptr);
 
     void setCardId(const QString &cardId);
-    QString cardId() const;
+    [[nodiscard]] QString cardId() const;
     void setApiKey(const QString &apiKey);
-    QString apiKey() const;
+    [[nodiscard]] QString apiKey() const;
 
     Q_INVOKABLE void getCurrentUser();
-    Q_INVOKABLE void getTimetable();
+    Q_INVOKABLE void getTimetable(const QDateTime& start, const QDateTime& end);
 
 signals:
     void cardIdChanged();
@@ -161,6 +167,7 @@ private slots:
 private:
     void connectReply(QNetworkReply *reply, ReplyHandler handler);
     void handleCurrentUserReply(QNetworkReply* reply);
+    void handleTimetableReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
