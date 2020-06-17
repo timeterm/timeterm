@@ -7,3 +7,6 @@
 [submodule "mfrc522/docs/ext/sphinx_rtd_theme"]
 	path = mfrc522/docs/ext/sphinx_rtd_theme
 	url = https://github.com/readthedocs/sphinx_rtd_theme
+[submodule "frontend-embedded/3rdparty/nats"]
+	path = frontend-embedded/3rdparty/nats
+	url = https://github.com/nats-io/nats.c

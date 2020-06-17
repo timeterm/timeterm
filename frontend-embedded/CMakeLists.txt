@@ -28,20 +28,7 @@ find_package(Qt5 COMPONENTS Core Quick QuickControls2 LinguistTools REQUIRED)
 
 set(TS_FILES frontend-embedded_nl_NL.ts)
 
-set(SOURCE_FILES
-  main.cpp
-  qml.qrc
-  mfrc522cardreader.cpp
-  mfrc522cardreader.h
-  cardreader.h
-  cardreader.cpp
-  cardreadercontroller.cpp
-  cardreadercontroller.h
-  fakecardreader.cpp
-  fakecardreader.h
-  apiclient.cpp
-  apiclient.h
-)
+set(SOURCE_FILES src/cpp/main.cpp qml.qrc src/cpp/cardreader/mfrc522cardreader.cpp src/cpp/cardreader/mfrc522cardreader.h src/cpp/cardreader/cardreader.h src/cpp/cardreader/cardreader.cpp src/cpp/cardreader/cardreadercontroller.cpp src/cpp/cardreader/cardreadercontroller.h src/cpp/cardreader/fakecardreader.cpp src/cpp/cardreader/fakecardreader.h src/cpp/api/apiclient.cpp src/cpp/api/apiclient.h src/cpp/messagequeue/stanconnection.cpp src/cpp/messagequeue/stanconnection.h src/cpp/messagequeue/stancallbackhandlersingleton.cpp src/cpp/messagequeue/stancallbackhandlersingleton.h src/cpp/messagequeue/stansubscription.cpp src/cpp/messagequeue/stansubscription.h src/cpp/messagequeue/stanmessage.cpp src/cpp/messagequeue/stanmessage.h)
 
 if(ANDROID)
     add_library(frontend-embedded SHARED
@@ -55,10 +42,14 @@ else()
     )
 endif()
 
+add_subdirectory(3rdparty/nats)
+
 target_compile_definitions(frontend-embedded
-  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
+  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG> NATS_HAS_STREAMING)
 target_link_libraries(frontend-embedded
-  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2)
+  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 nats)
+target_include_directories(frontend-embedded
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nats/src src/cpp)
 
 # Make sure we only compile with the MFRC522 module if we're on the Raspberry Pi.
 if(RASPBERRYPI)

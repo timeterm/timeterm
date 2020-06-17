@@ -1,8 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include "apiclient.h"
-#include "cardreadercontroller.h"
+#include "api/apiclient.h"
+#include "cardreader/cardreadercontroller.h"
 
 int main(int argc, char *argv[])
 {
