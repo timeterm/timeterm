@@ -9,14 +9,14 @@ StanCallbackHandlerSingleton &StanCallbackHandlerSingleton::singleton()
     return instance;
 }
 
-void StanCallbackHandlerSingleton::setMsgHandler(stanConnection *conn, StanMsgHandler handler)
+void StanCallbackHandlerSingleton::setMsgHandler(stanSubscription *sub, StanMsgHandler handler)
 {
-    m_msgHandlers[conn] = std::move(handler);
+    m_msgHandlers[sub] = std::move(handler);
 }
 
-void StanCallbackHandlerSingleton::removeMsgHandler(stanConnection *conn)
+void StanCallbackHandlerSingleton::removeMsgHandler(stanSubscription *sub)
 {
-    m_msgHandlers.remove(conn);
+    m_msgHandlers.remove(sub);
 }
 
 void StanCallbackHandlerSingleton::setConnectionLostHandler(stanConnection *conn, StanConnLostHandler handler)
@@ -39,11 +39,11 @@ void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *er
     StanCallbackHandlerSingleton::singleton().onConnLost(sc, errTxt);
 }
 
-void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg)
+void StanCallbackHandlerSingleton::onMsg(stanConnection *, stanSubscription *sub, const char *channel, stanMsg *msg)
 {
-    if (!m_msgHandlers.contains(sc))
+    if (!m_msgHandlers.contains(sub))
         return;
-    m_msgHandlers[sc](sub, channel, msg);
+    m_msgHandlers[sub](channel, msg);
 }
 
 void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt)

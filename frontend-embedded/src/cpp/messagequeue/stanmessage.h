@@ -14,13 +14,17 @@ namespace MessageQueue
 class StanMessage
 {
     Q_GADGET
+    Q_PROPERTY(QString channel READ channel)
 
 public:
-    explicit StanMessage(stanMsg *message);
+    explicit StanMessage(QString channel, stanMsg *message);
+
+    [[nodiscard]] QString channel() const;
 
 private:
     static void deleter(stanMsg *message);
 
+    QString m_channel;
     QSharedPointer<stanMsg> m_stanMsg;
 };
 

@@ -9,7 +9,7 @@
 namespace MessageQueue
 {
 
-using StanMsgHandler = std::function<void(stanSubscription *sub, const char *channel, stanMsg *msg)>;
+using StanMsgHandler = std::function<void(const char *channel, stanMsg *msg)>;
 using StanConnLostHandler = std::function<void(const char *errTxt)>;
 
 class StanCallbackHandlerSingleton
@@ -20,8 +20,8 @@ public:
     StanCallbackHandlerSingleton(StanCallbackHandlerSingleton const &) = delete;
     void operator=(StanCallbackHandlerSingleton const &) = delete;
 
-    void setMsgHandler(stanConnection *conn, StanMsgHandler handler);
-    void removeMsgHandler(stanConnection *conn);
+    void setMsgHandler(stanSubscription *conn, StanMsgHandler handler);
+    void removeMsgHandler(stanSubscription *conn);
 
     void setConnectionLostHandler(stanConnection *conn, StanConnLostHandler handler);
     void removeConnectionLostHandler(stanConnection *conn);
@@ -35,7 +35,7 @@ private:
     void onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg);
     void onConnLost(stanConnection *sc, const char *errTxt);
 
-    QHash<stanConnection *, StanMsgHandler> m_msgHandlers;
+    QHash<stanSubscription *, StanMsgHandler> m_msgHandlers;
     QHash<stanConnection *, StanConnLostHandler> m_connLostHandlers;
 };
 

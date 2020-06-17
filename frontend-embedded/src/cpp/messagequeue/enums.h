@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include <nats.h>
+
 namespace MessageQueue
 {
 Q_NAMESPACE
@@ -135,6 +137,16 @@ enum class NatsStatus
     /// An invalid queue name was passed when creating a queue subscription.
     InvalidQueueName,
 };
+
+constexpr NatsStatus asNatsStatus(const natsStatus status)
+{
+    return static_cast<NatsStatus>(status);
+}
+
+constexpr natsStatus asCNatsStatus(const NatsStatus status)
+{
+    return static_cast<natsStatus>(status);
+}
 
 Q_ENUM_NS(NatsStatus)
 

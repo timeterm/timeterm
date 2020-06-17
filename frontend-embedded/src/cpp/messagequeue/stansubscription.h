@@ -21,7 +21,7 @@ public:
     void setSubscription(stanSubscription *sub);
 
 signals:
-    void messageReceived(StanMessage &message);
+    void messageReceived(const StanMessage &message);
 
 private:
     StanSubscriptionScopedPointer m_stanSub;

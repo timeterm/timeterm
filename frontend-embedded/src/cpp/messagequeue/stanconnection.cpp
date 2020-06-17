@@ -1,6 +1,7 @@
 #include "stanconnection.h"
 #include "enums.h"
 #include "stancallbackhandlersingleton.h"
+#include "strings.h"
 
 namespace MessageQueue
 {
@@ -8,7 +9,7 @@ namespace MessageQueue
 NatsStatus newNatsOptions(NatsOptionsScopedPointer &ptr)
 {
     natsOptions *natsOpts = nullptr;
-    auto s = static_cast<NatsStatus>(natsOptions_Create(&natsOpts));
+    auto s = asNatsStatus(natsOptions_Create(&natsOpts));
     if (s == NatsStatus::Ok)
         ptr.reset(natsOpts);
     return s;
@@ -17,7 +18,7 @@ NatsStatus newNatsOptions(NatsOptionsScopedPointer &ptr)
 NatsStatus newStanConnOptions(StanConnOptionsScopedPointer &ptr)
 {
     stanConnOptions *stanConnOpts = nullptr;
-    auto s = static_cast<NatsStatus>(stanConnOptions_Create(&stanConnOpts));
+    auto s = asNatsStatus(stanConnOptions_Create(&stanConnOpts));
     if (s == NatsStatus::Ok)
         ptr.reset(stanConnOpts);
     return s;
@@ -31,26 +32,13 @@ StanConnection::StanConnection(QObject *parent)
         newStanConnOptions(m_connOpts);
 }
 
-QScopedArrayPointer<char> asUtf8(const QString &str)
-{
-    auto bytes = str.toUtf8();
-    auto stdString = bytes.toStdString();
-    auto src = stdString.c_str();
-
-    auto dst = QScopedArrayPointer<char>(new char[strlen(src) + 1]);
-    strcpy(dst.get(), src);
-
-    // For some reason we can't move out the QScopedArrayPointer normally, so using a tiny hack.
-    return QScopedArrayPointer<char>(dst.take());
-}
-
 void StanConnection::connect()
 {
-    auto cluster = asUtf8(m_cluster);
-    auto clientId = asUtf8(m_clientId);
+    auto cluster = asUtf8CString(m_cluster);
+    auto clientId = asUtf8CString(m_clientId);
     stanConnection *stanConn = nullptr;
 
-    auto s = static_cast<NatsStatus>(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
+    auto s = asNatsStatus(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
     m_stanConnection.reset(stanConn);
 
     updateStatus(s);
@@ -67,25 +55,55 @@ void StanConnection::updateStatus(NatsStatus s)
     if (s == NatsStatus::Ok)
         return;
 
-    const char *text = natsStatus_GetText(static_cast<natsStatus>(s));
+    const char *text = natsStatus_GetText(asCNatsStatus(s));
     auto statusStr = QString::fromLocal8Bit(text);
     emit errorOccurred(s, statusStr);
 }
 
 StanSubscription *StanConnection::subscribe(const QString &channel, StanSubOptions *opts)
 {
-    stanSubOptions *subOptions = nullptr;
-    stanSubOptions_Create(&subOptions);
+    auto subOptions = opts->subOptions();
+    auto channelCstr = asUtf8CString(channel);
 
-    auto channelCstr = asUtf8(channel);
+    stanSubscription *subDest = nullptr;
+    stanConnection_Subscribe(
+        &subDest,                            // subscription (output parameter)
+        m_stanConnection.get(),              // connection
+        channelCstr.get(),                   // channel
+        StanCallbackHandlerSingleton::onMsg, // message handler
+        nullptr,                             // message handler closure (not needed)
+        subOptions.get());                   // subscription options
 
-    stanSubscription *sub = nullptr;
-    stanConnection_Subscribe(&sub, m_stanConnection.get(), channelCstr.get(), StanCallbackHandlerSingleton::onMsg, nullptr, subOptions);
+    auto subWrapper = new StanSubscription(this);
+    subWrapper->setSubscription(subDest);
 
-    auto rsub = new StanSubscription(this);
-    rsub->setSubscription(sub);
+    return subWrapper;
+}
 
-    return rsub;
+void StanConnection::setCluster(const QString &cluster)
+{
+    if (cluster != m_cluster) {
+        m_cluster = cluster;
+        emit clusterChanged();
+    }
+}
+
+QString StanConnection::cluster() const
+{
+    return m_cluster;
+}
+
+void StanConnection::setClientId(const QString &clientId)
+{
+    if (clientId != m_clientId) {
+        m_clientId = clientId;
+        emit clientIdChanged();
+    }
+}
+
+QString StanConnection::clientId() const
+{
+    return m_clientId;
 }
 
 } // namespace MessageQueue
