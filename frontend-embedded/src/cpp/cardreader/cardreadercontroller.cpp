@@ -2,7 +2,8 @@
 
 CardReaderController::CardReaderController(CardReader *cardReader,
                                            QObject *parent)
-    : QObject(parent), m_cardReader(cardReader)
+    : QObject(parent)
+    , m_cardReader(cardReader)
 {
     m_cardReader->moveToThread(&cardReaderThread);
 

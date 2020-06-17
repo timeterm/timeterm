@@ -6,6 +6,9 @@
 
 #include <QHash>
 
+namespace MessageQueue
+{
+
 using StanMsgHandler = std::function<void(stanSubscription *sub, const char *channel, stanMsg *msg)>;
 using StanConnLostHandler = std::function<void(const char *errTxt)>;
 
@@ -36,4 +39,6 @@ private:
     QHash<stanConnection *, StanConnLostHandler> m_connLostHandlers;
 };
 
-#endif//STANCALLBACKHANDLERSINGLETON_H
+} // namespace MessageQueue
+
+#endif // STANCALLBACKHANDLERSINGLETON_H

@@ -1,5 +1,8 @@
 #include "stancallbackhandlersingleton.h"
 
+namespace MessageQueue
+{
+
 StanCallbackHandlerSingleton &StanCallbackHandlerSingleton::singleton()
 {
     static StanCallbackHandlerSingleton instance;
@@ -49,3 +52,5 @@ void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *er
         return;
     m_connLostHandlers[sc](errTxt);
 }
+
+} // namespace MessageQueue

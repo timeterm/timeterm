@@ -5,8 +5,8 @@
 #include <QtNetwork>
 
 FakeCardReader::FakeCardReader(QObject *parent)
-    : CardReader(parent),
-      m_server(new QLocalServer(this))
+    : CardReader(parent)
+    , m_server(new QLocalServer(this))
 {
     connect(m_server, &QLocalServer::newConnection, this, &FakeCardReader::handleConnection);
     connect(this, &FakeCardReader::shutDownInternal, m_server, &QLocalServer::close);
@@ -52,6 +52,6 @@ void FakeCardReader::handleConnection()
     in >> cardUid;
 
     emit cardRead(cardUid);
-    
+
     conn->deleteLater();
 }

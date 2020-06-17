@@ -5,6 +5,12 @@
 
 #include "stanmessage.h"
 
+namespace MessageQueue
+{
+
+using StanSubscriptionDeleter = ScopedPointerDestroyerDeleter<stanSubscription, void, stanSubscription_Destroy>;
+using StanSubscriptionScopedPointer = QScopedPointer<stanSubscription, StanSubscriptionDeleter>;
+
 class StanSubscription: public QObject
 {
     Q_OBJECT
@@ -12,11 +18,15 @@ class StanSubscription: public QObject
 public:
     explicit StanSubscription(QObject *parent = nullptr);
 
+    void setSubscription(stanSubscription *sub);
+
 signals:
     void messageReceived(StanMessage &message);
 
 private:
-    stanSubscription *m_stanSub;
+    StanSubscriptionScopedPointer m_stanSub;
 };
 
-#endif//STANSUBSCRIPTION_H
+} // namespace MessageQueue
+
+#endif // STANSUBSCRIPTION_H

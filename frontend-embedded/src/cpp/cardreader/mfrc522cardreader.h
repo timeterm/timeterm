@@ -27,6 +27,6 @@ private:
     bool m_shutDown = false;
 };
 
-#endif// MFRC522CARDREADER_H
+#endif // MFRC522CARDREADER_H
 
-#endif// RASPBERRPI
+#endif // RASPBERRPI

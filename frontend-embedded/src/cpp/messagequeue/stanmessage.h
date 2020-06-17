@@ -6,21 +6,24 @@
 #include <QObject>
 #include <QSharedPointer>
 
+#include "scopedpointer.h"
+
+namespace MessageQueue
+{
+
 class StanMessage
 {
     Q_GADGET
 
 public:
-    explicit StanMessage(stanMsg *message) : m_stanMsg(message, StanMessage::deleter)
-    {
-    }
+    explicit StanMessage(stanMsg *message);
 
 private:
-    static void deleter(stanMsg *message) {
-        stanMsg_Destroy(message);
-    }
+    static void deleter(stanMsg *message);
 
     QSharedPointer<stanMsg> m_stanMsg;
 };
 
-#endif//STANMESSAGE_H
+} // namespace MessageQueue
+
+#endif // STANMESSAGE_H

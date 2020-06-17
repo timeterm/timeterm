@@ -50,4 +50,4 @@ void Mfrc522CardReader::shutDown()
     m_shutDown = true;
 }
 
-#endif// RASPBERRYPI
+#endif // RASPBERRYPI

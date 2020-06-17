@@ -24,4 +24,4 @@ private:
     QLocalServer *m_server;
 };
 
-#endif// FAKECARDREADER_H
+#endif // FAKECARDREADER_H

@@ -20,4 +20,4 @@ signals:
     void cardRead(const QString &uid);
 };
 
-#endif// CARDREADER_H
+#endif // CARDREADER_H

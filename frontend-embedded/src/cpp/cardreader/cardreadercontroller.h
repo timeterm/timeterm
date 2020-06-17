@@ -37,4 +37,4 @@ private:
     CardReader *m_cardReader;
 };
 
-#endif// CARDREADERCONTROLLER_H
+#endif // CARDREADERCONTROLLER_H
