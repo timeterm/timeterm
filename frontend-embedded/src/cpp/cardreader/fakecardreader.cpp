@@ -20,7 +20,7 @@ void FakeCardReader::start()
     if (!m_server->listen(serverName))
         throw std::runtime_error("Could not create fake card reader socket");
 
-    qDebug() << "Fake card reader server listening with server name " << serverName;
+    qDebug() << "Fake card reader server listening with server name" << serverName;
 }
 
 void FakeCardReader::shutDown()
