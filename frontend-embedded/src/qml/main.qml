@@ -3,6 +3,7 @@ import QtQuick.Window 2.14
 import QtQuick.VirtualKeyboard 2.14
 import Timeterm.Rfid 1.0
 import Timeterm.Api 1.0
+import Timeterm.MessageQueue 1.0
 
 Window {
     id: window

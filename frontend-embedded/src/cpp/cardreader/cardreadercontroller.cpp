@@ -6,6 +6,7 @@ CardReaderController::CardReaderController(CardReader *cardReader,
     , m_cardReader(cardReader)
 {
     m_cardReader->moveToThread(&cardReaderThread);
+    m_cardReader->setParent(this);
 
     connect(&cardReaderThread, &QThread::finished, m_cardReader, &QObject::deleteLater);
     connect(m_cardReader, &CardReader::cardRead, this, &CardReaderController::cardRead);

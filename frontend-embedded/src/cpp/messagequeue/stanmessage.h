@@ -20,12 +20,11 @@ public:
     explicit StanMessage(QString channel, stanMsg *message);
 
     [[nodiscard]] QString channel() const;
+    QByteArray const &data() const;
 
 private:
-    static void deleter(stanMsg *message);
-
     QString m_channel;
-    QSharedPointer<stanMsg> m_stanMsg;
+    QByteArray m_data;
 };
 
 } // namespace MessageQueue

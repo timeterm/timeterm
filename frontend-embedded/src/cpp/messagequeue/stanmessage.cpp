@@ -5,11 +5,7 @@ namespace MessageQueue
 
 StanMessage::StanMessage(QString channel, stanMsg *message)
     : m_channel(std::move(channel))
-    , m_stanMsg(message, StanMessage::deleter)
-{
-}
-
-void StanMessage::deleter(stanMsg *message)
+    , m_data(stanMsg_GetData(message), stanMsg_GetDataLength(message))
 {
     stanMsg_Destroy(message);
 }
@@ -17,6 +13,11 @@ void StanMessage::deleter(stanMsg *message)
 QString StanMessage::channel() const
 {
     return m_channel;
+}
+
+QByteArray const &StanMessage::data() const
+{
+    return m_data;
 }
 
 } // namespace MessageQueue

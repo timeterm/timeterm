@@ -5,11 +5,11 @@
 namespace MessageQueue
 {
 
-NatsStatus newStanSubOptions(QSharedPointer<stanSubOptions> &ptr)
+NatsStatus::Enum newStanSubOptions(QSharedPointer<stanSubOptions> &ptr)
 {
     stanSubOptions *stanSubOpts = nullptr;
-    auto s = static_cast<NatsStatus>(stanSubOptions_Create(&stanSubOpts));
-    if (s == NatsStatus::Ok)
+    auto s = static_cast<NatsStatus::Enum>(stanSubOptions_Create(&stanSubOpts));
+    if (s == NatsStatus::Enum::Ok)
         ptr.reset(stanSubOpts);
     return s;
 }
@@ -26,55 +26,55 @@ QSharedPointer<stanSubOptions> StanSubOptions::subOptions()
     return m_subOptions;
 }
 
-NatsStatus StanSubOptions::setDurableName(const QString &durableName)
+NatsStatus::Enum StanSubOptions::setDurableName(const QString &durableName)
 {
     auto durableNameCstr = asUtf8CString(durableName);
 
-    return asNatsStatus(stanSubOptions_SetDurableName(m_subOptions.get(), durableNameCstr.get()));
+    return NatsStatus::as(stanSubOptions_SetDurableName(m_subOptions.get(), durableNameCstr.get()));
 }
 
-NatsStatus StanSubOptions::deliverAllAvailable()
+NatsStatus::Enum StanSubOptions::deliverAllAvailable()
 {
-    return asNatsStatus(stanSubOptions_DeliverAllAvailable(m_subOptions.get()));
+    return NatsStatus::as(stanSubOptions_DeliverAllAvailable(m_subOptions.get()));
 }
 
-NatsStatus StanSubOptions::startWithLastReceived()
+NatsStatus::Enum StanSubOptions::startWithLastReceived()
 {
-    return asNatsStatus(stanSubOptions_StartWithLastReceived(m_subOptions.get()));
+    return NatsStatus::as(stanSubOptions_StartWithLastReceived(m_subOptions.get()));
 }
 
-NatsStatus StanSubOptions::startAtSequence(quint64 sequence)
+NatsStatus::Enum StanSubOptions::startAtSequence(quint64 sequence)
 {
-    return asNatsStatus(stanSubOptions_StartAtSequence(m_subOptions.get(), sequence));
+    return NatsStatus::as(stanSubOptions_StartAtSequence(m_subOptions.get(), sequence));
 }
 
-NatsStatus StanSubOptions::setManualAckMode(bool manualAck)
+NatsStatus::Enum StanSubOptions::setManualAckMode(bool manualAck)
 {
-    return asNatsStatus(stanSubOptions_SetManualAckMode(m_subOptions.get(), manualAck));
+    return NatsStatus::as(stanSubOptions_SetManualAckMode(m_subOptions.get(), manualAck));
 }
 
-NatsStatus StanSubOptions::setMaxInflight(int inflight)
+NatsStatus::Enum StanSubOptions::setMaxInflight(int inflight)
 {
-    return asNatsStatus(stanSubOptions_SetMaxInflight(m_subOptions.get(), inflight));
+    return NatsStatus::as(stanSubOptions_SetMaxInflight(m_subOptions.get(), inflight));
 }
 
-NatsStatus StanSubOptions::setAckWait(qint64 ms)
+NatsStatus::Enum StanSubOptions::setAckWait(qint64 ms)
 {
-    return asNatsStatus(stanSubOptions_SetAckWait(m_subOptions.get(), ms));
+    return NatsStatus::as(stanSubOptions_SetAckWait(m_subOptions.get(), ms));
 }
 
-NatsStatus StanSubOptions::lastStatus() const
+NatsStatus::Enum StanSubOptions::lastStatus() const
 {
     return m_lastStatus;
 }
 
-void StanSubOptions::updateStatus(NatsStatus s)
+void StanSubOptions::updateStatus(NatsStatus::Enum s)
 {
     m_lastStatus = s;
-    if (s == NatsStatus::Ok)
+    if (s == NatsStatus::Enum::Ok)
         return;
 
-    const char *text = natsStatus_GetText(asCNatsStatus(s));
+    const char *text = natsStatus_GetText(NatsStatus::asC(s));
     auto statusStr = QString::fromLocal8Bit(text);
     emit errorOccurred(s, statusStr);
 }

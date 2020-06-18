@@ -16,11 +16,7 @@ class CardReaderController: public QObject
     QThread cardReaderThread;
 
 public:
-    explicit CardReaderController(CardReader *cardReader = defaultCardReader(),
-                                  QObject *parent = nullptr);
-    ~CardReaderController() override;
-
-    static CardReader *defaultCardReader()
+    static CardReader *defaultCardReader(QObject *parent = nullptr)
     {
 #ifdef RASPBERRYPI
         return new Mfrc522CardReader();
@@ -28,6 +24,10 @@ public:
         return new FakeCardReader();
 #endif
     }
+
+    explicit CardReaderController(CardReader *cardReader = defaultCardReader(),
+                                  QObject *parent = nullptr);
+    ~CardReaderController() override;
 
 signals:
     void cardRead(const QString &uid);

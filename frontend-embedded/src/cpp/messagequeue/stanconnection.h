@@ -26,14 +26,14 @@ using StanConnOptionsScopedPointer = QScopedPointer<stanConnOptions, StanConnOpt
 class StanConnection: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(NatsStatus lastStatus READ lastStatus)
+    Q_PROPERTY(NatsStatus::Enum lastStatus READ lastStatus)
     Q_PROPERTY(QString cluster READ cluster WRITE setCluster NOTIFY clusterChanged)
     Q_PROPERTY(QString clientId READ clientId WRITE setClientId NOTIFY clientIdChanged)
 
 public:
     explicit StanConnection(QObject *parent = nullptr);
 
-    [[nodiscard]] NatsStatus lastStatus() const;
+    [[nodiscard]] NatsStatus::Enum lastStatus() const;
     void setCluster(const QString &cluster);
     QString cluster() const;
     void setClientId(const QString &clientId);
@@ -43,14 +43,14 @@ public:
     Q_INVOKABLE StanSubscription *subscribe(const QString &subscribe, StanSubOptions *opts);
 
 signals:
-    void errorOccurred(NatsStatus s, const QString &message);
+    void errorOccurred(NatsStatus::Enum s, const QString &message);
     void clusterChanged();
     void clientIdChanged();
 
 private:
-    void updateStatus(NatsStatus s);
+    void updateStatus(NatsStatus::Enum s);
 
-    NatsStatus m_lastStatus = NatsStatus::Ok;
+    NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
 
     QString m_cluster;
     QString m_clientId;

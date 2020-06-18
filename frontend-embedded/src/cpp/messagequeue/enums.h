@@ -5,12 +5,12 @@
 
 #include <nats.h>
 
-namespace MessageQueue
+namespace MessageQueue::NatsStatus
 {
 Q_NAMESPACE
 
 /// Status returned by most of the APIs
-enum class NatsStatus
+enum class Enum
 {
     /// Success
     Ok = 0,
@@ -138,17 +138,17 @@ enum class NatsStatus
     InvalidQueueName,
 };
 
-constexpr NatsStatus asNatsStatus(const natsStatus status)
+constexpr Enum as(const natsStatus status)
 {
-    return static_cast<NatsStatus>(status);
+    return static_cast<Enum>(status);
 }
 
-constexpr natsStatus asCNatsStatus(const NatsStatus status)
+constexpr natsStatus asC(const Enum status)
 {
     return static_cast<natsStatus>(status);
 }
 
-Q_ENUM_NS(NatsStatus)
+Q_ENUM_NS(Enum)
 
 } // namespace MessageQueue
 

@@ -6,20 +6,20 @@
 namespace MessageQueue
 {
 
-NatsStatus newNatsOptions(NatsOptionsScopedPointer &ptr)
+NatsStatus::Enum newNatsOptions(NatsOptionsScopedPointer &ptr)
 {
     natsOptions *natsOpts = nullptr;
-    auto s = asNatsStatus(natsOptions_Create(&natsOpts));
-    if (s == NatsStatus::Ok)
+    auto s = NatsStatus::as(natsOptions_Create(&natsOpts));
+    if (s == NatsStatus::Enum::Ok)
         ptr.reset(natsOpts);
     return s;
 }
 
-NatsStatus newStanConnOptions(StanConnOptionsScopedPointer &ptr)
+NatsStatus::Enum newStanConnOptions(StanConnOptionsScopedPointer &ptr)
 {
     stanConnOptions *stanConnOpts = nullptr;
-    auto s = asNatsStatus(stanConnOptions_Create(&stanConnOpts));
-    if (s == NatsStatus::Ok)
+    auto s = NatsStatus::as(stanConnOptions_Create(&stanConnOpts));
+    if (s == NatsStatus::Enum::Ok)
         ptr.reset(stanConnOpts);
     return s;
 }
@@ -28,7 +28,7 @@ StanConnection::StanConnection(QObject *parent)
     : QObject(parent)
 {
     updateStatus(newNatsOptions(m_natsOpts));
-    if (m_lastStatus == NatsStatus::Ok)
+    if (m_lastStatus == NatsStatus::Enum::Ok)
         newStanConnOptions(m_connOpts);
 }
 
@@ -38,24 +38,24 @@ void StanConnection::connect()
     auto clientId = asUtf8CString(m_clientId);
     stanConnection *stanConn = nullptr;
 
-    auto s = asNatsStatus(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
+    auto s = NatsStatus::as(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
     m_stanConnection.reset(stanConn);
 
     updateStatus(s);
 }
 
-NatsStatus StanConnection::lastStatus() const
+NatsStatus::Enum StanConnection::lastStatus() const
 {
     return m_lastStatus;
 }
 
-void StanConnection::updateStatus(NatsStatus s)
+void StanConnection::updateStatus(NatsStatus::Enum s)
 {
     m_lastStatus = s;
-    if (s == NatsStatus::Ok)
+    if (s == NatsStatus::Enum::Ok)
         return;
 
-    const char *text = natsStatus_GetText(asCNatsStatus(s));
+    const char *text = natsStatus_GetText(NatsStatus::asC(s));
     auto statusStr = QString::fromLocal8Bit(text);
     emit errorOccurred(s, statusStr);
 }

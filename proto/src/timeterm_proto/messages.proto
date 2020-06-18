@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package timeterm_proto.messages;
+
+message DisownTokenMessage {
+    string device_id = 1;
+    string token_hash = 2;
+    string token_hash_alg = 3;
+}
+
+message RetrieveNewTokenMessage {
+    string device_id = 1;
+    string current_token_hash = 2;
+    string current_token_hash_alg = 3;
+}
+
