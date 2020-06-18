@@ -1,14 +1,14 @@
-#include "binaryclient.h"
+#include "binaryprotoclient.h"
 
 namespace MessageQueue
 {
 
-BinaryClient::BinaryClient(QObject *parent)
+BinaryProtoClient::BinaryProtoClient(QObject *parent)
     : QObject(parent)
 {
 }
 
-void BinaryClient::handleMessage(const QString &channel, const QByteArray &data)
+void BinaryProtoClient::handleMessage(const QString &channel, const QByteArray &data)
 {
     if (channel == "timeterm.disown-token") {
         timeterm_proto::messages::DisownTokenMessage msg;

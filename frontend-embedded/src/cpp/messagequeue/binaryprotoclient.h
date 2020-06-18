@@ -1,5 +1,5 @@
-#ifndef BINARYCLIENT_H
-#define BINARYCLIENT_H
+#ifndef BINARYPROTOCLIENT_H
+#define BINARYPROTOCLIENT_H
 
 #include <QObject>
 #include <timeterm_proto/messages.pb.h>
@@ -7,12 +7,12 @@
 namespace MessageQueue
 {
 
-class BinaryClient: QObject
+class BinaryProtoClient: QObject
 {
     Q_OBJECT
 
 public:
-    explicit BinaryClient(QObject *parent = nullptr);
+    explicit BinaryProtoClient(QObject *parent = nullptr);
 
 public slots:
     void handleMessage(const QString &channel, const QByteArray &data);
@@ -24,4 +24,4 @@ signals:
 
 }
 
-#endif // BINARYCLIENT_H
+#endif // BINARYPROTOCLIENT_H

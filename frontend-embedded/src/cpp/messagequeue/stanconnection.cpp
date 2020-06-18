@@ -9,19 +9,23 @@ namespace MessageQueue
 NatsStatus::Enum newNatsOptions(NatsOptionsScopedPointer &ptr)
 {
     natsOptions *natsOpts = nullptr;
-    auto s = NatsStatus::as(natsOptions_Create(&natsOpts));
-    if (s == NatsStatus::Enum::Ok)
+    auto s = natsOptions_Create(&natsOpts);
+    if (s == NATS_OK)
         ptr.reset(natsOpts);
-    return s;
+    return NatsStatus::fromC(s);
 }
 
-NatsStatus::Enum newStanConnOptions(StanConnOptionsScopedPointer &ptr)
+NatsStatus::Enum newStanConnOptions(StanConnOptionsScopedPointer &ptr, NatsOptionsScopedPointer &natsOpts)
 {
     stanConnOptions *stanConnOpts = nullptr;
-    auto s = NatsStatus::as(stanConnOptions_Create(&stanConnOpts));
-    if (s == NatsStatus::Enum::Ok)
-        ptr.reset(stanConnOpts);
-    return s;
+    auto s = stanConnOptions_Create(&stanConnOpts);
+    if (s == NATS_OK) {
+        s = stanConnOptions_SetNATSOptions(stanConnOpts, natsOpts.get());
+        if (s == NATS_OK) {
+            ptr.reset(stanConnOpts);
+        }
+    }
+    return NatsStatus::fromC(s);
 }
 
 StanConnection::StanConnection(QObject *parent)
@@ -29,7 +33,7 @@ StanConnection::StanConnection(QObject *parent)
 {
     updateStatus(newNatsOptions(m_natsOpts));
     if (m_lastStatus == NatsStatus::Enum::Ok)
-        newStanConnOptions(m_connOpts);
+        newStanConnOptions(m_connOpts, m_natsOpts);
 }
 
 void StanConnection::connect()
@@ -38,7 +42,7 @@ void StanConnection::connect()
     auto clientId = asUtf8CString(m_clientId);
     stanConnection *stanConn = nullptr;
 
-    auto s = NatsStatus::as(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
+    auto s = NatsStatus::fromC(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
     m_stanConnection.reset(stanConn);
 
     updateStatus(s);
@@ -104,6 +108,19 @@ void StanConnection::setClientId(const QString &clientId)
 QString StanConnection::clientId() const
 {
     return m_clientId;
+}
+
+void StanConnection::setUrl(const QString &url)
+{
+    if (url != m_url) {
+        m_url = url;
+        emit urlChanged();
+    }
+}
+
+QString StanConnection::url() const
+{
+    return m_url;
 }
 
 } // namespace MessageQueue

@@ -8,17 +8,21 @@ namespace MessageQueue
 NatsStatus::Enum newStanSubOptions(QSharedPointer<stanSubOptions> &ptr)
 {
     stanSubOptions *stanSubOpts = nullptr;
-    auto s = static_cast<NatsStatus::Enum>(stanSubOptions_Create(&stanSubOpts));
-    if (s == NatsStatus::Enum::Ok)
+    auto s = stanSubOptions_Create(&stanSubOpts);
+    if (s == NATS_OK)
         ptr.reset(stanSubOpts);
-    return s;
+
+    if (s != NATS_OK)
+        stanSubOptions_Destroy(stanSubOpts);
+
+    return NatsStatus::fromC(s);
 }
 
 StanSubOptions::StanSubOptions(QObject *parent)
     : QObject(parent)
+    , m_subOptions(nullptr, stanSubOptions_Destroy)
 {
-    // TODO: maybe don't ignore the error?
-    newStanSubOptions(m_subOptions);
+    updateStatus(newStanSubOptions(m_subOptions));
 }
 
 QSharedPointer<stanSubOptions> StanSubOptions::subOptions()
@@ -30,37 +34,51 @@ NatsStatus::Enum StanSubOptions::setDurableName(const QString &durableName)
 {
     auto durableNameCstr = asUtf8CString(durableName);
 
-    return NatsStatus::as(stanSubOptions_SetDurableName(m_subOptions.get(), durableNameCstr.get()));
+    auto s = NatsStatus::fromC(stanSubOptions_SetDurableName(m_subOptions.get(), durableNameCstr.get()));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::deliverAllAvailable()
 {
-    return NatsStatus::as(stanSubOptions_DeliverAllAvailable(m_subOptions.get()));
+    auto s = NatsStatus::fromC(stanSubOptions_DeliverAllAvailable(m_subOptions.get()));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::startWithLastReceived()
 {
-    return NatsStatus::as(stanSubOptions_StartWithLastReceived(m_subOptions.get()));
+    auto s = NatsStatus::fromC(stanSubOptions_StartWithLastReceived(m_subOptions.get()));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::startAtSequence(quint64 sequence)
 {
-    return NatsStatus::as(stanSubOptions_StartAtSequence(m_subOptions.get(), sequence));
+    auto s = NatsStatus::fromC(stanSubOptions_StartAtSequence(m_subOptions.get(), sequence));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::setManualAckMode(bool manualAck)
 {
-    return NatsStatus::as(stanSubOptions_SetManualAckMode(m_subOptions.get(), manualAck));
+    auto s = NatsStatus::fromC(stanSubOptions_SetManualAckMode(m_subOptions.get(), manualAck));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::setMaxInflight(int inflight)
 {
-    return NatsStatus::as(stanSubOptions_SetMaxInflight(m_subOptions.get(), inflight));
+    auto s = NatsStatus::fromC(stanSubOptions_SetMaxInflight(m_subOptions.get(), inflight));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::setAckWait(qint64 ms)
 {
-    return NatsStatus::as(stanSubOptions_SetAckWait(m_subOptions.get(), ms));
+    auto s = NatsStatus::fromC(stanSubOptions_SetAckWait(m_subOptions.get(), ms));
+    updateStatus(s);
+    return s;
 }
 
 NatsStatus::Enum StanSubOptions::lastStatus() const
@@ -79,4 +97,4 @@ void StanSubOptions::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
-}
+} // namespace MessageQueue

@@ -138,7 +138,7 @@ enum class Enum
     InvalidQueueName,
 };
 
-constexpr Enum as(const natsStatus status)
+constexpr Enum fromC(const natsStatus status)
 {
     return static_cast<Enum>(status);
 }
