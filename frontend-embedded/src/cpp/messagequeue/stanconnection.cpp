@@ -3,49 +3,51 @@
 #include "stancallbackhandlersingleton.h"
 #include "strings.h"
 
+#include <QtConcurrent/QtConcurrentRun>
+
 namespace MessageQueue
 {
 
-NatsStatus::Enum newNatsOptions(NatsOptionsScopedPointer &ptr)
-{
-    natsOptions *natsOpts = nullptr;
-    auto s = natsOptions_Create(&natsOpts);
-    if (s == NATS_OK)
-        ptr.reset(natsOpts);
-    return NatsStatus::fromC(s);
-}
-
-NatsStatus::Enum newStanConnOptions(StanConnOptionsScopedPointer &ptr, NatsOptionsScopedPointer &natsOpts)
-{
-    stanConnOptions *stanConnOpts = nullptr;
-    auto s = stanConnOptions_Create(&stanConnOpts);
-    if (s == NATS_OK) {
-        s = stanConnOptions_SetNATSOptions(stanConnOpts, natsOpts.get());
-        if (s == NATS_OK) {
-            ptr.reset(stanConnOpts);
-        }
-    }
-    return NatsStatus::fromC(s);
-}
-
 StanConnection::StanConnection(QObject *parent)
     : QObject(parent)
+    , m_options(nullptr)
 {
-    updateStatus(newNatsOptions(m_natsOpts));
-    if (m_lastStatus == NatsStatus::Enum::Ok)
-        newStanConnOptions(m_connOpts, m_natsOpts);
+    QObject::connect(this, &MessageQueue::StanConnection::setConnectionPrivate, this, &MessageQueue::StanConnection::setConnection);
 }
 
 void StanConnection::connect()
 {
-    auto cluster = asUtf8CString(m_cluster);
-    auto clientId = asUtf8CString(m_clientId);
-    stanConnection *stanConn = nullptr;
+    // We don't want connecting to the NATS Streaming server to block the user interface.
+    // For that reason, we're not directly setting any properties, but using signals so the
+    // event loop can send it to the thread that the object is actually running on.
+    QtConcurrent::run(
+        [this](const QString &cluster, const QString &clientId) {
+            auto clusterCstr = asUtf8CString(cluster);
+            auto clientIdCstr = asUtf8CString(clientId);
 
-    auto s = NatsStatus::fromC(stanConnection_Connect(&stanConn, cluster.get(), clientId.get(), m_connOpts.get()));
-    m_stanConnection.reset(stanConn);
+            QSharedPointer<stanConnection *> stanConnPtr(new stanConnection *(nullptr));
 
-    updateStatus(s);
+            auto connectionStatus = stanConnection_Connect(
+                stanConnPtr.get(),
+                clusterCstr.get(),
+                clientIdCstr.get(),
+                m_options->connectionOptions().get());
+
+            updateStatus(NatsStatus::fromC(connectionStatus));
+            if (connectionStatus != NATS_OK)
+                return;
+
+            emit setConnectionPrivate(stanConnPtr, QPrivateSignal());
+
+            StanCallbackHandlerSingleton::singleton().setConnectionLostHandler(
+                *stanConnPtr.get(),
+                [this](const char *msg) {
+                    emit connectionLost();
+                });
+
+            emit connected();
+        },
+        m_cluster, m_clientId);
 }
 
 NatsStatus::Enum StanConnection::lastStatus() const
@@ -110,17 +112,23 @@ QString StanConnection::clientId() const
     return m_clientId;
 }
 
-void StanConnection::setUrl(const QString &url)
+void StanConnection::setConnectionOptions(StanConnectionOptions *options)
 {
-    if (url != m_url) {
-        m_url = url;
-        emit urlChanged();
+    if (options != m_options) {
+        options->setParent(this);
+        m_options = options;
+        emit connectionOptionsChanged();
     }
 }
 
-QString StanConnection::url() const
+StanConnectionOptions *StanConnection::connectionOptions() const
 {
-    return m_url;
+    return m_options;
+}
+
+void StanConnection::setConnection(const QSharedPointer<stanConnection *> &conn)
+{
+    m_stanConnection.reset(*conn.get());
 }
 
 } // namespace MessageQueue

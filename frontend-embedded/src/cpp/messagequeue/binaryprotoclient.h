@@ -7,7 +7,7 @@
 namespace MessageQueue
 {
 
-class BinaryProtoClient: QObject
+class BinaryProtoClient: public QObject
 {
     Q_OBJECT
 

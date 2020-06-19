@@ -15,7 +15,7 @@ namespace MessageQueue
 class StanSubOptions: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(NatsStatus::Enum lastStatus READ lastStatus)
+    Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
 
 public:
     explicit StanSubOptions(QObject *parent = nullptr);

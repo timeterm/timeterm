@@ -14,8 +14,8 @@ namespace MessageQueue
 
 class NatsOptions: public QObject
 {
-Q_OBJECT
-    Q_PROPERTY(NatsStatus::Enum lastStatus READ lastStatus)
+    Q_OBJECT
+    Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
 
 public:
     explicit NatsOptions(QObject *parent = nullptr);

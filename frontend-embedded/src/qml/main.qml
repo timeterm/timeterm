@@ -1,6 +1,7 @@
 import QtQuick 2.14
 import QtQuick.Window 2.14
 import QtQuick.VirtualKeyboard 2.14
+import QtQuick.Controls 2.14
 import Timeterm.Rfid 1.0
 import Timeterm.Api 1.0
 import Timeterm.MessageQueue 1.0
@@ -13,8 +14,12 @@ Window {
     height: 480
     title: qsTr("Timeterm")
 
+    Button {
+        text: "blabla"
+    }
+
     Connections {
-        target: CardReader
+        target: CardReaderController
         function onCardRead(uid) {
             window.title = uid
         }
@@ -30,6 +35,40 @@ Window {
 
     ApiClient {
         id: apiClient
+    }
+
+    Connections {
+        target: stanConn
+
+        function onConnectionLost() {
+            console.log("connection lost :(")
+        }
+
+        function onConnected() {
+            console.log("connected")
+        }
+
+        function onErrorOccurred(code, msg) {
+            console.log("error occurred: code " + code + ", message: " + msg)
+        }
+    }
+
+    StanConnection {
+        id: stanConn
+        cluster: "test-cluster"
+        clientId: "example"
+        connectionOptions: StanConnectionOptions {
+            id: connOpts
+            url: "localhost"
+        }
+
+        Component.onCompleted: {
+            console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
+            console.log("stanConn.connectionOptions.url: " + stanConn.connectionOptions.url)
+
+            stanConn.connect()
+            console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
+        }
     }
 
     Component.onCompleted: {

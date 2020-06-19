@@ -24,50 +24,131 @@ StanConnectionOptions::StanConnectionOptions(QObject *parent)
         stanConnOptions_Destroy(connOptions);
 }
 
-NatsStatus::Enum StanConnectionOptions::setConnectionWait(qint64 wait)
+void StanConnectionOptions::setConnectionWait(int wait)
 {
     auto s = NatsStatus::fromC(stanConnOptions_SetConnectionWait(m_connOptions.get(), wait));
     updateStatus(s);
-    return s;
+    if (s == NatsStatus::Enum::Ok) {
+        if (wait != m_connectionWait) {
+            m_connectionWait = wait;
+            emit connectionWaitChanged();
+        }
+    }
 }
 
-NatsStatus::Enum StanConnectionOptions::setDiscoveryPrefix(const QString &prefix)
+void StanConnectionOptions::setDiscoveryPrefix(const QString &prefix)
 {
     auto discoveryPrefixCstr = asUtf8CString(prefix);
 
     auto s = NatsStatus::fromC(stanConnOptions_SetDiscoveryPrefix(m_connOptions.get(), discoveryPrefixCstr.get()));
     updateStatus(s);
-    return s;
+    if (s == NatsStatus::Enum::Ok) {
+        if (prefix != m_discoveryPrefix) {
+            m_discoveryPrefix = prefix;
+            emit discoveryPrefixChanged();
+        }
+    }
 }
 
-NatsStatus::Enum StanConnectionOptions::setMaxPubAcksInflight(int maxPubAcksInflight, float percentage)
+void StanConnectionOptions::setMaxPubAcksInflight(int maxPubAcksInflight)
 {
-    auto s = NatsStatus::fromC(stanConnOptions_SetMaxPubAcksInflight(m_connOptions.get(), maxPubAcksInflight, percentage));
+    m_maxPubAcksInflight = maxPubAcksInflight;
+
+    if (updateMaxPubAcksInflight() == NatsStatus::Enum::Ok) {
+        if (maxPubAcksInflight != m_maxPubAcksInflight) {
+            m_maxPubAcksInflight = maxPubAcksInflight;
+            emit maxPubAcksInflightChanged();
+        }
+    }
+}
+
+void StanConnectionOptions::setMaxPubAcksInflightPercentage(float percentage)
+{
+    m_maxPubAcksInflightPercentage = percentage;
+
+    if (updateMaxPubAcksInflight() == NatsStatus::Enum::Ok) {
+        if (percentage != m_maxPubAcksInflightPercentage) {
+            m_maxPubAcksInflightPercentage = percentage;
+            emit maxPubAcksInflightPercentageChanged();
+        }
+    }
+}
+
+NatsStatus::Enum StanConnectionOptions::updateMaxPubAcksInflight() {
+    auto s = NatsStatus::fromC(stanConnOptions_SetMaxPubAcksInflight(m_connOptions.get(), m_maxPubAcksInflight, m_maxPubAcksInflightPercentage));
     updateStatus(s);
     return s;
 }
 
-NatsStatus::Enum StanConnectionOptions::setPings(int interval, int maxOut)
+void StanConnectionOptions::setPingsInterval(int interval)
 {
-    auto s = NatsStatus::fromC(stanConnOptions_SetPings(m_connOptions.get(), interval, maxOut));
+    m_pingsInterval = interval;
+
+    if (updatePings() == NatsStatus::Enum::Ok) {
+        if (interval != m_pingsInterval) {
+            m_pingsInterval = interval;
+            emit pingsIntervalChanged();
+        }
+    }
+}
+
+void StanConnectionOptions::setPingsMaxOut(int maxOut)
+{
+    m_pingsMaxOut = maxOut;
+
+    if (updatePings() == NatsStatus::Enum::Ok) {
+        if (maxOut != m_pingsMaxOut) {
+            m_pingsMaxOut = maxOut;
+            emit pingsMaxOutChanged();
+        }
+    }
+}
+
+NatsStatus::Enum StanConnectionOptions::updatePings()
+{
+    auto s = NatsStatus::fromC(stanConnOptions_SetPings(m_connOptions.get(), m_pingsInterval, m_pingsMaxOut));
     updateStatus(s);
     return s;
 }
 
-NatsStatus::Enum StanConnectionOptions::setPubAckWait(qint64 ms)
+void StanConnectionOptions::setPubAckWait(int ms)
 {
     auto s = NatsStatus::fromC(stanConnOptions_SetPubAckWait(m_connOptions.get(), ms));
     updateStatus(s);
-    return s;
+    if (s == NatsStatus::Enum::Ok) {
+        if (ms != m_pubAckWait) {
+            m_pubAckWait = ms;
+            emit pubAckWaitChanged();
+        }
+    }
 }
 
-NatsStatus::Enum StanConnectionOptions::setUrl(const QString &url)
+void StanConnectionOptions::setUrl(const QString &url)
 {
     auto urlCstr = asUtf8CString(url);
 
     auto s = NatsStatus::fromC(stanConnOptions_SetURL(m_connOptions.get(), urlCstr.get()));
     updateStatus(s);
-    return s;
+    if (s == NatsStatus::Enum::Ok) {
+        if (url != m_url) {
+            m_url = url;
+            emit urlChanged();
+        }
+    }
+}
+
+void StanConnectionOptions::setNatsOptions(NatsOptions *opts)
+{
+    opts->setParent(this);
+
+    auto s = NatsStatus::fromC(stanConnOptions_SetNATSOptions(m_connOptions.get(), opts->options().get()));
+    updateStatus(s);
+    if (s == NatsStatus::Enum::Ok) {
+        if (opts != m_natsOptions) {
+            m_natsOptions = opts;
+            emit natsOptionsChanged();
+        }
+    }
 }
 
 QSharedPointer<stanConnOptions> StanConnectionOptions::connectionOptions()
@@ -82,7 +163,10 @@ NatsStatus::Enum StanConnectionOptions::lastStatus() const
 
 void StanConnectionOptions::updateStatus(NatsStatus::Enum s)
 {
-    m_lastStatus = s;
+    if (s != m_lastStatus) {
+        m_lastStatus = s;
+        emit lastStatusChanged();
+    }
     if (s == NatsStatus::Enum::Ok)
         return;
 
@@ -91,13 +175,49 @@ void StanConnectionOptions::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
-NatsStatus::Enum StanConnectionOptions::setNatsOptions(NatsOptions *opts)
+NatsOptions *StanConnectionOptions::natsOptions() const
 {
-    opts->setParent(this);
+    return m_natsOptions;
+}
 
-    auto s = NatsStatus::fromC(stanConnOptions_SetNATSOptions(m_connOptions.get(), opts->options().get()));
-    updateStatus(s);
-    return s;
+int StanConnectionOptions::connectionWait() const
+{
+    return m_connectionWait;
+}
+
+QString StanConnectionOptions::discoveryPrefix() const
+{
+    return m_discoveryPrefix;
+}
+
+int StanConnectionOptions::maxPubAcksInflight() const
+{
+    return m_maxPubAcksInflight;
+}
+
+float StanConnectionOptions::maxPubAcksInflightPercentage() const
+{
+    return m_maxPubAcksInflightPercentage;
+}
+
+int StanConnectionOptions::pingsInterval() const
+{
+    return m_pingsInterval;
+}
+
+int StanConnectionOptions::pingsMaxOut() const
+{
+    return m_pingsMaxOut;
+}
+
+int StanConnectionOptions::pubAckWait() const
+{
+    return m_pubAckWait;
+}
+
+QString StanConnectionOptions::url() const
+{
+    return m_url;
 }
 
 } // namespace MessageQueue

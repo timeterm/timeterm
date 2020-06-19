@@ -1,6 +1,13 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <src/cpp/messagequeue/binaryprotoclient.h>
 #include <src/cpp/messagequeue/enums.h>
+#include <src/cpp/messagequeue/messagequeueclient.h>
+#include <src/cpp/messagequeue/natsoptions.h>
+#include <src/cpp/messagequeue/natsstatusstringer.h>
+#include <src/cpp/messagequeue/protoclient.h>
+#include <src/cpp/messagequeue/stanconnection.h>
+#include <src/cpp/messagequeue/stanconnectionoptions.h>
 
 #include "api/apiclient.h"
 #include "cardreader/cardreadercontroller.h"
@@ -13,14 +20,26 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
+    QScopedPointer<MessageQueue::NatsStatusStringer> natsStatusStringer(new MessageQueue::NatsStatusStringer());
 
-    qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReader", cardReader.get());
-    qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderController", "singleton");
+    qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
+    qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
     qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
     qmlRegisterUncreatableMetaObject(MessageQueue::NatsStatus::staticMetaObject,
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
-    qRegisterMetaType<MessageQueue::NatsStatus::Enum>("NatsStatusEnum");
+    qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
+    qRegisterMetaType<QSharedPointer<stanConnection*>>();
+    qmlRegisterType<MessageQueue::BinaryProtoClient>("Timeterm.MessageQueue", 1, 0, "BinaryProtoClient");
+    qmlRegisterType<MessageQueue::MessageQueueClient>("Timeterm.MessageQueue", 1, 0, "MessageQueueClient");
+    qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
+    qmlRegisterType<MessageQueue::ProtoClient>("Timeterm.MessageQueue", 1, 0, "ProtoClient");
+    qmlRegisterType<MessageQueue::StanConnection>("Timeterm.MessageQueue", 1, 0, "StanConnection");
+    qmlRegisterType<MessageQueue::StanConnectionOptions>("Timeterm.MessageQueue", 1, 0, "StanConnectionOptions");
+    qmlRegisterType<MessageQueue::StanSubOptions>("Timeterm.MessageQueue", 1, 0, "StanSubOptions");
+    qmlRegisterType<MessageQueue::StanSubscription>("Timeterm.MessageQueue", 1, 0, "StanSubscription");
+    qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", natsStatusStringer.get());
+    qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
 
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/src/qml/main.qml");

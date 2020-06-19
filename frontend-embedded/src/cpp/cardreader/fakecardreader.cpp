@@ -14,7 +14,7 @@ FakeCardReader::FakeCardReader(QObject *parent)
 
 void FakeCardReader::start()
 {
-    auto randomNumber = QRandomGenerator().generate();
+    auto randomNumber = QRandomGenerator(QDateTime::currentMSecsSinceEpoch()).generate();
     auto serverName = "fake_card_reader_" + QString::number(randomNumber);
 
     if (!m_server->listen(serverName))
