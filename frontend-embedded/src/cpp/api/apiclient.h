@@ -8,18 +8,17 @@
 #include <QNetworkReply>
 #include <QObject>
 
-class ApiClient;
-
-using ReplyHandler = void (ApiClient::*)(QNetworkReply *);
-
 class ApiClient: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString cardId WRITE setCardId READ cardId NOTIFY cardIdChanged)
     Q_PROPERTY(QString apiKey WRITE setApiKey READ apiKey NOTIFY apiKeyChanged)
 
+    using ReplyHandler = void (ApiClient::*)(QNetworkReply *);
+
 public:
     explicit ApiClient(QObject *parent = nullptr);
+    ~ApiClient() = default;
 
     void setCardId(const QString &cardId);
     [[nodiscard]] QString cardId() const;

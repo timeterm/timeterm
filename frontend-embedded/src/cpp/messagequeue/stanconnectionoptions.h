@@ -29,6 +29,7 @@ class StanConnectionOptions: public QObject
 
 public:
     explicit StanConnectionOptions(QObject *parent = nullptr);
+    ~StanConnectionOptions() override = default;
 
     void setNatsOptions(NatsOptions *opts);
     [[nodiscard]] NatsOptions *natsOptions() const;

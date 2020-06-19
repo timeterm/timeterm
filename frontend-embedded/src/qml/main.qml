@@ -51,6 +51,10 @@ Window {
         function onErrorOccurred(code, msg) {
             console.log("error occurred: code " + code + ", message: " + msg)
         }
+
+        function onLastStatusChanged() {
+            console.log("status changed")
+        }
     }
 
     StanConnection {
@@ -67,7 +71,6 @@ Window {
             console.log("stanConn.connectionOptions.url: " + stanConn.connectionOptions.url)
 
             stanConn.connect()
-            console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
         }
     }
 

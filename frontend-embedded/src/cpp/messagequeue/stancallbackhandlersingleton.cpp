@@ -44,6 +44,7 @@ void StanCallbackHandlerSingleton::onMsg(stanConnection *, stanSubscription *sub
     if (!m_msgHandlers.contains(sub))
         return;
     m_msgHandlers[sub](channel, msg);
+    stanMsg_Destroy(msg);
 }
 
 void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt)

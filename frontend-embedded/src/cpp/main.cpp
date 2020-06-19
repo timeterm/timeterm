@@ -14,6 +14,8 @@
 
 int main(int argc, char *argv[])
 {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -52,5 +54,12 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
 
-    return QGuiApplication::exec();
+    auto exitCode = QGuiApplication::exec();
+
+    google::protobuf::ShutdownProtobufLibrary();
+
+    nats_Sleep(500);
+    nats_Close();
+
+    return exitCode;
 }

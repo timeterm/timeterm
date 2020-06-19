@@ -74,6 +74,7 @@ void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 {
     m_handlers[reply] = handler;
 
+    reply->setParent(this);
     connect(reply, &QNetworkReply::finished, this, &ApiClient::replyFinished);
     connect(reply, &QNetworkReply::errorOccurred, this, &ApiClient::handleReplyError);
 }

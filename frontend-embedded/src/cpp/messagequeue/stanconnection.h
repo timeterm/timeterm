@@ -29,6 +29,7 @@ class StanConnection: public QObject
 
 public:
     explicit StanConnection(QObject *parent = nullptr);
+    ~StanConnection() override = default;
 
     [[nodiscard]] NatsStatus::Enum lastStatus() const;
     void setCluster(const QString &cluster);
@@ -49,6 +50,7 @@ signals:
     void connected();
     void connectionLost();
     void setConnectionPrivate(const QSharedPointer<stanConnection*> &conn, QPrivateSignal);
+    void lastStatusChanged();
 
 private slots:
     void setConnection(const QSharedPointer<stanConnection*> &conn);

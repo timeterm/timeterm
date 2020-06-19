@@ -14,7 +14,7 @@ StanConnectionOptions::StanConnectionOptions(QObject *parent)
     if (s == NATS_OK) {
         s = stanConnOptions_SetConnectionLostHandler(connOptions, StanCallbackHandlerSingleton::onConnLost, nullptr);
         if (s == NATS_OK) {
-            m_connOptions.reset(connOptions);
+            m_connOptions.reset(connOptions, stanConnOptions_Destroy);
         }
     }
 

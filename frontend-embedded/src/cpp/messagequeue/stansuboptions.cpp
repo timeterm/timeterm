@@ -10,7 +10,7 @@ NatsStatus::Enum newStanSubOptions(QSharedPointer<stanSubOptions> &ptr)
     stanSubOptions *stanSubOpts = nullptr;
     auto s = stanSubOptions_Create(&stanSubOpts);
     if (s == NATS_OK)
-        ptr.reset(stanSubOpts);
+        ptr.reset(stanSubOpts, stanSubOptions_Destroy);
 
     if (s != NATS_OK)
         stanSubOptions_Destroy(stanSubOpts);

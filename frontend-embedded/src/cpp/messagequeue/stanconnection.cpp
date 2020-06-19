@@ -40,7 +40,7 @@ void StanConnection::connect()
             emit setConnectionPrivate(stanConnPtr, QPrivateSignal());
 
             StanCallbackHandlerSingleton::singleton().setConnectionLostHandler(
-                *stanConnPtr.get(),
+                *stanConnPtr,
                 [this](const char *msg) {
                     emit connectionLost();
                 });
@@ -57,7 +57,11 @@ NatsStatus::Enum StanConnection::lastStatus() const
 
 void StanConnection::updateStatus(NatsStatus::Enum s)
 {
-    m_lastStatus = s;
+    if (s != m_lastStatus) {
+        m_lastStatus = s;
+        emit lastStatusChanged();
+    }
+
     if (s == NatsStatus::Enum::Ok)
         return;
 
@@ -115,7 +119,6 @@ QString StanConnection::clientId() const
 void StanConnection::setConnectionOptions(StanConnectionOptions *options)
 {
     if (options != m_options) {
-        options->setParent(this);
         m_options = options;
         emit connectionOptionsChanged();
     }

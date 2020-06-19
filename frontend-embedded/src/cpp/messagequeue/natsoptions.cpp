@@ -10,7 +10,7 @@ MessageQueue::NatsOptions::NatsOptions(QObject *parent)
     natsOptions *options;
     auto s = natsOptions_Create(&options);
     if (s == NATS_OK)
-        m_options.reset(options);
+        m_options.reset(options, natsOptions_Destroy);
 
     updateStatus(NatsStatus::fromC(s));
 
