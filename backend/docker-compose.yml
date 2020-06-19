@@ -16,3 +16,9 @@ services:
     restart: always
     ports:
       - "8432:8080"
+
+  nats-streaming:
+    image: nats-streaming:0.17.0
+    restart: always
+    ports:
+      - "4222:4222"
