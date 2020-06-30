@@ -50,7 +50,7 @@ add_subdirectory(../proto/src ${CMAKE_BINARY_DIR}/timeterm_proto)
 target_compile_definitions(frontend-embedded
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG> NATS_HAS_STREAMING)
 target_link_libraries(frontend-embedded
-  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 nats timeterm_proto)
+  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 nats_static timeterm_proto)
 target_include_directories(frontend-embedded
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nats/src src/cpp)
 

@@ -29,12 +29,12 @@ void StanCallbackHandlerSingleton::removeConnectionLostHandler(stanConnection *c
     m_connLostHandlers.remove(conn);
 }
 
-void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg, void *closure)
+void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg, void */* closure */)
 {
     StanCallbackHandlerSingleton::singleton().onMsg(sc, sub, channel, msg);
 }
 
-void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt, void *closure)
+void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt, void */* closure */)
 {
     StanCallbackHandlerSingleton::singleton().onConnLost(sc, errTxt);
 }

@@ -4,7 +4,7 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="src/qml/main.qml" line="14"/>
+        <location filename="src/qml/main.qml" line="15"/>
         <source>Timeterm</source>
         <translation type="unfinished"></translation>
     </message>

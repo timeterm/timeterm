@@ -18,7 +18,7 @@ class ApiClient: public QObject
 
 public:
     explicit ApiClient(QObject *parent = nullptr);
-    ~ApiClient() = default;
+    ~ApiClient() override = default;
 
     void setCardId(const QString &cardId);
     [[nodiscard]] QString cardId() const;
