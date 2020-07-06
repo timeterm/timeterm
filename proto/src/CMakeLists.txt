@@ -14,7 +14,7 @@ endif ()
 
 # Find Protobuf installation
 # Looks for protobuf-config.cmake file installed by Protobuf's cmake installation.
-set(Protobuf_USE_STATIC_LIBS ON)
+#set(Protobuf_USE_STATIC_LIBS ON)
 find_package(Protobuf REQUIRED)
 message(STATUS "Using protobuf ${protobuf_VERSION}")
 
@@ -28,6 +28,5 @@ foreach(GENERATED_FILE IN LISTS GENERATED_FILES)
 endforeach()
 
 add_library(timeterm_proto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(timeterm_proto PUBLIC ${Protobuf_LIBRARIES})
+target_link_libraries(timeterm_proto PUBLIC protobuf::libprotobuf)
 target_include_directories(timeterm_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(timeterm_proto PRIVATE ${Protobuf_INCLUDE_DIRS})
