@@ -1,2 +1,8 @@
-/build-frontend-embedded-*
+# Qt build folders (also covers for build-frontend-embedded-devtools)
+build-frontend-embedded-*
+
+# IDE folders
 /.idea
+
+# Any build folder
+build/
