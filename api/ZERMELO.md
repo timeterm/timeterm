@@ -7,7 +7,7 @@
 `https://{institution}.zportal.nl/api/v3/liveschedule?student={student}&week={week}&fields=appointmentInstance,start,end,startTimeSlotName,endTimeSlotName,subjects,groups,locations,teachers,cancelled,changeDescription,schedulerRemark,content,appointmentType`  
 <kbd>week</kbd> is formatted like so: `year` `week` (e.g. `202036`, where <kbd>year</kbd> = `2020`, <kbd>week</kbd> = `36`). Unsure if week is required to have a leading `0`.
 
-The HTTP Header <kbd>If-Modified-Since</kbd> is used to retrieve content that has been modified after earlier requests. The `liveschedule` endpoint is polled by the webapp.
+The HTTP Header <kbd>[If-Modified-Since](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since)</kbd> is used to retrieve content that has been modified after earlier requests. The `liveschedule` endpoint is polled by the webapp.
 
 ## Datatypes
 
