@@ -1,0 +1,49 @@
+# Talking with Zermelo
+
+## What does the webapp do?
+
+### Appointment retrieval
+
+`https://{institution}.zportal.nl/api/v3/liveschedule?student={student}&week={week}&fields=appointmentInstance,start,end,startTimeSlotName,endTimeSlotName,subjects,groups,locations,teachers,cancelled,changeDescription,schedulerRemark,content,appointmentType`  
+<kbd>{week}</kbd> is formatted like so: `year` `week` (e.g. `202036`, where year = 2020, week = 36). Unsure if week is required to have a leading `0`.
+
+The HTTP Header <kbd>If-Modified-Since</kbd> is used to retrieve content that has been modified after earlier requests. The `liveschedule` endpoint is polled by the webapp.
+
+## Datatypes
+
+### Appointment
+
+Properties:
+* <kbd>actions</kbd>: <kbd>[][Action](#action)</kbd>
+
+### Action
+
+* <kbd>status</kbd>: <kbd>[][Status](#status)</kbd>
+* <kbd>appointment</kbd>: <kbd>[][Appointment](#appointment)</kbd>
+* <kbd>allowed</kbd>: <kbd>bool</kbd>
+* <kbd>post</kbd>: <kbd>string</kbd> (relative URL)  
+  In case of enrollment, can be used to enroll.
+
+  Example: `/api/v3/liveschedule/enrollment?enroll=3313930&unenroll=`
+  In this URL, `3313930` is <kbd>appointment.id</kbd>
+
+### Status
+
+Properties:
+* <kbd>code</kbd>: <kbd>int</kbd>  
+  Current status of the enrollment?
+
+  Examples (en):  
+  - `1002`: You will be unenrolled for all appointments at this time  
+  - `2002`: Enrollment OK  
+  - `4010`: This would cause a conflict in the schedule  
+
+* <kbd>nl</kbd>: <kbd>string</kbd>
+  Message localized in Dutch. See examples above.
+
+* <kbd>en</kbd>: <kbd>string</kbd>
+  Message localized in English. See examples above.
+
+#### Notes
+
+The properties <kbd>nl</kbd> and <kbd>en</kbd> may actually not be static, but ISO 639-1 language codes (think OpenAPI 3's `additionalProperties`).
