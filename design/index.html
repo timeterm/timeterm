@@ -1,16 +1,21 @@
 <html>
   <head>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
-    <script src="3D.js"></script>
+    <script src="js/CCapture.js"></script>
+    <script src="js/webm-writer-0.2.0.js"></script>
+    <script src="js/download.js"></script>
+    <script src="js/p5.js"></script>
+    <script src="js/3D.js"></script>
     <link rel="stylesheet" href="style.css" type="text/css"></link>
     <title>Design</title>
   </head>
   <body>
     <h1>Timeterm design</h1>
-    <p>Press 'f' to (un)lock viewpoint<br>
-      Press 'c' to disable/enable cursor<br>
-      Press any other key to replay the animation
+    <p>•Press 'f' to (un)lock viewpoint. •Press 'c' to disable/enable cursor<br>
+      •Press 'r' to start/stop recording. •Press F5 to replay the animation
     </p>
+    <div style="text-align:center;">
+      <button class="button" id="recordButton"></button>
+    </div>
     <div id="container"></div>
   </body>
 </html>
