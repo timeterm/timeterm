@@ -66,11 +66,33 @@ Window {
             url: "localhost"
         }
 
+        StanSubOptions {
+            id: stanSubOpts
+
+        }
+
         Component.onCompleted: {
             console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
             console.log("stanConn.connectionOptions.url: " + stanConn.connectionOptions.url)
 
             stanConn.connect()
+
+            let sub = stanConn.subscribe("nl.timeterm.disown-token", stanSubOpts)
+            sub.onMessage = bspc.handleMessage
+        }
+    }
+
+    BinaryStanProtoClient {
+        id: bspc
+
+        onDisownTokenProto: pc.disownTokenProto
+    }
+
+    ProtoClient {
+        id: pc
+
+        onDisownToken: function(msg) {
+            console.log("device " + msg.deviceId + " has to disown their token")
         }
     }
 
