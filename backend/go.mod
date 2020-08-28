@@ -3,6 +3,7 @@ module gitlab.com/timeterm/timeterm/backend
 go 1.14
 
 require (
+	github.com/go-logr/logr v0.2.0
 	github.com/golang-migrate/migrate/v4 v4.11.0
 	github.com/google/uuid v1.1.1
 	github.com/jmoiron/sqlx v1.2.0
