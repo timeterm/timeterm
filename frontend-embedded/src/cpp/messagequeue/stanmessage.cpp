@@ -7,7 +7,6 @@ StanMessage::StanMessage(QString channel, stanMsg *message)
     : m_channel(std::move(channel))
     , m_data(stanMsg_GetData(message), stanMsg_GetDataLength(message))
 {
-    stanMsg_Destroy(message);
 }
 
 QString StanMessage::channel() const

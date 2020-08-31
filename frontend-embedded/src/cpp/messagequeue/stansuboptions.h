@@ -20,17 +20,17 @@ class StanSubOptions: public QObject
 public:
     explicit StanSubOptions(QObject *parent = nullptr);
 
-    Q_INVOKABLE NatsStatus::Enum setDurableName(const QString &durableName);
-    Q_INVOKABLE NatsStatus::Enum deliverAllAvailable();
-    Q_INVOKABLE NatsStatus::Enum startWithLastReceived();
-    Q_INVOKABLE NatsStatus::Enum startAtSequence(quint64 sequence);
-    Q_INVOKABLE NatsStatus::Enum setManualAckMode(bool manualAck);
-    Q_INVOKABLE NatsStatus::Enum setMaxInflight(int inflight);
-    Q_INVOKABLE NatsStatus::Enum setAckWait(qint64 ms);
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum setDurableName(const QString &durableName);
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum deliverAllAvailable();
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum startWithLastReceived();
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum startAtSequence(quint64 sequence);
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum setManualAckMode(bool manualAck);
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum setMaxInflight(int inflight);
+    Q_INVOKABLE MessageQueue::NatsStatus::Enum setAckWait(qint64 ms);
 
     QSharedPointer<stanSubOptions> subOptions();
 
-    [[nodiscard]] NatsStatus::Enum lastStatus() const;
+    [[nodiscard]] MessageQueue::NatsStatus::Enum lastStatus() const;
 
 signals:
     void errorOccurred(NatsStatus::Enum status, const QString &message);

@@ -29,4 +29,6 @@ private:
 
 }
 
+Q_DECLARE_METATYPE(MessageQueue::RetrieveNewTokenMessage)
+
 #endif // RETRIEVENEWTOKENMESSAGE_H

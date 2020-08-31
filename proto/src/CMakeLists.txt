@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 project(timeterm_proto)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_CXX_STANDARD 11)
+
+cmake_policy(SET CMP0071 NEW)
 
 if (NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 else ()
     add_definitions(-D_WIN32_WINNT=0x600)
 endif ()

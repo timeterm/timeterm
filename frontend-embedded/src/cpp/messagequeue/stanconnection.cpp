@@ -76,16 +76,23 @@ StanSubscription *StanConnection::subscribe(const QString &channel, StanSubOptio
     auto channelCstr = asUtf8CString(channel);
 
     stanSubscription *subDest = nullptr;
-    stanConnection_Subscribe(
+    auto status = stanConnection_Subscribe(
         &subDest,                            // subscription (output parameter)
         m_stanConnection.get(),              // connection
         channelCstr.get(),                   // channel
         StanCallbackHandlerSingleton::onMsg, // message handler
         nullptr,                             // message handler closure (not needed)
         subOptions.get());                   // subscription options
+    if (status != NATS_OK) {
+        updateStatus(NatsStatus::fromC(status));
+        qDebug() << "Error (subscribe):" << natsStatus_GetText(status);
+
+        return nullptr;
+    }
 
     auto subWrapper = new StanSubscription(this);
     subWrapper->setSubscription(subDest);
+    qDebug() << "StanConnection: subscribed to channel" << channelCstr.get();
 
     return subWrapper;
 }
@@ -131,7 +138,7 @@ StanConnectionOptions *StanConnection::connectionOptions() const
 
 void StanConnection::setConnection(const QSharedPointer<stanConnection *> &conn)
 {
-    m_stanConnection.reset(*conn.get());
+    m_stanConnection.reset(*conn);
 }
 
 } // namespace MessageQueue

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "gitlab.com/timeterm/timeterm/proto/go;timetermpb";
+
 package timeterm_proto.messages;
 
 message DisownTokenMessage {

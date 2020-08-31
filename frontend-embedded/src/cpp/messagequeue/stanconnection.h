@@ -25,7 +25,7 @@ class StanConnection: public QObject
     Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
     Q_PROPERTY(QString cluster READ cluster WRITE setCluster NOTIFY clusterChanged)
     Q_PROPERTY(QString clientId READ clientId WRITE setClientId NOTIFY clientIdChanged)
-    Q_PROPERTY(StanConnectionOptions *connectionOptions READ connectionOptions WRITE setConnectionOptions NOTIFY connectionOptionsChanged)
+    Q_PROPERTY(MessageQueue::StanConnectionOptions *connectionOptions READ connectionOptions WRITE setConnectionOptions NOTIFY connectionOptionsChanged)
 
 public:
     explicit StanConnection(QObject *parent = nullptr);
@@ -40,7 +40,7 @@ public:
     [[nodiscard]] StanConnectionOptions *connectionOptions() const;
 
     Q_INVOKABLE void connect();
-    Q_INVOKABLE StanSubscription *subscribe(const QString &subscribe, StanSubOptions *opts);
+    Q_INVOKABLE MessageQueue::StanSubscription *subscribe(const QString &subscribe, StanSubOptions *opts);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);

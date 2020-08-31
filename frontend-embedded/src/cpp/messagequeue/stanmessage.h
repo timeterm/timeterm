@@ -17,10 +17,11 @@ class StanMessage
     Q_PROPERTY(QString channel READ channel)
 
 public:
-    explicit StanMessage(QString channel, stanMsg *message);
+    StanMessage() = default;
+    StanMessage(QString channel, stanMsg *message);
 
     [[nodiscard]] QString channel() const;
-    QByteArray const &data() const;
+    [[nodiscard]] QByteArray const &data() const;
 
 private:
     QString m_channel;
@@ -28,5 +29,7 @@ private:
 };
 
 } // namespace MessageQueue
+
+Q_DECLARE_METATYPE(MessageQueue::StanMessage)
 
 #endif // STANMESSAGE_H

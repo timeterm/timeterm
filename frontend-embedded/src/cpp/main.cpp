@@ -2,10 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <src/cpp/messagequeue/binaryprotoclient.h>
 #include <src/cpp/messagequeue/enums.h>
-#include <src/cpp/messagequeue/messagequeueclient.h>
 #include <src/cpp/messagequeue/natsoptions.h>
 #include <src/cpp/messagequeue/natsstatusstringer.h>
-#include <src/cpp/messagequeue/protoclient.h>
 #include <src/cpp/messagequeue/stanconnection.h>
 #include <src/cpp/messagequeue/stanconnectionoptions.h>
 
@@ -32,10 +30,11 @@ int main(int argc, char *argv[])
                                      "cannot create namespace NatsStatus in QML");
     qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
     qRegisterMetaType<QSharedPointer<stanConnection*>>();
+    qRegisterMetaType<MessageQueue::StanMessage>();
+    qRegisterMetaType<MessageQueue::DisownTokenMessage>();
+    qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::BinaryProtoClient>("Timeterm.MessageQueue", 1, 0, "BinaryProtoClient");
-    qmlRegisterType<MessageQueue::MessageQueueClient>("Timeterm.MessageQueue", 1, 0, "MessageQueueClient");
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
-    qmlRegisterType<MessageQueue::ProtoClient>("Timeterm.MessageQueue", 1, 0, "ProtoClient");
     qmlRegisterType<MessageQueue::StanConnection>("Timeterm.MessageQueue", 1, 0, "StanConnection");
     qmlRegisterType<MessageQueue::StanConnectionOptions>("Timeterm.MessageQueue", 1, 0, "StanConnectionOptions");
     qmlRegisterType<MessageQueue::StanSubOptions>("Timeterm.MessageQueue", 1, 0, "StanSubOptions");

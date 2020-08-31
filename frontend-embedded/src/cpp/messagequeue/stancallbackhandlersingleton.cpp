@@ -1,5 +1,7 @@
 #include "stancallbackhandlersingleton.h"
 
+#include <QDebug>
+
 namespace MessageQueue
 {
 
@@ -31,6 +33,7 @@ void StanCallbackHandlerSingleton::removeConnectionLostHandler(stanConnection *c
 
 void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg, void */* closure */)
 {
+    qDebug() << "StanCallbackHandlerSingleton: got message on channel" << channel;
     StanCallbackHandlerSingleton::singleton().onMsg(sc, sub, channel, msg);
 }
 
@@ -43,8 +46,11 @@ void StanCallbackHandlerSingleton::onMsg(stanConnection *, stanSubscription *sub
 {
     if (!m_msgHandlers.contains(sub))
         return;
+    qDebug() << "StanCallbackHandlerSingleton: found message handler for subscription";
     m_msgHandlers[sub](channel, msg);
+    qDebug() << "StanCallbackHandlerSingleton: destroying message";
     stanMsg_Destroy(msg);
+    qDebug() << "StanCallbackHandlerSingleton: destroyed message";
 }
 
 void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt)

@@ -17,14 +17,15 @@ class StanSubscription: public QObject
 
 public:
     explicit StanSubscription(QObject *parent = nullptr);
+    ~StanSubscription() override;
 
     void setSubscription(stanSubscription *sub);
 
 signals:
-    void messageReceived(const StanMessage &message);
+    void messageReceived(const MessageQueue::StanMessage &message);
 
 private:
-    StanSubscriptionScopedPointer m_stanSub;
+    stanSubscription *m_sub = nullptr;
 };
 
 } // namespace MessageQueue

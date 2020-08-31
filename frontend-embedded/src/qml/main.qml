@@ -46,6 +46,14 @@ Window {
 
         function onConnected() {
             console.log("connected")
+
+            let sub = stanConn.subscribe("timeterm.disown-token", stanSubOpts)
+            sub.messageReceived.connect(sendMessageToBSPC)
+        }
+
+        function sendMessageToBSPC(message) {
+            console.log("sendMessageToBSPC")
+            bspc.handleMessage(message)
         }
 
         function onErrorOccurred(code, msg) {
@@ -54,6 +62,22 @@ Window {
 
         function onLastStatusChanged() {
             console.log("status changed")
+        }
+    }
+
+    StanSubOptions {
+        id: stanSubOpts
+
+        Component.onCompleted: {
+            stanSubOpts.setDurableName("subz")
+        }
+    }
+
+    Connections {
+        target: stanSubOpts
+
+        function onErrorOccurred() {
+            console.log("stanSubOpts: error occurred")
         }
     }
 
@@ -66,30 +90,16 @@ Window {
             url: "localhost"
         }
 
-        StanSubOptions {
-            id: stanSubOpts
-
-        }
-
         Component.onCompleted: {
             console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
             console.log("stanConn.connectionOptions.url: " + stanConn.connectionOptions.url)
 
             stanConn.connect()
-
-            let sub = stanConn.subscribe("nl.timeterm.disown-token", stanSubOpts)
-            sub.onMessage = bspc.handleMessage
         }
     }
 
-    BinaryStanProtoClient {
+    BinaryProtoClient {
         id: bspc
-
-        onDisownTokenProto: pc.disownTokenProto
-    }
-
-    ProtoClient {
-        id: pc
 
         onDisownToken: function(msg) {
             console.log("device " + msg.deviceId + " has to disown their token")
