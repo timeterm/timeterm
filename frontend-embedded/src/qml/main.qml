@@ -37,49 +37,7 @@ Window {
         id: apiClient
     }
 
-    Connections {
-        target: stanConn
-
-        function onConnectionLost() {
-            console.log("connection lost :(")
-        }
-
-        function onConnected() {
-            console.log("connected")
-
-            let sub = stanConn.subscribe("timeterm.disown-token", stanSubOpts)
-            sub.messageReceived.connect(sendMessageToBSPC)
-        }
-
-        function sendMessageToBSPC(message) {
-            console.log("sendMessageToBSPC")
-            bspc.handleMessage(message)
-        }
-
-        function onErrorOccurred(code, msg) {
-            console.log("error occurred: code " + code + ", message: " + msg)
-        }
-
-        function onLastStatusChanged() {
-            console.log("status changed")
-        }
-    }
-
-    StanSubOptions {
-        id: stanSubOpts
-
-        Component.onCompleted: {
-            stanSubOpts.setDurableName("subz")
-        }
-    }
-
-    Connections {
-        target: stanSubOpts
-
-        function onErrorOccurred() {
-            console.log("stanSubOpts: error occurred")
-        }
-    }
+    /* This won't work yet, but is what I'd ideally like it to be
 
     StanConnection {
         id: stanConn
@@ -98,13 +56,41 @@ Window {
         }
     }
 
-    BinaryProtoClient {
-        id: bspc
+     Connections {
+        target: stanConn
 
-        onDisownToken: function(msg) {
+        function onConnectionLost() {
+            console.log("connection lost :(")
+        }
+
+        function onConnected() {
+            console.log("connected")
+
+            disownSub.subscribe()
+        }
+
+        function onErrorOccurred(code, msg) {
+            console.log("error occurred: code " + code + ", message: " + msg)
+        }
+
+        function onLastStatusChanged() {
+            console.log("status changed")
+        }
+    }
+
+    StanSubscription {
+        id: disownSub
+        target: stanConn
+        options: StanSubOpts {
+            durableName: "events"
+        }
+
+        onDisownTokenMessage: function(msg) {
             console.log("device " + msg.deviceId + " has to disown their token")
         }
     }
+
+    */
 
     Component.onCompleted: {
         apiClient.getAppointments(new Date(), new Date())
