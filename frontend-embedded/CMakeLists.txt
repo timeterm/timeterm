@@ -45,6 +45,7 @@ endif()
 set(BUILD_TESTING NO CACHE BOOL "Build the NATS tests")
 set(NATS_BUILD_EXAMPLES NO CACHE BOOL "Build the NATS examples")
 set(NATS_BUILD_LIB_SHARED NO CACHE BOOL "Build the NATS library shared")
+set(NATS_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Build type: Release, Debug, RelWithDebInfo, MinRelSize")
 add_subdirectory(3rdparty/nats)
 add_subdirectory(../proto/src ${CMAKE_BINARY_DIR}/timeterm_proto)
 
