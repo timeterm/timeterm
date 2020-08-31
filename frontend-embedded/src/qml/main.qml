@@ -25,19 +25,14 @@ Window {
         }
     }
 
-    Connections {
-        target: apiClient
-        function onTimetableReceived(timetable) {
+    ApiClient {
+        id: apiClient
+
+        onTimetableReceived: function(timetable) {
             console.log("Timetable received")
             console.log(timetable.data[0].locations[0])
         }
     }
-
-    ApiClient {
-        id: apiClient
-    }
-
-    /* This won't work yet, but is what I'd ideally like it to be
 
     StanConnection {
         id: stanConn
@@ -54,26 +49,22 @@ Window {
 
             stanConn.connect()
         }
-    }
 
-     Connections {
-        target: stanConn
-
-        function onConnectionLost() {
+        onConnectionLost: function() {
             console.log("connection lost :(")
         }
 
-        function onConnected() {
+        onConnected: function() {
             console.log("connected")
 
             disownSub.subscribe()
         }
 
-        function onErrorOccurred(code, msg) {
+        onErrorOccurred: function(code, msg) {
             console.log("error occurred: code " + code + ", message: " + msg)
         }
 
-        function onLastStatusChanged() {
+        onLastStatusChanged: function() {
             console.log("status changed")
         }
     }
@@ -81,16 +72,19 @@ Window {
     StanSubscription {
         id: disownSub
         target: stanConn
-        options: StanSubOpts {
+        options: StanSubOptions {
             durableName: "events"
+            channel: "timeterm.disown-token"
         }
 
         onDisownTokenMessage: function(msg) {
             console.log("device " + msg.deviceId + " has to disown their token")
         }
-    }
 
-    */
+        onErrorOccurred: function(code, msg) {
+            console.log("error occurred: code " + code + ", message: " + msg)
+        }
+    }
 
     Component.onCompleted: {
         apiClient.getAppointments(new Date(), new Date())

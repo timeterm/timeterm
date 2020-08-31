@@ -1,8 +1,10 @@
 #include "stanconnection.h"
 #include "enums.h"
 #include "stancallbackhandlersingleton.h"
+#include "stansubscription.h"
 #include "strings.h"
 
+#include <QDebug>
 #include <QtConcurrent/QtConcurrentRun>
 
 namespace MessageQueue
@@ -36,6 +38,7 @@ void StanConnection::connect()
             updateStatus(NatsStatus::fromC(connectionStatus));
             if (connectionStatus != NATS_OK)
                 return;
+            qDebug() << "Connected";
 
             emit setConnectionPrivate(stanConnPtr, QPrivateSignal());
 
@@ -70,31 +73,28 @@ void StanConnection::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
-StanSubscription *StanConnection::subscribe(const QString &channel, StanSubOptions *opts)
+NatsStatus::Enum StanConnection::subscribe(StanSubOptions *opts, stanSubscription **ppStanSub)
 {
-    auto subOptions = opts->subOptions();
-    auto channelCstr = asUtf8CString(channel);
+    stanSubOptions *pSubOptions = nullptr;
+    auto buildStatus = opts->build(&pSubOptions);
+    if (buildStatus != NatsStatus::Enum::Ok)
+        return buildStatus;
+    StanSubOptionsScopedPointer subOptions(pSubOptions);
 
-    stanSubscription *subDest = nullptr;
+    auto channelCstr = asUtf8CString(opts->channel());
     auto status = stanConnection_Subscribe(
-        &subDest,                            // subscription (output parameter)
+        ppStanSub,                           // subscription (output parameter)
         m_stanConnection.get(),              // connection
         channelCstr.get(),                   // channel
         StanCallbackHandlerSingleton::onMsg, // message handler
         nullptr,                             // message handler closure (not needed)
         subOptions.get());                   // subscription options
-    if (status != NATS_OK) {
-        updateStatus(NatsStatus::fromC(status));
-        qDebug() << "Error (subscribe):" << natsStatus_GetText(status);
+    if (status != NATS_OK)
+        return NatsStatus::fromC(status);
 
-        return nullptr;
-    }
+    qDebug() << "Subscribed to channel" << opts->channel();
 
-    auto subWrapper = new StanSubscription(this);
-    subWrapper->setSubscription(subDest);
-    qDebug() << "StanConnection: subscribed to channel" << channelCstr.get();
-
-    return subWrapper;
+    return NatsStatus::fromC(status);
 }
 
 void StanConnection::setCluster(const QString &cluster)

@@ -20,81 +20,175 @@ NatsStatus::Enum newStanSubOptions(QSharedPointer<stanSubOptions> &ptr)
 
 StanSubOptions::StanSubOptions(QObject *parent)
     : QObject(parent)
-    , m_subOptions(nullptr, stanSubOptions_Destroy)
 {
-    updateStatus(newStanSubOptions(m_subOptions));
 }
 
-QSharedPointer<stanSubOptions> StanSubOptions::subOptions()
-{
-    return m_subOptions;
-}
+#define CHECK_NATS_STATUS(status)                           \
+    do {                                                    \
+        if (s != NATS_OK) return NatsStatus::fromC(status); \
+    } while (0)
 
-NatsStatus::Enum StanSubOptions::setDurableName(const QString &durableName)
+NatsStatus::Enum StanSubOptions::build(stanSubOptions **ppSubOpts)
 {
-    auto durableNameCstr = asUtf8CString(durableName);
+    auto status = stanSubOptions_Create(ppSubOpts);
+    if (status != NATS_OK)
+        return NatsStatus::fromC(status);
 
-    auto s = NatsStatus::fromC(stanSubOptions_SetDurableName(m_subOptions.get(), durableNameCstr.get()));
-    updateStatus(s);
+    auto s = configureSubOpts(*ppSubOpts);
+    if (s != NatsStatus::Enum::Ok) {
+        stanSubOptions_Destroy(*ppSubOpts);
+        return s;
+    }
+
     return s;
 }
 
-NatsStatus::Enum StanSubOptions::deliverAllAvailable()
+NatsStatus::Enum StanSubOptions::configureSubOpts(stanSubOptions *pSubOpts)
 {
-    auto s = NatsStatus::fromC(stanSubOptions_DeliverAllAvailable(m_subOptions.get()));
-    updateStatus(s);
-    return s;
+    natsStatus s;
+
+    if (m_durableName != "") {
+        auto durableNameCstr = asUtf8CString(m_durableName);
+        s = stanSubOptions_SetDurableName(pSubOpts, durableNameCstr.get());
+        CHECK_NATS_STATUS(s);
+    }
+
+    if (m_deliverAllAvailable) {
+        s = stanSubOptions_DeliverAllAvailable(pSubOpts);
+        CHECK_NATS_STATUS(s);
+    }
+
+    if (m_startWithLastReceived) {
+        s = stanSubOptions_StartWithLastReceived(pSubOpts);
+        CHECK_NATS_STATUS(s);
+    }
+
+    if (m_isStartAtSequenceSet) {
+        s = stanSubOptions_StartAtSequence(pSubOpts, m_startAtSequence);
+        CHECK_NATS_STATUS(s);
+    }
+
+    s = stanSubOptions_SetManualAckMode(pSubOpts, m_manualAckMode);
+    CHECK_NATS_STATUS(s);
+
+    if (m_isMaxInflightSet) {
+        s = stanSubOptions_SetMaxInflight(pSubOpts, m_maxInflight);
+        CHECK_NATS_STATUS(s);
+    }
+
+    if (m_isAckWaitMsSet) {
+        s = stanSubOptions_SetAckWait(pSubOpts, m_ackWaitMs);
+        CHECK_NATS_STATUS(s);
+    }
+
+    return NatsStatus::fromC(s);
 }
 
-NatsStatus::Enum StanSubOptions::startWithLastReceived()
+QString StanSubOptions::durableName() const
 {
-    auto s = NatsStatus::fromC(stanSubOptions_StartWithLastReceived(m_subOptions.get()));
-    updateStatus(s);
-    return s;
+    return m_durableName;
 }
 
-NatsStatus::Enum StanSubOptions::startAtSequence(quint64 sequence)
+void StanSubOptions::setDurableName(const QString &durableName)
 {
-    auto s = NatsStatus::fromC(stanSubOptions_StartAtSequence(m_subOptions.get(), sequence));
-    updateStatus(s);
-    return s;
+    if (durableName != m_durableName) {
+        m_durableName = durableName;
+        emit durableNameChanged();
+    }
 }
 
-NatsStatus::Enum StanSubOptions::setManualAckMode(bool manualAck)
+bool StanSubOptions::deliverAllAvailable() const
 {
-    auto s = NatsStatus::fromC(stanSubOptions_SetManualAckMode(m_subOptions.get(), manualAck));
-    updateStatus(s);
-    return s;
+    return m_deliverAllAvailable;
 }
 
-NatsStatus::Enum StanSubOptions::setMaxInflight(int inflight)
+void StanSubOptions::setDeliverAllAvailable(bool deliverAllAvailable)
 {
-    auto s = NatsStatus::fromC(stanSubOptions_SetMaxInflight(m_subOptions.get(), inflight));
-    updateStatus(s);
-    return s;
+    if (deliverAllAvailable != m_deliverAllAvailable) {
+        m_deliverAllAvailable = deliverAllAvailable;
+        emit deliverAllAvailableChanged();
+    }
 }
 
-NatsStatus::Enum StanSubOptions::setAckWait(qint64 ms)
+bool StanSubOptions::startWithLastReceived() const
 {
-    auto s = NatsStatus::fromC(stanSubOptions_SetAckWait(m_subOptions.get(), ms));
-    updateStatus(s);
-    return s;
+    return m_startWithLastReceived;
 }
 
-NatsStatus::Enum StanSubOptions::lastStatus() const
+void StanSubOptions::setStartWithLastReceived(bool startWithLastReceived)
 {
-    return m_lastStatus;
+    if (startWithLastReceived != m_startWithLastReceived) {
+        m_startWithLastReceived = startWithLastReceived;
+        emit startWithLastReceivedChanged();
+    }
 }
 
-void StanSubOptions::updateStatus(NatsStatus::Enum s)
+quint64 StanSubOptions::startAtSequence() const
 {
-    m_lastStatus = s;
-    if (s == NatsStatus::Enum::Ok)
-        return;
+    return m_startAtSequence;
+}
 
-    const char *text = natsStatus_GetText(NatsStatus::asC(s));
-    auto statusStr = QString::fromLocal8Bit(text);
-    emit errorOccurred(s, statusStr);
+void StanSubOptions::setStartAtSequence(bool startAtSequence)
+{
+    if (startAtSequence != m_startAtSequence) {
+        m_startAtSequence = startAtSequence;
+        m_isStartAtSequenceSet = true;
+        emit startAtSequenceChanged();
+    }
+}
+
+bool StanSubOptions::manualAckMode() const
+{
+    return m_manualAckMode;
+}
+
+void StanSubOptions::setManualAckMode(bool manualAckMode)
+{
+    if (manualAckMode != m_manualAckMode) {
+        m_manualAckMode = manualAckMode;
+        emit manualAckModeChanged();\
+    }
+}
+
+int StanSubOptions::maxInflight() const
+{
+    return m_maxInflight;
+}
+
+void StanSubOptions::setMaxInflight(int maxInflight)
+{
+    if (maxInflight != m_maxInflight) {
+        m_maxInflight = maxInflight;
+        m_isMaxInflightSet = true;
+        emit maxInflightChanged();
+    }
+}
+
+qint64 StanSubOptions::ackWaitMs() const
+{
+    return m_ackWaitMs;
+}
+
+void StanSubOptions::setAckWaitMs(qint64 ackWaitMs)
+{
+    if (ackWaitMs != m_ackWaitMs) {
+        m_ackWaitMs = ackWaitMs;
+        m_isAckWaitMsSet = true;
+        emit ackWaitMsChanged();
+    }
+}
+
+QString StanSubOptions::channel() const
+{
+    return m_channel;
+}
+
+void StanSubOptions::setChannel(const QString &channel)
+{
+    if (channel != m_channel) {
+        m_channel = channel;
+        emit channelChanged();
+    }
 }
 
 } // namespace MessageQueue

@@ -5,7 +5,6 @@
 #include "scopedpointer.h"
 #include "stanconnectionoptions.h"
 #include "stansuboptions.h"
-#include "stansubscription.h"
 
 #include <QHash>
 #include <QObject>
@@ -40,7 +39,7 @@ public:
     [[nodiscard]] StanConnectionOptions *connectionOptions() const;
 
     Q_INVOKABLE void connect();
-    Q_INVOKABLE MessageQueue::StanSubscription *subscribe(const QString &subscribe, StanSubOptions *opts);
+    NatsStatus::Enum subscribe(StanSubOptions *opts, stanSubscription **ppStanSub);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);

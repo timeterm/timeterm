@@ -15,33 +15,65 @@ namespace MessageQueue
 class StanSubOptions: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
+    Q_PROPERTY(QString durableName READ durableName WRITE setDurableName NOTIFY durableNameChanged)
+    Q_PROPERTY(bool deliverAllAvailable READ deliverAllAvailable WRITE setDeliverAllAvailable NOTIFY deliverAllAvailableChanged)
+    Q_PROPERTY(bool startWithLastReceived READ startWithLastReceived WRITE setStartWithLastReceived NOTIFY startWithLastReceivedChanged)
+    Q_PROPERTY(quint64 startAtSequence READ startAtSequence WRITE setStartAtSequence NOTIFY startAtSequenceChanged)
+    Q_PROPERTY(bool manualAckMode READ manualAckMode WRITE setManualAckMode NOTIFY manualAckModeChanged)
+    Q_PROPERTY(int maxInflight READ maxInflight WRITE setMaxInflight NOTIFY maxInflightChanged)
+    Q_PROPERTY(qint64 ackWaitMs READ ackWaitMs WRITE setAckWaitMs NOTIFY ackWaitMsChanged)
+    Q_PROPERTY(QString channel READ channel WRITE setChannel NOTIFY channelChanged)
 
 public:
     explicit StanSubOptions(QObject *parent = nullptr);
 
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum setDurableName(const QString &durableName);
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum deliverAllAvailable();
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum startWithLastReceived();
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum startAtSequence(quint64 sequence);
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum setManualAckMode(bool manualAck);
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum setMaxInflight(int inflight);
-    Q_INVOKABLE MessageQueue::NatsStatus::Enum setAckWait(qint64 ms);
+    [[nodiscard]] QString durableName() const;
+    void setDurableName(const QString& durableName);
+    [[nodiscard]] bool deliverAllAvailable() const;
+    void setDeliverAllAvailable(bool deliverAllAvailable);
+    [[nodiscard]] bool startWithLastReceived() const;
+    void setStartWithLastReceived(bool startWithLastReceived);
+    [[nodiscard]] quint64 startAtSequence() const;
+    void setStartAtSequence(bool startAtSequence);
+    [[nodiscard]] bool manualAckMode() const;
+    void setManualAckMode(bool manualAckMode);
+    [[nodiscard]] int maxInflight() const;
+    void setMaxInflight(int maxInflight);
+    [[nodiscard]] qint64 ackWaitMs() const;
+    void setAckWaitMs(qint64 ackWaitMs);
+    [[nodiscard]] QString channel() const;
+    void setChannel(const QString &channel);
 
-    QSharedPointer<stanSubOptions> subOptions();
-
-    [[nodiscard]] MessageQueue::NatsStatus::Enum lastStatus() const;
+    NatsStatus::Enum build(stanSubOptions **ppSubOpts);
 
 signals:
-    void errorOccurred(NatsStatus::Enum status, const QString &message);
+    void durableNameChanged();
+    void deliverAllAvailableChanged();
+    void startWithLastReceivedChanged();
+    void startAtSequenceChanged();
+    void manualAckModeChanged();
+    void maxInflightChanged();
+    void ackWaitMsChanged();
+    void channelChanged();
 
 private:
-    void updateStatus(NatsStatus::Enum s);
+    NatsStatus::Enum configureSubOpts(stanSubOptions *pSubOpts);
 
-    QSharedPointer<stanSubOptions> m_subOptions;
-    NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
+    QString m_durableName;
+    QString m_channel;
+    bool m_deliverAllAvailable = false;
+    bool m_startWithLastReceived = false;
+    quint64 m_startAtSequence = 0;
+    bool m_isStartAtSequenceSet = false;
+    bool m_manualAckMode = false;
+    int m_maxInflight = 0;
+    bool m_isMaxInflightSet = false;
+    qint64 m_ackWaitMs = 0;
+    bool m_isAckWaitMsSet = false;
 };
 
 } // namespace MessageQueue
+
+Q_DECLARE_METATYPE(QSharedPointer<stanSubscription*>)
 
 #endif // STANSUBOPTIONS_H
