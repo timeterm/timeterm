@@ -31,6 +31,7 @@ public:
     explicit StanSubscription(QObject *parent = nullptr);
     ~StanSubscription() override;
 
+    [[nodiscard]] NatsStatus::Enum lastStatus() const;
     [[nodiscard]] StanSubOptions *options() const;
     void setOptions(StanSubOptions *subOpts);
     [[nodiscard]] StanConnection *target() const;
@@ -49,7 +50,7 @@ signals:
     void updateSubscription(QSharedPointer<stanSubscription *>sub, QPrivateSignal);
 
 private slots:
-    void setSubscription(QSharedPointer<stanSubscription *>sub);
+    void setSubscription(const QSharedPointer<stanSubscription *>&sub);
 
 private:
     void updateStatus(NatsStatus::Enum s);
@@ -61,7 +62,6 @@ private:
     StanSubOptions *m_options = nullptr;
     StanConnection *m_target = nullptr;
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
-    NatsStatus::Enum lastStatus() const;
 };
 
 } // namespace MessageQueue

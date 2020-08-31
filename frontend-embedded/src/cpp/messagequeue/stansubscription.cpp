@@ -15,7 +15,7 @@ StanSubscription::StanSubscription(QObject *parent)
     connect(this, &StanSubscription::updateSubscription, this, &StanSubscription::setSubscription);
 }
 
-void StanSubscription::setSubscription(QSharedPointer<stanSubscription *> sub)
+void StanSubscription::setSubscription(const QSharedPointer<stanSubscription *>& sub)
 {
     if (m_sub != nullptr)
         stanSubscription_Destroy(m_sub);
@@ -86,17 +86,22 @@ void StanSubscription::updateStatus(NatsStatus::Enum s)
 
 void StanSubscription::subscribe()
 {
-    if (m_target != nullptr && m_sub == nullptr) {
-        QtConcurrent::run([this]() {
+    if (m_target == nullptr || m_sub != nullptr) {
+        return;
+    }
+
+    QtConcurrent::run(
+        [this](StanConnection *target, StanSubOptions *options) {
             stanSubscription *pSub = nullptr;
-            auto status = m_target->subscribe(m_options, &pSub);
+            auto status = target->subscribe(options, &pSub);
             updateStatus(status);
 
-            auto ppSub = QSharedPointer<stanSubscription *>(new stanSubscription *(pSub));
-            if (status == NatsStatus::Enum::Ok)
+            if (status == NatsStatus::Enum::Ok) {
+                auto ppSub = QSharedPointer<stanSubscription *>(new stanSubscription *(pSub));
                 emit updateSubscription(ppSub, QPrivateSignal());
-        });
-    }
+            }
+        },
+        m_target, m_options);
 }
 
 void StanSubscription::handleMessage(const QString &channel, stanMsg *msg)
