@@ -1,5 +1,4 @@
-#ifndef NATSSTATUSSTRINGER_H
-#define NATSSTATUSSTRINGER_H
+#pragma once
 
 #include "enums.h"
 #include <QObject>
@@ -14,9 +13,7 @@ class NatsStatusStringer: public QObject
 public:
     explicit NatsStatusStringer(QObject *parent = nullptr);
 
-    Q_INVOKABLE QString stringify(int status);
+    Q_INVOKABLE static QString stringify(int status);
 };
 
 } // namespace MessageQueue
-
-#endif // NATSSTATUSSTRINGER_H

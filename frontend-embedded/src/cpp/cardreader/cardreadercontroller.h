@@ -1,5 +1,4 @@
-#ifndef CARDREADERCONTROLLER_H
-#define CARDREADERCONTROLLER_H
+#pragma once
 
 #include "cardreader.h"
 #include "fakecardreader.h"
@@ -36,5 +35,3 @@ signals:
 private:
     CardReader *m_cardReader;
 };
-
-#endif // CARDREADERCONTROLLER_H

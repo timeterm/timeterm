@@ -1,5 +1,4 @@
-#ifndef DISOWNTOKENMESSAGE_H
-#define DISOWNTOKENMESSAGE_H
+#pragma once
 
 #include <QObject>
 
@@ -30,5 +29,3 @@ private:
 }
 
 Q_DECLARE_METATYPE(MessageQueue::DisownTokenMessage)
-
-#endif // DISOWNTOKENMESSAGE_H

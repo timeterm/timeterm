@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
-    QScopedPointer<MessageQueue::NatsStatusStringer> natsStatusStringer(new MessageQueue::NatsStatusStringer());
+    auto natsStatusStringer  = MessageQueue::NatsStatusStringer();
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<MessageQueue::StanConnectionOptions>("Timeterm.MessageQueue", 1, 0, "StanConnectionOptions");
     qmlRegisterType<MessageQueue::StanSubOptions>("Timeterm.MessageQueue", 1, 0, "StanSubOptions");
     qmlRegisterType<MessageQueue::StanSubscription>("Timeterm.MessageQueue", 1, 0, "StanSubscription");
-    qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", natsStatusStringer.get());
+    qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
 
     QQmlApplicationEngine engine;

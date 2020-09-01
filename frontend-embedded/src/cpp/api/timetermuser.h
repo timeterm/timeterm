@@ -1,5 +1,4 @@
-#ifndef TIMETERMUSER_H
-#define TIMETERMUSER_H
+#pragma once
 
 #include <QObject>
 
@@ -32,5 +31,3 @@ private:
 };
 
 Q_DECLARE_METATYPE(TimetermUser)
-
-#endif // TIMETERMUSER_H

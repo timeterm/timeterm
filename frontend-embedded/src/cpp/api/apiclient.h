@@ -1,5 +1,4 @@
-#ifndef APICLIENT_H
-#define APICLIENT_H
+#pragma once
 
 #include "timetermuser.h"
 #include "zermeloappointments.h"
@@ -50,5 +49,3 @@ private:
     QNetworkAccessManager *m_qnam;
     QHash<QNetworkReply *, ReplyHandler> m_handlers;
 };
-
-#endif // APICLIENT_H

@@ -1,5 +1,4 @@
-#ifndef ZERMELOAPPOINTMENTS_H
-#define ZERMELOAPPOINTMENTS_H
+#pragma once
 
 #include <QObject>
 #include "zermeloappointment.h"
@@ -24,5 +23,3 @@ private:
 };
 
 Q_DECLARE_METATYPE(ZermeloAppointments)
-
-#endif // ZERMELOAPPOINTMENTS_H

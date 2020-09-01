@@ -1,5 +1,4 @@
-#ifndef ENUMS_H
-#define ENUMS_H
+#pragma once
 
 #include <QObject>
 
@@ -151,5 +150,3 @@ constexpr natsStatus asC(const Enum status)
 Q_ENUM_NS(Enum)
 
 } // namespace MessageQueue
-
-#endif // ENUMS_H

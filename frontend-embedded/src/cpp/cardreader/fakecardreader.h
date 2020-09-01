@@ -1,5 +1,4 @@
-#ifndef FAKECARDREADER_H
-#define FAKECARDREADER_H
+#pragma once
 
 #include "cardreader.h"
 #include <QtNetwork/QLocalServer>
@@ -23,5 +22,3 @@ signals:
 private:
     QLocalServer *m_server;
 };
-
-#endif // FAKECARDREADER_H

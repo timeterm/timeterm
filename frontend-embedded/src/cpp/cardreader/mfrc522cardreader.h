@@ -1,7 +1,6 @@
 #ifdef RASPBERRYPI
 
-#ifndef MFRC522CARDREADER_H
-#define MFRC522CARDREADER_H
+#pragma once
 
 #include "cardreader.h"
 #include <QObject>
@@ -26,7 +25,5 @@ private:
     Mfrc522::Device m_mfrcDev;
     bool m_shutDown = false;
 };
-
-#endif // MFRC522CARDREADER_H
 
 #endif // RASPBERRPI

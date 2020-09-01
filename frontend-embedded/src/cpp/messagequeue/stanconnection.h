@@ -1,8 +1,6 @@
-#ifndef STANCONNECTION_H
-#define STANCONNECTION_H
+#pragma once
 
 #include "enums.h"
-#include "scopedpointer.h"
 #include "stanconnectionoptions.h"
 #include "stansuboptions.h"
 
@@ -67,5 +65,3 @@ private:
 } // namespace MessageQueue
 
 Q_DECLARE_METATYPE(QSharedPointer<stanConnection*>)
-
-#endif // STANCONNECTION_H

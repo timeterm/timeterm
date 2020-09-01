@@ -1,5 +1,4 @@
-#ifndef CARDREADER_H
-#define CARDREADER_H
+#pragma once
 
 #include <QObject>
 #include <QString>
@@ -19,5 +18,3 @@ public slots:
 signals:
     void cardRead(const QString &uid);
 };
-
-#endif // CARDREADER_H

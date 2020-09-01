@@ -1,5 +1,4 @@
-#ifndef STANCALLBACKHANDLERSINGLETON_H
-#define STANCALLBACKHANDLERSINGLETON_H
+#pragma once
 
 #include <functional>
 #include <nats.h>
@@ -40,5 +39,3 @@ private:
 };
 
 } // namespace MessageQueue
-
-#endif // STANCALLBACKHANDLERSINGLETON_H

@@ -1,8 +1,6 @@
-#ifndef STANSUBOPTIONS_H
-#define STANSUBOPTIONS_H
+#pragma once
 
 #include "enums.h"
-#include "scopedpointer.h"
 
 #include <nats.h>
 
@@ -75,5 +73,3 @@ private:
 } // namespace MessageQueue
 
 Q_DECLARE_METATYPE(QSharedPointer<stanSubscription*>)
-
-#endif // STANSUBOPTIONS_H

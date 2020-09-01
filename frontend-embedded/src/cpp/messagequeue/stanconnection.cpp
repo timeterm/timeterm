@@ -40,6 +40,7 @@ void StanConnection::connect()
                 [](stanConnection **ppConn) {
                     if (*ppConn != nullptr) {
                         stanConnection_Destroy(*ppConn);
+                        delete ppConn;
                     }
                 });
 

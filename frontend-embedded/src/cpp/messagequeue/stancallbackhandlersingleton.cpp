@@ -1,6 +1,7 @@
 #include "stancallbackhandlersingleton.h"
 
 #include <QDebug>
+#include <src/cpp/util/defer.h>
 
 namespace MessageQueue
 {
@@ -31,26 +32,36 @@ void StanCallbackHandlerSingleton::removeConnectionLostHandler(stanConnection *c
     m_connLostHandlers.remove(conn);
 }
 
-void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg, void */* closure */)
+void StanCallbackHandlerSingleton::onMsg(stanConnection *sc, stanSubscription *sub, const char *channel, stanMsg *msg, void * /* closure */)
 {
     qDebug() << "Got message on channel" << channel;
     StanCallbackHandlerSingleton::singleton().onMsg(sc, sub, channel, msg);
 }
 
-void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt, void */* closure */)
+void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt, void * /* closure */)
 {
     StanCallbackHandlerSingleton::singleton().onConnLost(sc, errTxt);
 }
 
 void StanCallbackHandlerSingleton::onMsg(stanConnection *, stanSubscription *sub, const char *channel, stanMsg *msg)
 {
-    if (!m_msgHandlers.contains(sub))
-        return;
-    qDebug() << "Found message handler for subscription";
-    m_msgHandlers[sub](channel, msg);
-    qDebug() << "Destroying message";
-    stanMsg_Destroy(msg);
-    qDebug() << "Destroyed message";
+    auto cleanUp = [msg]() {
+        qDebug() << "Destroying message";
+        stanMsg_Destroy(msg);
+        qDebug() << "Destroyed message";
+    };
+
+    auto realOnMsg = [&]() {
+        if (!m_msgHandlers.contains(sub)) {
+            qInfo() << "No registered handler for message on channel" << channel;
+            return;
+        }
+
+        qDebug() << "Found message handler for subscription";
+        m_msgHandlers[sub](channel, msg);
+    };
+
+    after(realOnMsg, cleanUp);
 }
 
 void StanCallbackHandlerSingleton::onConnLost(stanConnection *sc, const char *errTxt)

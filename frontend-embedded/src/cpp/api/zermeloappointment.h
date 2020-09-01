@@ -1,5 +1,4 @@
-#ifndef ZERMELOAPPOINTMENT_H
-#define ZERMELOAPPOINTMENT_H
+#pragma once
 
 #include <QDateTime>
 #include <QObject>
@@ -77,5 +76,3 @@ private:
 };
 
 Q_DECLARE_METATYPE(ZermeloAppointment)
-
-#endif // ZERMELOAPPOINTMENT_H

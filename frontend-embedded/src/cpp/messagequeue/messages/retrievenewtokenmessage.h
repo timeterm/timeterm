@@ -1,5 +1,4 @@
-#ifndef RETRIEVENEWTOKENMESSAGE_H
-#define RETRIEVENEWTOKENMESSAGE_H
+#pragma once
 
 #include <QObject>
 
@@ -30,5 +29,3 @@ private:
 }
 
 Q_DECLARE_METATYPE(MessageQueue::RetrieveNewTokenMessage)
-
-#endif // RETRIEVENEWTOKENMESSAGE_H

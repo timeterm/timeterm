@@ -1,9 +1,7 @@
-#ifndef STANCONNECTIONOPTIONS_H
-#define STANCONNECTIONOPTIONS_H
+#pragma once
 
 #include "enums.h"
 #include "natsoptions.h"
-#include "scopedpointer.h"
 
 #include <nats.h>
 
@@ -89,5 +87,3 @@ private:
 };
 
 } // namespace MessageQueue
-
-#endif // STANCONNECTIONOPTIONS_H
