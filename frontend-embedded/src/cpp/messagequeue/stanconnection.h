@@ -9,6 +9,7 @@
 #include <QHash>
 #include <QObject>
 
+#include <QtQml/qqml.h>
 #include <functional>
 #include <nats.h>
 
@@ -28,7 +29,7 @@ class StanConnection: public QObject
 
 public:
     explicit StanConnection(QObject *parent = nullptr);
-    ~StanConnection() override = default;
+    ~StanConnection() override;
 
     [[nodiscard]] NatsStatus::Enum lastStatus() const;
     void setCluster(const QString &cluster);
@@ -62,6 +63,7 @@ private:
     QString m_cluster;
     QString m_clientId;
     StanConnectionOptions *m_options;
+    QObjectList m_children;
 
     StanConnectionScopedPointer m_stanConnection;
 };

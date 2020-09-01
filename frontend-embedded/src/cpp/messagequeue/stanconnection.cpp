@@ -17,6 +17,14 @@ StanConnection::StanConnection(QObject *parent)
     QObject::connect(this, &MessageQueue::StanConnection::setConnectionPrivate, this, &MessageQueue::StanConnection::setConnection);
 }
 
+StanConnection::~StanConnection()
+{
+    if (!m_stanConnection.isNull()) {
+        StanCallbackHandlerSingleton::singleton()
+            .removeConnectionLostHandler(m_stanConnection.get());
+    }
+}
+
 void StanConnection::connect()
 {
     // We don't want connecting to the NATS Streaming server to block the user interface.

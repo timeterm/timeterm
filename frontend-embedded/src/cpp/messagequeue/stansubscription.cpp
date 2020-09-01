@@ -32,6 +32,8 @@ StanSubscription::~StanSubscription()
 {
     if (m_sub != nullptr) {
         stanSubscription_Destroy(m_sub);
+
+        StanCallbackHandlerSingleton::singleton().removeMsgHandler(m_sub);
     }
 }
 
