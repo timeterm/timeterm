@@ -50,11 +50,11 @@ Window {
             stanConn.connect()
         }
 
-        onConnectionLost: function() {
+        onConnectionLost: {
             console.log("connection lost :(")
         }
 
-        onConnected: function() {
+        onConnected: {
             console.log("connected")
 
             disownSub.subscribe()
@@ -64,7 +64,7 @@ Window {
             console.log("error occurred: code " + code + ", message: " + msg)
         }
 
-        onLastStatusChanged: function() {
+        onLastStatusChanged: {
             console.log("status changed")
         }
     }
