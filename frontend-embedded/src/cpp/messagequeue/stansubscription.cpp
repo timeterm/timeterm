@@ -15,11 +15,12 @@ StanSubscription::StanSubscription(QObject *parent)
     connect(this, &StanSubscription::updateSubscription, this, &StanSubscription::setSubscription);
 }
 
-void StanSubscription::setSubscription(const QSharedPointer<stanSubscription *>& sub)
+void StanSubscription::setSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection *> &spConn)
 {
     if (m_sub != nullptr)
         stanSubscription_Destroy(m_sub);
     m_sub = *sub;
+    m_dontDropConn = spConn;
 
     StanCallbackHandlerSingleton::singleton().setMsgHandler(*sub, [this](const char *channel, stanMsg *msg) {
         qDebug() << "Emitting messageReceived for message on channel" << channel;
@@ -95,12 +96,13 @@ void StanSubscription::subscribe()
     QtConcurrent::run(
         [this](StanConnection *target, StanSubOptions *options) {
             stanSubscription *pSub = nullptr;
-            auto status = target->subscribe(options, &pSub);
+            QSharedPointer<stanConnection *> dontDropConn;
+            auto status = target->subscribe(options, &pSub, dontDropConn);
             updateStatus(status);
 
             if (status == NatsStatus::Enum::Ok) {
                 auto ppSub = QSharedPointer<stanSubscription *>(new stanSubscription *(pSub));
-                emit updateSubscription(ppSub, QPrivateSignal());
+                emit updateSubscription(ppSub, dontDropConn, QPrivateSignal());
             }
         },
         m_target, m_options);

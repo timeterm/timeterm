@@ -67,22 +67,22 @@ Window {
         onLastStatusChanged: function() {
             console.log("status changed")
         }
+    }
 
-        StanSubscription {
-            id: disownSub
-            target: stanConn
-            options: StanSubOptions {
-                durableName: "events"
-                channel: "timeterm.disown-token"
-            }
+    StanSubscription {
+        id: disownSub
+        target: stanConn
+        options: StanSubOptions {
+            durableName: "events"
+            channel: "timeterm.disown-token"
+        }
 
-            onDisownTokenMessage: function(msg) {
-                console.log("device " + msg.deviceId + " has to disown their token")
-            }
+        onDisownTokenMessage: function(msg) {
+            console.log("device " + msg.deviceId + " has to disown their token")
+        }
 
-            onErrorOccurred: function(code, msg) {
-                console.log("error occurred: code " + code + ", message: " + msg)
-            }
+        onErrorOccurred: function(code, msg) {
+            console.log("error occurred: code " + code + ", message: " + msg)
         }
     }
 

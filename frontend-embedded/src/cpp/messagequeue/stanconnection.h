@@ -16,9 +16,6 @@
 namespace MessageQueue
 {
 
-using StanConnectionDeleter = ScopedPointerDestroyerDeleter<stanConnection, natsStatus, &stanConnection_Destroy>;
-using StanConnectionScopedPointer = QScopedPointer<stanConnection, StanConnectionDeleter>;
-
 class StanConnection: public QObject
 {
     Q_OBJECT
@@ -40,7 +37,7 @@ public:
     [[nodiscard]] StanConnectionOptions *connectionOptions() const;
 
     Q_INVOKABLE void connect();
-    NatsStatus::Enum subscribe(StanSubOptions *opts, stanSubscription **ppStanSub);
+    NatsStatus::Enum subscribe(StanSubOptions *opts, stanSubscription **ppStanSub, QSharedPointer<stanConnection*> &spConn);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
@@ -63,9 +60,8 @@ private:
     QString m_cluster;
     QString m_clientId;
     StanConnectionOptions *m_options;
-    QObjectList m_children;
 
-    StanConnectionScopedPointer m_stanConnection;
+    QSharedPointer<stanConnection *> m_stanConnection;
 };
 
 } // namespace MessageQueue

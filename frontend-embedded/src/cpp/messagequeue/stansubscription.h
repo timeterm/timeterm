@@ -14,9 +14,6 @@
 namespace MessageQueue
 {
 
-using StanSubscriptionDeleter = ScopedPointerDestroyerDeleter<stanSubscription, void, stanSubscription_Destroy>;
-using StanSubscriptionScopedPointer = QScopedPointer<stanSubscription, StanSubscriptionDeleter>;
-
 using StanSubOptionsDeleter = ScopedPointerDestroyerDeleter<stanSubOptions, void, stanSubOptions_Destroy>;
 using StanSubOptionsScopedPointer = QScopedPointer<stanSubOptions, StanSubOptionsDeleter>;
 
@@ -47,10 +44,10 @@ signals:
     void disownTokenMessage(const MessageQueue::DisownTokenMessage &msg);
     void retrieveNewTokenMessage(const MessageQueue::RetrieveNewTokenMessage &msg);
 
-    void updateSubscription(QSharedPointer<stanSubscription *>sub, QPrivateSignal);
+    void updateSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection*> &spConn, QPrivateSignal);
 
 private slots:
-    void setSubscription(const QSharedPointer<stanSubscription *>&sub);
+    void setSubscription(const QSharedPointer<stanSubscription *>&sub, const QSharedPointer<stanConnection*> &spConn);
 
 private:
     void updateStatus(NatsStatus::Enum s);
@@ -59,6 +56,7 @@ private:
     void handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg);
 
     stanSubscription *m_sub = nullptr;
+    QSharedPointer<stanConnection *> m_dontDropConn = nullptr;
     StanSubOptions *m_options = nullptr;
     StanConnection *m_target = nullptr;
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
