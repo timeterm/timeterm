@@ -8,6 +8,7 @@
 #include <src/cpp/messagequeue/stanconnection.h>
 #include <src/cpp/messagequeue/stanconnectionoptions.h>
 #include <src/cpp/messagequeue/stansubscription.h>
+#include <src/cpp/util/unixsignalhandler.h>
 #include <timeterm_proto/messages.pb.h>
 
 #include "api/apiclient.h"
@@ -50,6 +51,8 @@ int runApp(int argc, char *argv[])
         },
         Qt::QueuedConnection);
     engine.load(url);
+
+
 
     return QGuiApplication::exec();
 }
