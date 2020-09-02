@@ -55,7 +55,7 @@ private:
     void handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg);
 
     stanSubscription *m_sub = nullptr;
-    QSharedPointer<stanConnection *> m_dontDropConn = nullptr;
+    QSharedPointer<stanConnection *> m_dontDropConn;
     StanSubOptions *m_options = nullptr;
     StanConnection *m_target = nullptr;
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;

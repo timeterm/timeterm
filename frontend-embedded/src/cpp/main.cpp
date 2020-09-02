@@ -13,18 +13,12 @@
 #include "api/apiclient.h"
 #include "cardreader/cardreadercontroller.h"
 
-int main(int argc, char *argv[])
-{
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
-    qSetMessagePattern("%{time} [%{if-category}%{category}:%{endif}%{type}]%{if-category} %{file}:%{endif} %{function}:%{line}: %{message}");
-
+int runApp(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
     QGuiApplication app(argc, argv);
+
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
-    auto natsStatusStringer  = MessageQueue::NatsStatusStringer();
+    auto natsStatusStringer = MessageQueue::NatsStatusStringer();
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
@@ -50,18 +44,38 @@ int main(int argc, char *argv[])
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated,
         &app, [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
-                QCoreApplication::exit(-1);
+          if (!obj && url == objUrl)
+              QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection);
     engine.load(url);
 
-    auto exitCode = QGuiApplication::exec();
+    return QGuiApplication::exec();
+}
 
+int main(int argc, char *argv[])
+{
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+    qSetMessagePattern("%{time} [%{if-category}%{category}:%{endif}%{type}]%{if-category} %{file}:%{endif} %{function}:%{line}: %{message}");
+
+    qInfo() << "Starting Timeterm frontend-embedded";
+
+    qInfo() << "Verifying Protobuf library version...";
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    qInfo() << "Protobuf library version OK";
+
+    auto exitCode = runApp(argc, argv);
+    qInfo() << "Shutting down...";
+
+    qInfo() << "Shutting down Protobuf library...";
     google::protobuf::ShutdownProtobufLibrary();
+    qInfo() << "Protobuf library shut down";
 
+    qInfo() << "Closing NATS library (with timeout of 10s)...";
     nats_Sleep(500);
-    nats_Close();
+    nats_CloseAndWait(10000);
+    qInfo() << "NATS library closed";
 
+    qInfo() << "Exiting with code" << exitCode;
     return exitCode;
 }

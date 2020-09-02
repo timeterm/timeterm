@@ -3,11 +3,11 @@
 #include <QScopedPointer>
 
 template<typename T, void (*f) (T*)>
-struct ScopedPointerDestroyerDeleter {
+struct ScopedPointerDestroyFnDeleter {
     static void cleanup(T* t) {
         f(t);
     }
 };
 
 template<typename T, void (*cleanup) (T*)>
-using ScopedPointer = QScopedPointer<T, ScopedPointerDestroyerDeleter<T, cleanup>>;
+using ScopedPointer = QScopedPointer<T, ScopedPointerDestroyFnDeleter<T, cleanup>>;

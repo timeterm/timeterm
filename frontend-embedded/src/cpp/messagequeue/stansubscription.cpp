@@ -15,11 +15,17 @@ StanSubscription::StanSubscription(QObject *parent)
     connect(this, &StanSubscription::updateSubscription, this, &StanSubscription::setSubscription);
 }
 
-void StanSubscription::setSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection *> &spConn)
+void StanSubscription::setSubscription(
+    const QSharedPointer<stanSubscription *> &sub,
+    const QSharedPointer<stanConnection *> &spConn)
 {
     if (m_sub != nullptr)
         stanSubscription_Destroy(m_sub);
     m_sub = *sub;
+
+    // Call to clear is not really needed but useful for making the IDE think we're actually
+    // using m_dontDropConn (which we are).
+    m_dontDropConn.clear();
     m_dontDropConn = spConn;
 
     StanCallbackHandlerSingleton::singleton().setMsgHandler(*sub, [this](const char *channel, stanMsg *msg) {

@@ -18,8 +18,10 @@ public:
     static CardReader *defaultCardReader(QObject *parent = nullptr)
     {
 #ifdef RASPBERRYPI
+        qDebug() << "Running on Raspberry Pi, using Mfrc522CardReader";
         return new Mfrc522CardReader();
 #else
+        qDebug() << "Not running on an embedded device, using FakeCardReader";
         return new FakeCardReader();
 #endif
     }
