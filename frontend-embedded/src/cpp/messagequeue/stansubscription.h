@@ -5,6 +5,7 @@
 
 #include "stanconnection.h"
 #include "stansuboptions.h"
+#include "scopedpointer.h"
 
 #include <src/cpp/messagequeue/messages/disowntokenmessage.h>
 #include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
@@ -13,8 +14,7 @@
 namespace MessageQueue
 {
 
-using StanSubOptionsDeleter = ScopedPointerDestroyerDeleter<stanSubOptions, void, stanSubOptions_Destroy>;
-using StanSubOptionsScopedPointer = QScopedPointer<stanSubOptions, StanSubOptionsDeleter>;
+using StanSubOptionsScopedPointer = ScopedPointer<stanSubOptions, stanSubOptions_Destroy>;
 
 class StanSubscription: public QObject
 {
