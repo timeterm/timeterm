@@ -35,7 +35,7 @@ public:
     [[nodiscard]] StanConnectionOptions *connectionOptions() const;
 
     Q_INVOKABLE void connect();
-    NatsStatus::Enum subscribe(StanSubOptions *opts, stanSubscription **ppStanSub, QSharedPointer<stanConnection*> &spConn);
+    NatsStatus::Enum subscribe(StanSubOptions *opts, stanSubscription **ppStanSub, QSharedPointer<stanConnection *> &spConn);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
@@ -44,11 +44,11 @@ signals:
     void connectionOptionsChanged();
     void connected();
     void connectionLost();
-    void setConnectionPrivate(const QSharedPointer<stanConnection*> &conn, QPrivateSignal);
+    void setConnectionPrivate(const QSharedPointer<stanConnection *> &conn, QPrivateSignal);
     void lastStatusChanged();
 
 private slots:
-    void setConnection(const QSharedPointer<stanConnection*> &conn);
+    void setConnection(const QSharedPointer<stanConnection *> &conn);
 
 private:
     void updateStatus(NatsStatus::Enum s);
@@ -64,4 +64,4 @@ private:
 
 } // namespace MessageQueue
 
-Q_DECLARE_METATYPE(QSharedPointer<stanConnection*>)
+Q_DECLARE_METATYPE(QSharedPointer<stanConnection *>)

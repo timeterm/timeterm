@@ -146,7 +146,7 @@ void StanSubOptions::setManualAckMode(bool manualAckMode)
 {
     if (manualAckMode != m_manualAckMode) {
         m_manualAckMode = manualAckMode;
-        emit manualAckModeChanged();\
+        emit manualAckModeChanged();
     }
 }
 

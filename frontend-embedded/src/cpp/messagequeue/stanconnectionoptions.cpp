@@ -74,7 +74,8 @@ void StanConnectionOptions::setMaxPubAcksInflightPercentage(float percentage)
     }
 }
 
-NatsStatus::Enum StanConnectionOptions::updateMaxPubAcksInflight() {
+NatsStatus::Enum StanConnectionOptions::updateMaxPubAcksInflight()
+{
     auto s = NatsStatus::fromC(stanConnOptions_SetMaxPubAcksInflight(m_connOptions.get(), m_maxPubAcksInflight, m_maxPubAcksInflightPercentage));
     updateStatus(s);
     return s;

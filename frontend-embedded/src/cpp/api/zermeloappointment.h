@@ -5,7 +5,7 @@
 
 class ZermeloAppointment
 {
-Q_GADGET
+    Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
     Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)

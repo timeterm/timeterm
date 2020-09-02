@@ -16,4 +16,4 @@ QString NatsStatusStringer::stringify(int status)
     return QString::fromUtf8(text);
 }
 
-}
+} // namespace MessageQueue

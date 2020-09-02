@@ -2,18 +2,19 @@
 #include <QQmlApplicationEngine>
 
 #include <src/cpp/messagequeue/enums.h>
+#include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
 #include <src/cpp/messagequeue/natsoptions.h>
 #include <src/cpp/messagequeue/natsstatusstringer.h>
 #include <src/cpp/messagequeue/stanconnection.h>
 #include <src/cpp/messagequeue/stanconnectionoptions.h>
-#include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
 #include <src/cpp/messagequeue/stansubscription.h>
 #include <timeterm_proto/messages.pb.h>
 
 #include "api/apiclient.h"
 #include "cardreader/cardreadercontroller.h"
 
-int runApp(int argc, char *argv[]) {
+int runApp(int argc, char *argv[])
+{
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
@@ -27,8 +28,8 @@ int runApp(int argc, char *argv[]) {
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
     qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
-    qRegisterMetaType<QSharedPointer<stanConnection*>>();
-    qRegisterMetaType<QSharedPointer<stanSubscription*>>();
+    qRegisterMetaType<QSharedPointer<stanConnection *>>();
+    qRegisterMetaType<QSharedPointer<stanSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
@@ -44,8 +45,8 @@ int runApp(int argc, char *argv[]) {
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated,
         &app, [url](QObject *obj, const QUrl &objUrl) {
-          if (!obj && url == objUrl)
-              QCoreApplication::exit(-1);
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection);
     engine.load(url);

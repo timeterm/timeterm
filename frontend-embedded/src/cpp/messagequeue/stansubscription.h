@@ -3,9 +3,9 @@
 #include <QObject>
 #include <QSharedPointer>
 
+#include "scopedpointer.h"
 #include "stanconnection.h"
 #include "stansuboptions.h"
-#include "scopedpointer.h"
 
 #include <src/cpp/messagequeue/messages/disowntokenmessage.h>
 #include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
@@ -43,10 +43,10 @@ signals:
     void disownTokenMessage(const MessageQueue::DisownTokenMessage &msg);
     void retrieveNewTokenMessage(const MessageQueue::RetrieveNewTokenMessage &msg);
 
-    void updateSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection*> &spConn, QPrivateSignal);
+    void updateSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection *> &spConn, QPrivateSignal);
 
 private slots:
-    void setSubscription(const QSharedPointer<stanSubscription *>&sub, const QSharedPointer<stanConnection*> &spConn);
+    void setSubscription(const QSharedPointer<stanSubscription *> &sub, const QSharedPointer<stanConnection *> &spConn);
 
 private:
     void updateStatus(NatsStatus::Enum s);

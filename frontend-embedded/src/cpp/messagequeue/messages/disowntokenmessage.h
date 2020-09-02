@@ -26,6 +26,6 @@ private:
     QString m_tokenHashAlg;
 };
 
-}
+} // namespace MessageQueue
 
 Q_DECLARE_METATYPE(MessageQueue::DisownTokenMessage)

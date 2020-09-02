@@ -26,6 +26,6 @@ private:
     QString m_currentTokenHashAlg;
 };
 
-}
+} // namespace MessageQueue
 
 Q_DECLARE_METATYPE(MessageQueue::RetrieveNewTokenMessage)

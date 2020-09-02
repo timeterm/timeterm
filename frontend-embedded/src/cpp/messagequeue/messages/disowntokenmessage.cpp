@@ -33,4 +33,4 @@ QString DisownTokenMessage::tokenHashAlg() const
     return m_tokenHashAlg;
 }
 
-}
+} // namespace MessageQueue

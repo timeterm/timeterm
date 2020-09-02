@@ -26,7 +26,7 @@ public:
     explicit StanSubOptions(QObject *parent = nullptr);
 
     [[nodiscard]] QString durableName() const;
-    void setDurableName(const QString& durableName);
+    void setDurableName(const QString &durableName);
     [[nodiscard]] bool deliverAllAvailable() const;
     void setDeliverAllAvailable(bool deliverAllAvailable);
     [[nodiscard]] bool startWithLastReceived() const;
@@ -72,4 +72,4 @@ private:
 
 } // namespace MessageQueue
 
-Q_DECLARE_METATYPE(QSharedPointer<stanSubscription*>)
+Q_DECLARE_METATYPE(QSharedPointer<stanSubscription *>)

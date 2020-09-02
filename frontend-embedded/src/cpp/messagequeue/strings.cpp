@@ -16,4 +16,4 @@ QScopedArrayPointer<char> asUtf8CString(const QString &str)
     return QScopedArrayPointer<char>(dst.take());
 }
 
-}
+} // namespace MessageQueue

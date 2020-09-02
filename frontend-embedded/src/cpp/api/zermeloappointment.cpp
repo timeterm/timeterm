@@ -1,7 +1,7 @@
 #include "zermeloappointment.h"
 
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonObject>
 
 void ZermeloAppointment::setId(qint64 id)
 {

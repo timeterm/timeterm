@@ -33,4 +33,4 @@ QString RetrieveNewTokenMessage::currentTokenHashAlg() const
     return m_currentTokenHashAlg;
 }
 
-}
+} // namespace MessageQueue
