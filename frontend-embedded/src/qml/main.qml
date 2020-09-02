@@ -34,6 +34,16 @@ Window {
         }
     }
 
+    Timer {
+        id: stanConnReconnectWait
+        repeat: false
+        interval: 10000 // wait 10 seconds for reconnection
+        onTriggered: {
+            console.log("Reconnecting after error")
+            stanConn.connect()
+        }
+    }
+
     StanConnection {
         id: stanConn
         cluster: "test-cluster"
@@ -61,7 +71,11 @@ Window {
         }
 
         onErrorOccurred: function(code, msg) {
-            console.log("error occurred: code " + code + ", message: " + msg)
+            console.log("stanConn: Error occurred: code " + code + ", message: " + msg)
+            console.log("Triggering reconnection after error")
+
+            // Try to reconnect
+            stanConnReconnectWait.restart()
         }
 
         onLastStatusChanged: {

@@ -38,8 +38,10 @@ void StanConnection::connect()
             QSharedPointer<stanConnection *> stanConnPtr(
                 new stanConnection *(nullptr),
                 [](stanConnection **ppConn) {
-                    if (*ppConn != nullptr) {
-                        stanConnection_Destroy(*ppConn);
+                    if (ppConn != nullptr) {
+                        if (*ppConn != nullptr) {
+                            stanConnection_Destroy(*ppConn);
+                        }
                         delete ppConn;
                     }
                 });
