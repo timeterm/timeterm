@@ -1,7 +1,7 @@
 #include "stancallbackhandlersingleton.h"
 
 #include <QDebug>
-#include <src/cpp/util/defer.h>
+#include <src/cpp/util/scopeguard.h>
 
 namespace MessageQueue
 {

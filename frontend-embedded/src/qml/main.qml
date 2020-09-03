@@ -54,8 +54,8 @@ Window {
         }
 
         Component.onCompleted: {
-            console.log("stanConn.lastStatus: " + NatsStatusStringer.stringify(stanConn.lastStatus))
-            console.log("stanConn.connectionOptions.url: " + stanConn.connectionOptions.url)
+            console.log(`stanConn.lastStatus: ${NatsStatusStringer.stringify(stanConn.lastStatus)}`)
+            console.log(`stanConn.connectionOptions.url: ${stanConn.connectionOptions.url}`)
 
             stanConn.connect()
         }
@@ -71,7 +71,7 @@ Window {
         }
 
         onErrorOccurred: function(code, msg) {
-            console.log("stanConn: Error occurred: code " + code + ", message: " + msg)
+            console.log(`stanConn: Error occurred: code ${code}, message: ${msg}`)
             console.log("Triggering reconnection after error")
 
             // Try to reconnect
@@ -92,11 +92,11 @@ Window {
         }
 
         onDisownTokenMessage: function(msg) {
-            console.log("device " + msg.deviceId + " has to disown their token")
+            console.log(`device ${msg.deviceId} has to disown their token`)
         }
 
         onErrorOccurred: function(code, msg) {
-            console.log("error occurred: code " + code + ", message: " + msg)
+            console.log(`error occurred: code ${code}, message: ${msg}`)
         }
     }
 

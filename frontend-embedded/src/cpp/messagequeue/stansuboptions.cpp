@@ -25,14 +25,13 @@ StanSubOptions::StanSubOptions(QObject *parent)
 
 #define CHECK_NATS_STATUS(status)                           \
     do {                                                    \
-        if (s != NATS_OK) return NatsStatus::fromC(status); \
+        if ((status) != NATS_OK) return NatsStatus::fromC((status)); \
     } while (0)
 
 NatsStatus::Enum StanSubOptions::build(stanSubOptions **ppSubOpts)
 {
     auto status = stanSubOptions_Create(ppSubOpts);
-    if (status != NATS_OK)
-        return CHECK_NATS_STATUS(status);
+    CHECK_NATS_STATUS(status);
 
     auto s = configureSubOpts(*ppSubOpts);
     if (s != NatsStatus::Enum::Ok) {
