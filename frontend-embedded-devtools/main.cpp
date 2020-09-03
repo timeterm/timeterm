@@ -6,10 +6,10 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
     QGuiApplication app(argc, argv);
-
     QQuickStyle::setStyle("Material");
+
+    qmlRegisterType<FakeCardReaderClient>("Timeterm.Rfid", 1, 0, "FakeCardReaderClient");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
@@ -21,11 +21,6 @@ int main(int argc, char *argv[])
         },
         Qt::QueuedConnection);
     engine.load(url);
-
-    auto *window = engine.rootObjects().first()->findChild<QObject *>("button");
-    auto *client = new FakeCardReaderClient(window);
-
-    QObject::connect(window, SIGNAL(sendCardUid(QString, QString)), client, SLOT(sendCardUid(QString, QString)));
 
     return QGuiApplication::exec();
 }

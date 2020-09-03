@@ -1,6 +1,7 @@
 import QtQuick 2.14
 import QtQuick.Window 2.14
 import QtQuick.Controls 2.14
+import Timeterm.Rfid 1.0
 
 Window {
     id: window
@@ -8,6 +9,10 @@ Window {
     width: 640
     height: 480
     title: qsTr("Timeterm devtools")
+
+    FakeCardReaderClient {
+        id: fakeCardReaderClient
+    }
 
     Column {
         id: column
@@ -33,9 +38,7 @@ Window {
             id: button
             text: qsTr("Send")
             objectName: "button"
-            onClicked: sendCardUid(serverName.text, cardUid.text)
-
-            signal sendCardUid(serverName: string, uid: string)
+            onClicked: fakeCardReaderClient.sendCardUid(serverName.text, cardUid.text)
         }
     }
 }
