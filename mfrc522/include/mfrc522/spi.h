@@ -62,7 +62,7 @@ DeviceOpenOption withBits(uint8_t bits);
 //! withDelay sets DeviceOpenOptions::delay.
 DeviceOpenOption withDelay(uint16_t delay);
 
-//! Device is a handle for a SPI device.
+//! Device is a handle for an SPI device.
 class Device
 {
 public:
