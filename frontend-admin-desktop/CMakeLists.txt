@@ -27,17 +27,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Core QuickControls2 Quick LinguistTools REQUIRED)
 
 set(TS_FILES frontend-admin-desktop_nl_NL.ts)
+set(SOURCE_FILES main.cpp qml.qrc)
 
 if(ANDROID)
     add_library(frontend-admin-desktop SHARED
-      main.cpp
-      qml.qrc
+      ${SOURCE_FILES}
       ${TS_FILES}
     )
 else()
     add_executable(frontend-admin-desktop
-      main.cpp
-      qml.qrc
+      ${SOURCE_FILES}
       ${TS_FILES}
     )
 endif()

@@ -1,8 +1,8 @@
 #include "fakecardreaderclient.h"
 
 FakeCardReaderClient::FakeCardReaderClient(QObject *parent)
-    : QObject(parent),
-      m_sock(new QLocalSocket(this))
+    : QObject(parent)
+    , m_sock(new QLocalSocket(this))
 {
 }
 

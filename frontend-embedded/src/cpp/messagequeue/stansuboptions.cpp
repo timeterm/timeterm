@@ -23,8 +23,8 @@ StanSubOptions::StanSubOptions(QObject *parent)
 {
 }
 
-#define CHECK_NATS_STATUS(status)                           \
-    do {                                                    \
+#define CHECK_NATS_STATUS(status)                                    \
+    do {                                                             \
         if ((status) != NATS_OK) return NatsStatus::fromC((status)); \
     } while (0)
 

@@ -1,7 +1,8 @@
-#include "fakecardreaderclient.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
+
+#include "fakecardreaderclient.h"
 
 int main(int argc, char *argv[])
 {

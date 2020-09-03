@@ -1,10 +1,9 @@
-#ifndef FAKECARDREADERCLIENT_H
-#define FAKECARDREADERCLIENT_H
+#pragma once
 
 #include <QObject>
 #include <QtNetwork>
 
-class FakeCardReaderClient : public QObject
+class FakeCardReaderClient: public QObject
 {
     Q_OBJECT
 public:
@@ -16,5 +15,3 @@ public slots:
 private:
     QLocalSocket *m_sock;
 };
-
-#endif // FAKECARDREADERCLIENT_H

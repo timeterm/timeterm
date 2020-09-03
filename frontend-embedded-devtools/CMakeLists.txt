@@ -26,19 +26,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core Quick QuickControls2 REQUIRED)
 
+set(SOURCE_FILES main.cpp fakecardreaderclient.cpp fakecardreaderclient.h qml.qrc)
+
 if(ANDROID)
     add_library(frontend-embedded-devtools SHARED
-      main.cpp
-      fakecardreaderclient.cpp
-      fakecardreaderclient.h
-      qml.qrc
+      ${SOURCE_FILES}
     )
 else()
     add_executable(frontend-embedded-devtools
-      main.cpp
-      fakecardreaderclient.cpp
-      fakecardreaderclient.h
-      qml.qrc
+      ${SOURCE_FILES}
     )
 endif()
 
