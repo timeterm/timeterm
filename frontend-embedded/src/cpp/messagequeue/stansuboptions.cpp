@@ -32,7 +32,7 @@ NatsStatus::Enum StanSubOptions::build(stanSubOptions **ppSubOpts)
 {
     auto status = stanSubOptions_Create(ppSubOpts);
     if (status != NATS_OK)
-        return NatsStatus::fromC(status);
+        return CHECK_NATS_STATUS(status);
 
     auto s = configureSubOpts(*ppSubOpts);
     if (s != NatsStatus::Enum::Ok) {
