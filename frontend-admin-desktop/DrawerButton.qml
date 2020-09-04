@@ -15,10 +15,13 @@ Button {
     signal animatePress()
 
     onPressed: {
-        // fadeInTimer.restart()
-        // fadeOutTimer.stop()
         ripple.pressed = true
         animatePress()
+    }
+
+    onDepress: {
+        ripple.pressed = false
+        animateDepress()
     }
 
     onAnimatePress: PropertyAnimation {
@@ -27,33 +30,13 @@ Button {
         property: "opacity"
         to: 1
     }
+
     onAnimateDepress: PropertyAnimation {
         target: rect
         easing.type: Easing.InCirc
         property: "opacity"
         to: 0
     }
-
-    onDepress: {
-        // fadeOutTimer.restart()
-        // fadeInTimer.stop()
-        ripple.pressed = false
-        animateDepress()
-    }
-
-//  Timer {
-//      id: fadeOutTimer
-//      repeat: false
-//      interval: parent.height * 1
-//      onTriggered: PropertyAnimation { target: rect; property: "opacity"; to: 0 }
-//  }
-
-//  Timer {
-//      id: fadeInTimer
-//      repeat: false
-//      interval: parent.height * 12
-//      onTriggered: PropertyAnimation { target: rect; property: "opacity"; to: 1 }
-//  }
 
     background: Rectangle {
         anchors.fill: parent
