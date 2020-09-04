@@ -29,6 +29,7 @@ Button {
         easing.type: Easing.InCirc
         property: "opacity"
         to: 1
+        duration: parent.width * 1.2
     }
 
     onAnimateDepress: PropertyAnimation {
@@ -36,18 +37,21 @@ Button {
         easing.type: Easing.InCirc
         property: "opacity"
         to: 0
+        duration: parent.width
     }
 
     background: Rectangle {
         anchors.fill: parent
         id: rect
-        color: "#235e91"
+        color: pressedColor // opacity is animated
         opacity: 0
+
+        property color pressedColor: "#235e91"
 
         Ripple {
             clipRadius: 4
             id: ripple
-            color: "#235e91"
+            color: parent.pressedColor
             anchor: drawerButton
             anchors.fill: parent
         }
