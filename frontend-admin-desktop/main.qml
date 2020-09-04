@@ -13,6 +13,14 @@ Window {
     width: 640
     height: 480
     title: qsTr("Timeterm Admin")
+    minimumWidth: 500
+    minimumHeight: 300
+
+    onWidthChanged: {
+        if (width < navbar.width + 100) {
+            navbar.width = width - 100
+        }
+    }
 
     Material.theme: Material.Light
     Material.accent: Material.color(Material.Blue, Material.Shade100)
@@ -52,7 +60,6 @@ Window {
 
     Rectangle {
         id: navbar
-//        x: -radius
 
         radius: 24
         anchors.left: parent.left
@@ -103,50 +110,100 @@ Window {
                 }
 
                 ColumnLayout {
+                    id: col
+                    spacing: 0
                     anchors.right: parent.right
                     anchors.left: parent.left
 
-                    Text {
-                        text:"test"
-                    }
+                    signal buttonPressed(var which)
 
-                    Rectangle {
-                        property bool highlighted: false
+                    DrawerButton {
+                        id: db1
+                        Layout.fillWidth: true
 
-                        Layout.preferredWidth: parent.width
-                        Layout.preferredHeight: 60
-                        width: parent.width
-                        color: highlighted ? Qt.rgba(0, 0, 0, 0.20) : "transparent"
+                        Text {
+                            text: "Apparaten"
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "white"
+                        }
 
-                        Button {
-                            anchors.fill: parent
+                        onPressed: {
+                            col.buttonPressed(db1)
+                        }
 
-                            Text {
-                                text: "Apparaten"
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: "white"
+                        Connections {
+                            target: col
+
+                            function onButtonPressed(which) {
+                                if (which != db1) {
+                                    db1.depress()
+                                }
                             }
-                            font.family: "Roboto"
-                            flat: true
-
-
                         }
                     }
 
-                    Text {
-                        text: "fdsa"
-                        color: "white"
-                        font.family: "Roboto"
+                    DrawerButton {
+                        id: db2
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: "Apparaten"
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "white"
+                        }
+
+                        onPressed: {
+                            col.buttonPressed(db2)
+                        }
+
+                        Connections {
+                            target: col
+
+                            function onButtonPressed(which) {
+                                if (which != db2) {
+                                    db2.depress()
+                                }
+                            }
+                        }
+                    }
+
+                    DrawerButton {
+                        id: db3
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: "Apparaten"
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "white"
+                        }
+
+                        onPressed: {
+                            col.buttonPressed(db3)
+                        }
+
+                        Connections {
+                            target: col
+
+                            function onButtonPressed(which) {
+                                if (which != db3) {
+                                    db3.depress()
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             Rectangle {
+                id: navbarBg
+
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.topMargin: parent.radius
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: parent.radius
+
+                property double maxWidth: Math.min(window.width - 100, 450)
 
                 MouseArea {
                     anchors.right: parent.right
@@ -175,8 +232,8 @@ Window {
                             if (navbar.width < 150) {
                                 navbar.width = 150
                             }
-                            if (navbar.width > window.width - 100) {
-                                navbar.width = window.width - 100
+                            if (navbar.width > navbarBg.maxWidth) {
+                                navbar.width = navbarBg.maxWidth
                             }
                         }
                     }

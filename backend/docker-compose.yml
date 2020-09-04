@@ -18,7 +18,8 @@ services:
       - "8432:8080"
 
   nats-streaming:
-    image: nats-streaming:0.17.0
+    image: nats-streaming:0.18.0-alpine
     restart: always
+    command: nats-streaming-server -store file -dir datastore
     ports:
       - "4222:4222"

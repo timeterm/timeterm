@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>DrawerButton.qml</file>
         <file>timeterm-logo-white.svg</file>
     </qresource>
 </RCC>

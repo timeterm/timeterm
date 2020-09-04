@@ -4,7 +4,6 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="main.qml" line="15"/>
         <source>Timeterm Admin</source>
         <translation type="unfinished"></translation>
     </message>
