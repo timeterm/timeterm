@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 #include <QUrlQuery>
 #include <optional>
+#include <utility>
 
 ApiClient::ApiClient(QObject *parent)
     : QObject(parent)
@@ -58,7 +59,9 @@ void ApiClient::getAppointments(const QDateTime &start, const QDateTime &end)
     setAuthHeaders(req);
 
     auto reply = m_qnam->get(req);
-    connectReply(reply, &ApiClient::handleGetAppointmentsReply);
+    connectReply(reply, [this](QNetworkReply *reply) {
+        return handleGetAppointmentsReply(reply);
+    });
 }
 
 void ApiClient::getCurrentUser()
@@ -67,12 +70,14 @@ void ApiClient::getCurrentUser()
     setAuthHeaders(req);
 
     auto reply = m_qnam->get(req);
-    connectReply(reply, &ApiClient::handleGetCurrentUserReply);
+    connectReply(reply, [this](QNetworkReply *reply) {
+        handleGetCurrentUserReply(reply);
+    });
 }
 
 void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 {
-    m_handlers[reply] = handler;
+    m_handlers[reply] = std::move(handler);
 
     reply->setParent(this);
     connect(reply, &QNetworkReply::finished, this, &ApiClient::replyFinished);
@@ -89,9 +94,9 @@ void ApiClient::replyFinished()
 {
     auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
 
-    auto methodPointer = m_handlers[reply];
-    if (methodPointer != nullptr) {
-        (this->*methodPointer)(reply);
+    auto handler = m_handlers[reply];
+    if (handler != nullptr) {
+        handler(reply);
         m_handlers.remove(reply);
     }
 

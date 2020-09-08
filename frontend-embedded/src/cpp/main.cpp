@@ -8,7 +8,7 @@
 #include <src/cpp/messagequeue/stanconnection.h>
 #include <src/cpp/messagequeue/stanconnectionoptions.h>
 #include <src/cpp/messagequeue/stansubscription.h>
-#include <src/cpp/util/unixsignalhandler.h>
+#include <src/cpp/util/signalhandler.h>
 #include <timeterm_proto/messages.pb.h>
 
 #include "api/apiclient.h"
@@ -52,13 +52,13 @@ int runApp(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
 
-    return QGuiApplication::exec();
+    return teardownAppOnSignal<int>(QGuiApplication::exec);
 }
 
 int main(int argc, char *argv[])
 {
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
-    qSetMessagePattern("%{time} [%{if-category}%{category}:%{endif}%{type}]%{if-category} %{file}:%{endif} %{function}:%{line}: %{message}");
+    qSetMessagePattern("%{time} %{type}%{if-category}:%{category}%{endif} [%{if-category}%{file}:%{endif}%{function}:%{line}]: %{message}");
 
     qInfo() << "Starting Timeterm frontend-embedded";
 

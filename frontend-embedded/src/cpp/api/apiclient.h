@@ -13,7 +13,7 @@ class ApiClient: public QObject
     Q_PROPERTY(QString cardId WRITE setCardId READ cardId NOTIFY cardIdChanged)
     Q_PROPERTY(QString apiKey WRITE setApiKey READ apiKey NOTIFY apiKeyChanged)
 
-    using ReplyHandler = void (ApiClient::*)(QNetworkReply *);
+    using ReplyHandler = std::function<void(QNetworkReply *)>;
 
 public:
     explicit ApiClient(QObject *parent = nullptr);
