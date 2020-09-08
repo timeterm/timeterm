@@ -62,6 +62,10 @@ Window {
 
         onConnectionLost: {
             console.log("connection lost :(")
+            console.log("Triggering reconnection lost connection")
+
+            // Try to reconnect
+            stanConnReconnectWait.restart()
         }
 
         onConnected: {
