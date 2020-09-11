@@ -55,12 +55,7 @@ enum SelectionStatus {
 }
 
 function oppositeSelectionStatus(s: SelectionStatus): SelectionStatus {
-  switch (s) {
-    case SelectionStatus.All:
-      return SelectionStatus.None;
-    default:
-      return SelectionStatus.All;
-  }
+  return s === SelectionStatus.All ? SelectionStatus.None : SelectionStatus.All;
 }
 
 interface DevicesTableProps {
@@ -150,19 +145,15 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
             <DataTableRow>
               <DataTableHeadCell
                 hasFormControl
-                style={{ whiteSpace: "nowrap" }}
+                style={{ whiteSpace: "nowrap", width: 48 }}
               >
                 <Checkbox
                   {...allSelectedProps}
                   onClick={() => toggleAllSelected()}
                 />
               </DataTableHeadCell>
-              <DataTableHeadCell style={{ width: "54.5%" }}>
-                Naam
-              </DataTableHeadCell>
-              <DataTableHeadCell style={{ width: "54.5%" }}>
-                Status
-              </DataTableHeadCell>
+              <DataTableHeadCell>Naam</DataTableHeadCell>
+              <DataTableHeadCell>Status</DataTableHeadCell>
               <DataTableHeadCell />
             </DataTableRow>
           </DataTableHead>
@@ -181,9 +172,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     />
                   </DataTableCell>
 
-                  <DataTableCell style={{ width: "54.5%" }}>
-                    {dev.name}
-                  </DataTableCell>
+                  <DataTableCell>{dev.name}</DataTableCell>
                   <DataTableCell
                     style={{
                       display: "inline-flex",
@@ -199,7 +188,15 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     hasFormControl
                     style={{ whiteSpace: "nowrap" }}
                   >
-                    <IconButton icon={"edit"} style={{ marginRight: 16 }} />
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        width: "100%",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <IconButton icon={"edit"} style={{ marginRight: 16 }} />
+                    </div>
                   </DataTableCell>
                 </DataTableRow>
               );
