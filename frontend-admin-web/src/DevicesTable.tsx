@@ -186,12 +186,11 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
 
                   <DataTableCell
                     hasFormControl
-                    style={{ whiteSpace: "nowrap" }}
+                    style={{ whiteSpace: "nowrap", width: 48 }}
                   >
                     <div
                       style={{
                         display: "inline-flex",
-                        width: "100%",
                         justifyContent: "flex-end",
                       }}
                     >
