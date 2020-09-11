@@ -1,11 +1,4 @@
-import React, {
-  Component,
-  ComponentProps,
-  ComponentType,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Icon } from "@rmwc/icon";
 import { Checkbox, CheckboxProps } from "@rmwc/checkbox";
 import {
@@ -34,7 +27,7 @@ const DeviceStatusIcon: React.FC<DeviceStatusIconProps> = ({ status }) => {
     <Icon
       icon={status === DeviceStatus.Online ? "check_circle" : "warning"}
       style={{
-        color: status === DeviceStatus.Online ? "#4ECD6A" : "#ffab00",
+        color: status === DeviceStatus.Online ? "#4ecd6a" : "#ffab00",
       }}
     />
   );
@@ -85,59 +78,34 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
 
     setAllSelected(newStatus);
 
-    switch (newStatus) {
-      case SelectionStatus.None:
-        setCheckboxProps(
-          Object.fromEntries(
-            Object.entries(checkboxProps).map(([k, props]) => {
-              return [k, { ...props, checked: false }];
-            })
-          )
-        );
-        break;
-      case SelectionStatus.All:
-        setCheckboxProps(
-          Object.fromEntries(
-            Object.entries(checkboxProps).map(([k, props]) => {
-              return [k, { ...props, checked: true }];
-            })
-          )
-        );
-        break;
-    }
+    setCheckboxProps(
+      Object.fromEntries(
+        Object.entries(checkboxProps).map(([k, props]) => {
+          return [k, { ...props, checked: newStatus === SelectionStatus.All }];
+        })
+      )
+    );
   };
 
   const allSelectedProps = useMemo<CheckboxProps>(() => {
-    switch (allSelected) {
-      case SelectionStatus.Some:
-        return { indeterminate: true, checked: false };
-      case SelectionStatus.All:
-        return { checked: true, indeterminate: false };
-      default:
-        return { checked: false, indeterminate: false };
-    }
+    return {
+      indeterminate: allSelected === SelectionStatus.Some,
+      checked: allSelected === SelectionStatus.All,
+    };
   }, [allSelected]);
 
   const [checkboxProps, setCheckboxProps] = useState(
-    Object.fromEntries(
-      devices.map((dev, i) => {
-        return [
-          i,
-          {
-            checked: false,
-          },
-        ];
-      })
-    ) as {
-      [key: number]: Parameters<typeof Checkbox>[0];
-    }
+    devices.reduce((accProps, _dev, i) => {
+      return { ...accProps, [i]: { checked: false } };
+    }, {} as { [key: number]: Parameters<typeof Checkbox>[0] })
   );
 
   useEffect(() => {
-    const numSelected = Object.values(checkboxProps).reduce(
-      (acc, props) => acc + (props.checked ? 1 : 0),
-      0
+    const selectedCheckboxes = Object.values(checkboxProps).filter(
+      (props) => props.checked
     );
+
+    const numSelected = selectedCheckboxes.length;
 
     const numCheckboxes = Object.keys(checkboxProps).length;
     if (numSelected === 0) {
@@ -147,14 +115,8 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
     } else {
       setAllSelected(SelectionStatus.All);
     }
-  }, [checkboxProps]);
 
-  useEffect(() => {
-    setSelectedItems(
-      Object.values(checkboxProps)
-        .filter((props) => props.checked)
-        .map((props) => props.tag)
-    );
+    setSelectedItems(selectedCheckboxes.map((props) => props.tag));
   }, [checkboxProps, setSelectedItems]);
 
   const toggleSelectionStatus = (i: number) => {
