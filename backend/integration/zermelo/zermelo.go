@@ -1,6 +1,8 @@
 package zermelo
 
 import (
+	"net/url"
+	"fmt"
     "net/http"
     "github.com/go-logr/logr"
 )
@@ -10,15 +12,26 @@ type Client struct {
 }
 
 type StudentClient struct {
-    client Client
+	client Client
+	institution string
+	studentCode string
 }
 
 type Appointment struct {
     
 }
 
-func (c *Client) getAppointments(token string, year, week int) (*[]Appointment, error) {
-    resp, err := http.Get("https://{institution}.zportal.nl/api/v3/liveschedule?student={student}&week={week}")
+func (sc *StudentClient) getAppointments(token string, year, week int) ([]Appointment, error) {
+	baseURLStr := fmt.Sprintf("https://%s.zportal.nl/api/v3/liveschedule", sc.institution)
+	baseURL, err := url.Parse(baseURLStr)
+	if err != nil {
+		return nil, err
+	}
+	q := baseURL.Query()
+	q.Set("student", sc.studentCode)
+	q.Set("week", fmt.Sprintf("%4d%02d", year, week))
+	baseURL.RawQuery = q.Encode()
+    resp, err := http.Get(baseURL.String())
     if err != nil {
         return nil, err
     }
@@ -26,7 +39,7 @@ func (c *Client) getAppointments(token string, year, week int) (*[]Appointment, 
     defer func() {
         err = resp.Body.Close()
         if err != nil {
-            return nil, err
+            sc.client.log.Error(err, "Failed to close response body in getAppointments")
         }
     }()
 }
