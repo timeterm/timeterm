@@ -163,6 +163,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
               <DataTableHeadCell style={{ width: "54.5%" }}>
                 Status
               </DataTableHeadCell>
+              <DataTableHeadCell />
             </DataTableRow>
           </DataTableHead>
           <DataTableBody>
@@ -193,6 +194,13 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     <DeviceStatusIcon status={dev.status} />
                     &nbsp; {deviceStatusString(dev.status)}
                   </DataTableCell>
+
+                  <DataTableCell
+                    hasFormControl
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    <IconButton icon={"edit"} style={{ marginRight: 16 }} />
+                  </DataTableCell>
                 </DataTableRow>
               );
             })}
@@ -208,7 +216,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           margin: 8,
         }}
       >
-        <span style={{ margin: 16 }}>Rijen per pagina</span>
+        <span style={{ margin: 16 }}>Items per pagina</span>
         <Select
           outlined
           enhanced
