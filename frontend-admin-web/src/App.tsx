@@ -3,6 +3,7 @@ import "./App.css";
 import "@rmwc/drawer/styles";
 import "@rmwc/list/styles";
 import "@rmwc/button/styles";
+import "@rmwc/checkbox/styles";
 import "@rmwc/icon-button/styles";
 import "@rmwc/icon/styles";
 import "@rmwc/elevation/styles";
@@ -20,6 +21,7 @@ import {
 import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider, Theme } from "@rmwc/theme";
 import { IconButton } from "@rmwc/icon-button";
+import { Checkbox } from "@rmwc/checkbox";
 import {
   DataTable,
   DataTableBody,
@@ -111,7 +113,7 @@ function App() {
                       <Theme use={["primaryBg", "onPrimary"]} wrap>
                         <ListItemGraphic icon="logout" />
                       </Theme>
-                      Log out
+                      Uitloggen
                     </ListItem>
                   </Theme>
                 </List>
@@ -137,32 +139,28 @@ function App() {
             <DataTableContent>
               <DataTableHead>
                 <DataTableRow>
-                  <DataTableHeadCell>Naam</DataTableHeadCell>
-                  <DataTableHeadCell>Status</DataTableHeadCell>
-                  <DataTableHeadCell>Acties</DataTableHeadCell>
+                  <DataTableHeadCell hasFormControl style={{whiteSpace: "nowrap"}}>
+                    <Checkbox />
+                  </DataTableHeadCell>
+                  <DataTableHeadCell style={{width: "54.5%"}}>Naam</DataTableHeadCell>
+                  <DataTableHeadCell style={{width: "54.5%"}}>Status</DataTableHeadCell>
                 </DataTableRow>
               </DataTableHead>
               <DataTableBody>
                 <DataTableRow>
-                  <DataTableCell>Mediatheek 1</DataTableCell>
-                  <DataTableCell>
+                    <DataTableCell hasFormControl style={{whiteSpace: "nowrap"}}>
+                        <Checkbox />
+                    </DataTableCell> 
+
+                  <DataTableCell style={{width: "54.5%"}}>Mediatheek 1</DataTableCell>
+                  <DataTableCell style={{display: "inline-flex", alignItems: "center", width: "54.5%"}}>
                     <Icon
+                      icon="check_circle"
                       style={{
-                        background: "#4ECD6A",
-                        width: "16px",
-                        height: "16px",
-                        borderRadius: "100px",
+                        color: "#4ECD6A",
                       }}
-                    />{" "}
+                    />&nbsp;
                     Online
-                  </DataTableCell>
-                  <DataTableCell>
-                    <IconButton
-                      icon={"delete"}
-                      style={{
-                        color: "#EA4242",
-                      }}
-                    />
                   </DataTableCell>
                 </DataTableRow>
               </DataTableBody>

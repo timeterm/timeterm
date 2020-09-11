@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@rmwc/button": "^6.1.3",
+    "@rmwc/checkbox": "^6.1.3",
     "@rmwc/data-table": "^6.1.3",
     "@rmwc/drawer": "^6.0.14",
     "@rmwc/elevation": "^6.1.0",
