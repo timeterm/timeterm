@@ -138,6 +138,9 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           width: "100%",
           height: "100%",
           borderRadius: "4px 4px 0 0",
+          borderTop: 0,
+          borderLeft: 0,
+          borderRight: 0,
         }}
       >
         <DataTableContent>
@@ -177,7 +180,6 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      width: "100%",
                     }}
                   >
                     <DeviceStatusIcon status={dev.status} />
