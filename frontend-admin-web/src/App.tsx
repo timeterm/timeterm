@@ -1,14 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
-import "@rmwc/drawer/styles";
-import "@rmwc/list/styles";
-import "@rmwc/button/styles";
-import "@rmwc/checkbox/styles";
-import "@rmwc/icon-button/styles";
-import "@rmwc/icon/styles";
-import "@rmwc/elevation/styles";
-import "@rmwc/theme/styles";
-import "@rmwc/data-table/styles";
 import { Drawer, DrawerContent, DrawerHeader } from "@rmwc/drawer";
 import {
   List,
@@ -22,8 +13,11 @@ import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider, Theme } from "@rmwc/theme";
 import Logo from "./logo-white.svg";
 import DevicesTable, { DeviceStatus } from "./DevicesTable";
+import { Button } from "@rmwc/button";
 
 function App() {
+  const [selectedItems, setSelectedItems] = useState([] as string[]);
+
   return (
     <ThemeProvider
       options={{
@@ -112,27 +106,70 @@ function App() {
           </Theme>
         </Elevation>
 
-        <Elevation
-          z={16}
+        <div
           style={{
-            flexGrow: 1,
-            margin: 16,
-            borderRadius: 8,
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
           }}
         >
-          <DevicesTable
-            devices={[
-              {
-                name: "Mediatheek 1",
-                status: DeviceStatus.Online,
-              },
-              {
-                name: "Mediatheek 2",
-                status: DeviceStatus.Offline,
-              },
-            ]}
-          />
-        </Elevation>
+          <div
+            style={{
+              display: "flex",
+              marginLeft: 16,
+              marginTop: 16,
+              marginRight: 16,
+              height: 40,
+              justifyContent: "space-between",
+            }}
+          >
+            <h1 style={{ marginTop: 0 }}>Apparaten</h1>
+            <div>
+              <Button
+                icon={"delete"}
+                danger
+                raised
+                disabled={selectedItems.length === 0}
+              >
+                Verwijderen
+              </Button>
+              <Button
+                icon={"power_settings_new"}
+                danger
+                disabled={selectedItems.length === 0}
+                raised
+                style={{ marginLeft: 8 }}
+              >
+                Opnieuw opstarten
+              </Button>
+            </div>
+          </div>
+
+          <Elevation
+            z={16}
+            style={{
+              flexGrow: 1,
+              margin: 16,
+              borderRadius: 8,
+            }}
+          >
+            <DevicesTable
+              devices={[
+                {
+                  name: "Mediatheek 1",
+                  id: "192803410234",
+                  status: DeviceStatus.Online,
+                },
+                {
+                  name: "Mediatheek 2",
+                  id: "928034810234",
+                  status: DeviceStatus.Offline,
+                },
+              ]}
+              setSelectedItems={setSelectedItems}
+            />
+          </Elevation>
+        </div>
       </div>
     </ThemeProvider>
   );

@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  Component,
+  ComponentProps,
+  ComponentType,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Icon } from "@rmwc/icon";
 import { Checkbox, CheckboxProps } from "@rmwc/checkbox";
 import {
@@ -10,7 +17,8 @@ import {
   DataTableHeadCell,
   DataTableRow,
 } from "@rmwc/data-table";
-import { Theme } from "@rmwc/theme";
+import { Select } from "@rmwc/select";
+import { IconButton } from "@rmwc/icon-button";
 
 export enum DeviceStatus {
   Online,
@@ -44,6 +52,7 @@ function deviceStatusString(s: DeviceStatus): string {
 export interface Device {
   status: DeviceStatus;
   name: string;
+  id: string;
 }
 
 enum SelectionStatus {
@@ -54,7 +63,7 @@ enum SelectionStatus {
 
 function oppositeSelectionStatus(s: SelectionStatus): SelectionStatus {
   switch (s) {
-    case SelectionStatus.All || SelectionStatus.Some:
+    case SelectionStatus.All:
       return SelectionStatus.None;
     default:
       return SelectionStatus.All;
@@ -63,9 +72,13 @@ function oppositeSelectionStatus(s: SelectionStatus): SelectionStatus {
 
 interface DevicesTableProps {
   devices: Device[];
+  setSelectedItems: (items: string[]) => void;
 }
 
-const DevicesTable: React.FC<DevicesTableProps> = ({ devices }) => {
+const DevicesTable: React.FC<DevicesTableProps> = ({
+  devices,
+  setSelectedItems,
+}) => {
   const [allSelected, setAllSelected] = useState(SelectionStatus.None);
   const toggleAllSelected = () => {
     const newStatus = oppositeSelectionStatus(allSelected);
@@ -97,11 +110,11 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ devices }) => {
   const allSelectedProps = useMemo<CheckboxProps>(() => {
     switch (allSelected) {
       case SelectionStatus.Some:
-        return { indeterminate: true };
+        return { indeterminate: true, checked: false };
       case SelectionStatus.All:
-        return { checked: true };
-      case SelectionStatus.None:
-        return { checked: false };
+        return { checked: true, indeterminate: false };
+      default:
+        return { checked: false, indeterminate: false };
     }
   }, [allSelected]);
 
@@ -115,7 +128,9 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ devices }) => {
           },
         ];
       })
-    ) as { [key: number]: CheckboxProps }
+    ) as {
+      [key: number]: Parameters<typeof Checkbox>[0];
+    }
   );
 
   useEffect(() => {
@@ -134,6 +149,14 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ devices }) => {
     }
   }, [checkboxProps]);
 
+  useEffect(() => {
+    setSelectedItems(
+      Object.values(checkboxProps)
+        .filter((props) => props.checked)
+        .map((props) => props.tag)
+    );
+  }, [checkboxProps]);
+
   const toggleSelectionStatus = (i: number) => {
     setCheckboxProps({
       ...checkboxProps,
@@ -145,59 +168,98 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ devices }) => {
   };
 
   return (
-    <DataTable
+    <div
       style={{
-        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
         height: "100%",
       }}
     >
-      <DataTableContent>
-        <DataTableHead>
-          <DataTableRow>
-            <DataTableHeadCell hasFormControl style={{ whiteSpace: "nowrap" }}>
-              <Checkbox
-                {...allSelectedProps}
-                onClick={() => toggleAllSelected()}
-              />
-            </DataTableHeadCell>
-            <DataTableHeadCell style={{ width: "54.5%" }}>
-              Naam
-            </DataTableHeadCell>
-            <DataTableHeadCell style={{ width: "54.5%" }}>
-              Status
-            </DataTableHeadCell>
-          </DataTableRow>
-        </DataTableHead>
-        <DataTableBody>
-          {devices.map((dev, i) => {
-            return (
-              <DataTableRow selected={checkboxProps[i].checked}>
-                <DataTableCell hasFormControl style={{ whiteSpace: "nowrap" }}>
-                  <Checkbox
-                    {...checkboxProps[i]}
-                    onClick={() => toggleSelectionStatus(i)}
-                  />
-                </DataTableCell>
+      <DataTable
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "4px 4px 0 0",
+        }}
+      >
+        <DataTableContent>
+          <DataTableHead>
+            <DataTableRow>
+              <DataTableHeadCell
+                hasFormControl
+                style={{ whiteSpace: "nowrap" }}
+              >
+                <Checkbox
+                  {...allSelectedProps}
+                  onClick={() => toggleAllSelected()}
+                />
+              </DataTableHeadCell>
+              <DataTableHeadCell style={{ width: "54.5%" }}>
+                Naam
+              </DataTableHeadCell>
+              <DataTableHeadCell style={{ width: "54.5%" }}>
+                Status
+              </DataTableHeadCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody>
+            {devices.map((dev, i) => {
+              return (
+                <DataTableRow selected={checkboxProps[i].checked}>
+                  <DataTableCell
+                    hasFormControl
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    <Checkbox
+                      {...checkboxProps[i]}
+                      tag={dev.id}
+                      onClick={() => toggleSelectionStatus(i)}
+                    />
+                  </DataTableCell>
 
-                <DataTableCell style={{ width: "54.5%" }}>
-                  {dev.name}
-                </DataTableCell>
-                <DataTableCell
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <DeviceStatusIcon status={dev.status} />
-                  &nbsp; {deviceStatusString(dev.status)}
-                </DataTableCell>
-              </DataTableRow>
-            );
-          })}
-        </DataTableBody>
-      </DataTableContent>
-    </DataTable>
+                  <DataTableCell style={{ width: "54.5%" }}>
+                    {dev.name}
+                  </DataTableCell>
+                  <DataTableCell
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
+                    <DeviceStatusIcon status={dev.status} />
+                    &nbsp; {deviceStatusString(dev.status)}
+                  </DataTableCell>
+                </DataTableRow>
+              );
+            })}
+          </DataTableBody>
+        </DataTableContent>
+      </DataTable>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          alignItems: "center",
+          margin: 8,
+        }}
+      >
+        <span style={{ margin: 16 }}>Rijen per pagina</span>
+        <Select
+          outlined
+          enhanced
+          defaultValue={"50"}
+          options={["50", "75", "100", "125"]}
+        />
+        <span style={{ marginLeft: 48, marginRight: 48 }}>2 - 2 van de 2</span>
+        <IconButton icon={"first_page"} disabled />
+        <IconButton icon={"chevron_left"} disabled />
+        <IconButton icon={"chevron_right"} disabled />
+        <IconButton icon={"last_page"} disabled />
+      </div>
+    </div>
   );
 };
 
