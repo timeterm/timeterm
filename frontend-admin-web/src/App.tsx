@@ -20,25 +20,15 @@ import {
 } from "@rmwc/list";
 import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider, Theme } from "@rmwc/theme";
-import { IconButton } from "@rmwc/icon-button";
-import { Checkbox } from "@rmwc/checkbox";
-import {
-  DataTable,
-  DataTableBody,
-  DataTableCell,
-  DataTableContent,
-  DataTableHead,
-  DataTableHeadCell,
-  DataTableRow,
-} from "@rmwc/data-table";
 import Logo from "./logo-white.svg";
-import { Icon } from "@rmwc/icon";
+import DevicesTable, { DeviceStatus } from "./DevicesTable";
 
 function App() {
   return (
     <ThemeProvider
       options={{
         primary: "rgba(57, 156, 248, 1)",
+        secondary: "rgb(127,193,255)",
         onPrimary: "white",
       }}
       style={{
@@ -130,42 +120,18 @@ function App() {
             borderRadius: 8,
           }}
         >
-          <DataTable
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <DataTableContent>
-              <DataTableHead>
-                <DataTableRow>
-                  <DataTableHeadCell hasFormControl style={{whiteSpace: "nowrap"}}>
-                    <Checkbox />
-                  </DataTableHeadCell>
-                  <DataTableHeadCell style={{width: "54.5%"}}>Naam</DataTableHeadCell>
-                  <DataTableHeadCell style={{width: "54.5%"}}>Status</DataTableHeadCell>
-                </DataTableRow>
-              </DataTableHead>
-              <DataTableBody>
-                <DataTableRow>
-                    <DataTableCell hasFormControl style={{whiteSpace: "nowrap"}}>
-                        <Checkbox />
-                    </DataTableCell> 
-
-                  <DataTableCell style={{width: "54.5%"}}>Mediatheek 1</DataTableCell>
-                  <DataTableCell style={{display: "inline-flex", alignItems: "center", width: "54.5%"}}>
-                    <Icon
-                      icon="check_circle"
-                      style={{
-                        color: "#4ECD6A",
-                      }}
-                    />&nbsp;
-                    Online
-                  </DataTableCell>
-                </DataTableRow>
-              </DataTableBody>
-            </DataTableContent>
-          </DataTable>
+          <DevicesTable
+            devices={[
+              {
+                name: "Mediatheek 1",
+                status: DeviceStatus.Online,
+              },
+              {
+                name: "Mediatheek 2",
+                status: DeviceStatus.Offline,
+              },
+            ]}
+          />
         </Elevation>
       </div>
     </ThemeProvider>
