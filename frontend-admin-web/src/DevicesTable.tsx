@@ -155,7 +155,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
         .filter((props) => props.checked)
         .map((props) => props.tag)
     );
-  }, [checkboxProps]);
+  }, [checkboxProps, setSelectedItems]);
 
   const toggleSelectionStatus = (i: number) => {
     setCheckboxProps({
@@ -206,7 +206,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           <DataTableBody>
             {devices.map((dev, i) => {
               return (
-                <DataTableRow selected={checkboxProps[i].checked}>
+                <DataTableRow selected={checkboxProps[i].checked} key={i}>
                   <DataTableCell
                     hasFormControl
                     style={{ whiteSpace: "nowrap" }}
@@ -241,7 +241,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
       <div
         style={{
           display: "flex",
-          justifyContent: "end",
+          justifyContent: "flex-end",
           alignItems: "center",
           margin: 8,
         }}

@@ -116,7 +116,7 @@ function App() {
           <div
             style={{
               display: "flex",
-              marginLeft: 16,
+              marginLeft: 32,
               marginTop: 16,
               marginRight: 16,
               height: 40,
