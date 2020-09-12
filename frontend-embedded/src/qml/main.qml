@@ -78,8 +78,10 @@ Window {
             console.log(`stanConn: Error occurred: code ${code}, message: ${msg}`)
             console.log("Triggering reconnection after error")
 
-            // Try to reconnect
-            stanConnReconnectWait.restart()
+            if (code == NatsStatus.NoServer) {
+                // Try to reconnect
+                stanConnReconnectWait.restart()
+            }
         }
 
         onLastStatusChanged: {

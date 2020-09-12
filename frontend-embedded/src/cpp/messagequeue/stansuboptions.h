@@ -17,7 +17,7 @@ class StanSubOptions: public QObject
     Q_PROPERTY(bool deliverAllAvailable READ deliverAllAvailable WRITE setDeliverAllAvailable NOTIFY deliverAllAvailableChanged)
     Q_PROPERTY(bool startWithLastReceived READ startWithLastReceived WRITE setStartWithLastReceived NOTIFY startWithLastReceivedChanged)
     Q_PROPERTY(quint64 startAtSequence READ startAtSequence WRITE setStartAtSequence NOTIFY startAtSequenceChanged)
-    Q_PROPERTY(bool manualAckMode READ manualAckMode WRITE setManualAckMode NOTIFY manualAckModeChanged)
+    Q_PROPERTY(bool manualAck READ manualAck WRITE setManualAck NOTIFY manualAckChanged)
     Q_PROPERTY(int maxInflight READ maxInflight WRITE setMaxInflight NOTIFY maxInflightChanged)
     Q_PROPERTY(qint64 ackWaitMs READ ackWaitMs WRITE setAckWaitMs NOTIFY ackWaitMsChanged)
     Q_PROPERTY(QString channel READ channel WRITE setChannel NOTIFY channelChanged)
@@ -33,8 +33,8 @@ public:
     void setStartWithLastReceived(bool startWithLastReceived);
     [[nodiscard]] quint64 startAtSequence() const;
     void setStartAtSequence(bool startAtSequence);
-    [[nodiscard]] bool manualAckMode() const;
-    void setManualAckMode(bool manualAckMode);
+    [[nodiscard]] bool manualAck() const;
+    void setManualAck(bool manualAck);
     [[nodiscard]] int maxInflight() const;
     void setMaxInflight(int maxInflight);
     [[nodiscard]] qint64 ackWaitMs() const;
@@ -49,7 +49,7 @@ signals:
     void deliverAllAvailableChanged();
     void startWithLastReceivedChanged();
     void startAtSequenceChanged();
-    void manualAckModeChanged();
+    void manualAckChanged();
     void maxInflightChanged();
     void ackWaitMsChanged();
     void channelChanged();
@@ -63,7 +63,7 @@ private:
     bool m_startWithLastReceived = false;
     quint64 m_startAtSequence = 0;
     bool m_isStartAtSequenceSet = false;
-    bool m_manualAckMode = false;
+    bool m_manualAck = false;
     int m_maxInflight = 0;
     bool m_isMaxInflightSet = false;
     qint64 m_ackWaitMs = 0;

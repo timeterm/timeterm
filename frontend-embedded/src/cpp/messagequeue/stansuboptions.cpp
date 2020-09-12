@@ -67,7 +67,7 @@ NatsStatus::Enum StanSubOptions::configureSubOpts(stanSubOptions *pSubOpts)
         CHECK_NATS_STATUS(s);
     }
 
-    s = stanSubOptions_SetManualAckMode(pSubOpts, m_manualAckMode);
+    s = stanSubOptions_SetManualAckMode(pSubOpts, m_manualAck);
     CHECK_NATS_STATUS(s);
 
     if (m_isMaxInflightSet) {
@@ -136,16 +136,16 @@ void StanSubOptions::setStartAtSequence(bool startAtSequence)
     }
 }
 
-bool StanSubOptions::manualAckMode() const
+bool StanSubOptions::manualAck() const
 {
-    return m_manualAckMode;
+    return m_manualAck;
 }
 
-void StanSubOptions::setManualAckMode(bool manualAckMode)
+void StanSubOptions::setManualAck(bool manualAck)
 {
-    if (manualAckMode != m_manualAckMode) {
-        m_manualAckMode = manualAckMode;
-        emit manualAckModeChanged();
+    if (manualAck != m_manualAck) {
+        m_manualAck = manualAck;
+        emit manualAckChanged();
     }
 }
 
