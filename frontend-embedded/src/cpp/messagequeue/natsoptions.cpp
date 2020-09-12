@@ -1,42 +1,57 @@
 #include "natsoptions.h"
+#include "strings.h"
 
 namespace MessageQueue
 {
 
 MessageQueue::NatsOptions::NatsOptions(QObject *parent)
     : QObject(parent)
-    , m_options(nullptr, natsOptions_Destroy)
 {
-    natsOptions *options;
-    auto s = natsOptions_Create(&options);
-    if (s == NATS_OK)
-        m_options.reset(options, natsOptions_Destroy);
-
-    updateStatus(NatsStatus::fromC(s));
-
-    if (s != NATS_OK)
-        natsOptions_Destroy(options);
 }
 
-QSharedPointer<natsOptions> NatsOptions::options()
+#define CHECK_NATS_STATUS(status)                                    \
+    do {                                                             \
+        if ((status) != NATS_OK) return NatsStatus::fromC((status)); \
+    } while (0)
+
+NatsStatus::Enum NatsOptions::build(natsOptions **ppOpts)
 {
-    return m_options;
+    auto status = natsOptions_Create(ppOpts);
+    CHECK_NATS_STATUS(status);
+
+    auto s = configureOpts(*ppOpts);
+    if (s != NatsStatus::Enum::Ok) {
+        natsOptions_Destroy(*ppOpts);
+        return s;
+    }
+
+    return s;
 }
 
-NatsStatus::Enum NatsOptions::lastStatus() const
+NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
 {
-    return m_lastStatus;
+    natsStatus s = NATS_OK;
+
+    if (m_url != "") {
+        auto urlCstr = asUtf8CString(m_url);
+        s = natsOptions_SetURL(pOpts, urlCstr.get());
+        CHECK_NATS_STATUS(s);
+    }
+
+    return NatsStatus::fromC(s);
 }
 
-void NatsOptions::updateStatus(NatsStatus::Enum s)
+QString NatsOptions::url() const
 {
-    m_lastStatus = s;
-    if (s == NatsStatus::Enum::Ok)
-        return;
+    return m_url;
+}
 
-    const char *text = natsStatus_GetText(NatsStatus::asC(s));
-    auto statusStr = QString::fromLocal8Bit(text);
-    emit errorOccurred(s, statusStr);
+void NatsOptions::setUrl(const QString &url)
+{
+    if (url != m_url) {
+        m_url = url;
+        emit urlChanged();
+    }
 }
 
 } // namespace MessageQueue

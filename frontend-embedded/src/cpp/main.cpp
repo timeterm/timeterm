@@ -2,12 +2,12 @@
 #include <QQmlApplicationEngine>
 
 #include <src/cpp/messagequeue/enums.h>
+#include <src/cpp/messagequeue/messages/disowntokenmessage.h>
 #include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
 #include <src/cpp/messagequeue/natsoptions.h>
+#include <src/cpp/messagequeue/natsconnection.h>
+#include <src/cpp/messagequeue/natssubscription.h>
 #include <src/cpp/messagequeue/natsstatusstringer.h>
-#include <src/cpp/messagequeue/stanconnection.h>
-#include <src/cpp/messagequeue/stanconnectionoptions.h>
-#include <src/cpp/messagequeue/stansubscription.h>
 #include <src/cpp/util/signalhandler.h>
 #include <timeterm_proto/messages.pb.h>
 
@@ -29,15 +29,13 @@ int runApp(int argc, char *argv[])
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
     qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
-    qRegisterMetaType<QSharedPointer<stanConnection *>>();
-    qRegisterMetaType<QSharedPointer<stanSubscription *>>();
+    qRegisterMetaType<QSharedPointer<natsConnection *>>();
+    qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
-    qmlRegisterType<MessageQueue::StanConnection>("Timeterm.MessageQueue", 1, 0, "StanConnection");
-    qmlRegisterType<MessageQueue::StanConnectionOptions>("Timeterm.MessageQueue", 1, 0, "StanConnectionOptions");
-    qmlRegisterType<MessageQueue::StanSubOptions>("Timeterm.MessageQueue", 1, 0, "StanSubOptions");
-    qmlRegisterType<MessageQueue::StanSubscription>("Timeterm.MessageQueue", 1, 0, "StanSubscription");
+    qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
+    qmlRegisterType<MessageQueue::NatsSubscription>("Timeterm.MessageQueue", 1, 0, "NatsSubscription");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
 

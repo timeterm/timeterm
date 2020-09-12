@@ -34,39 +34,37 @@ Window {
         }
     }
 
-    Timer {
-        id: stanConnReconnectWait
-        repeat: false
-        interval: 10000 // wait 10 seconds for reconnection
-        onTriggered: {
-            console.log("Reconnecting after error")
-            stanConn.connect()
-        }
-    }
+    // Timer {
+    //     id: natsConnReconnectWait
+    //     repeat: false
+    //     interval: 10000 // wait 10 seconds for reconnection
+    //     onTriggered: {
+    //         console.log("Reconnecting after error")
+    //         natsConn.connect()
+    //     }
+    // }
 
-    StanConnection {
-        id: stanConn
-        cluster: "test-cluster"
-        clientId: "example"
-        connectionOptions: StanConnectionOptions {
+    NatsConnection {
+        id: natsConn
+        options: NatsOptions {
             id: connOpts
             url: "localhost"
         }
 
         Component.onCompleted: {
-            console.log(`stanConn.lastStatus: ${NatsStatusStringer.stringify(stanConn.lastStatus)}`)
-            console.log(`stanConn.connectionOptions.url: ${stanConn.connectionOptions.url}`)
+            console.log(`natsConn.lastStatus: ${NatsStatusStringer.stringify(natsConn.lastStatus)}`)
+            console.log(`natsConn.connectionOptions.url: ${natsConn.options.url}`)
 
-            stanConn.connect()
+            natsConn.connect()
         }
 
-        onConnectionLost: {
-            console.log("connection lost :(")
-            console.log("Triggering reconnection lost connection")
-
-            // Try to reconnect
-            stanConnReconnectWait.restart()
-        }
+        // onConnectionLost: {
+        //     console.log("connection lost :(")
+        //     console.log("Triggering reconnection lost connection")
+        //
+        //     // Try to reconnect
+        //     natsConnReconnectWait.restart()
+        // }
 
         onConnected: {
             console.log("connected")
@@ -75,13 +73,13 @@ Window {
         }
 
         onErrorOccurred: function(code, msg) {
-            console.log(`stanConn: Error occurred: code ${code}, message: ${msg}`)
+            console.log(`natsConn: Error occurred: code ${code}, message: ${msg}`)
             console.log("Triggering reconnection after error")
 
-            if (code == NatsStatus.NoServer) {
-                // Try to reconnect
-                stanConnReconnectWait.restart()
-            }
+            // if (code == NatsStatus.NoServer) {
+            //     // Try to reconnect
+            //     natsConnReconnectWait.restart()
+            // }
         }
 
         onLastStatusChanged: {
@@ -89,13 +87,10 @@ Window {
         }
     }
 
-    StanSubscription {
+    NatsSubscription {
         id: disownSub
-        target: stanConn
-        options: StanSubOptions {
-            durableName: "events"
-            channel: "timeterm.disown-token"
-        }
+        target: natsConn
+        topic: "timeterm.disown-token"
 
         onDisownTokenMessage: function(msg) {
             console.log(`device ${msg.deviceId} has to disown their token`)

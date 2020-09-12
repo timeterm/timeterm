@@ -13,23 +13,23 @@ namespace MessageQueue
 class NatsOptions: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
+    Q_PROPERTY(QString url READ url WRITE setUrl NOTIFY urlChanged)
 
 public:
     explicit NatsOptions(QObject *parent = nullptr);
 
-    QSharedPointer<natsOptions> options();
+    NatsStatus::Enum build(natsOptions **ppOpts);
 
-    [[nodiscard]] NatsStatus::Enum lastStatus() const;
+    [[nodiscard]] QString url() const;
+    void setUrl(const QString &url);
 
 signals:
-    void errorOccurred(NatsStatus::Enum status, const QString &message);
+    void urlChanged();
 
 private:
-    void updateStatus(NatsStatus::Enum s);
+    NatsStatus::Enum configureOpts(natsOptions *pOpts);
 
-    QSharedPointer<natsOptions> m_options;
-    NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
+    QString m_url;
 };
 
 } // namespace MessageQueue
