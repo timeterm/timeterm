@@ -2,11 +2,11 @@
 #include <QQmlApplicationEngine>
 
 #include <src/cpp/messagequeue/enums.h>
+#include <src/cpp/messagequeue/jetstreamconsumer.h>
 #include <src/cpp/messagequeue/messages/disowntokenmessage.h>
 #include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
-#include <src/cpp/messagequeue/natsoptions.h>
 #include <src/cpp/messagequeue/natsconnection.h>
-#include <src/cpp/messagequeue/natssubscription.h>
+#include <src/cpp/messagequeue/natsoptions.h>
 #include <src/cpp/messagequeue/natsstatusstringer.h>
 #include <src/cpp/util/signalhandler.h>
 #include <timeterm_proto/messages.pb.h>
@@ -35,7 +35,7 @@ int runApp(int argc, char *argv[])
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
     qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
-    qmlRegisterType<MessageQueue::NatsSubscription>("Timeterm.MessageQueue", 1, 0, "NatsSubscription");
+    qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
 
@@ -76,6 +76,6 @@ int main(int argc, char *argv[])
     nats_CloseAndWait(10000);
     qInfo() << "NATS library closed";
 
-    qInfo() << "Exiting with code" << exitCode;
+    qInfo("Exiting with code %d, have a nice day!", exitCode);
     return exitCode;
 }

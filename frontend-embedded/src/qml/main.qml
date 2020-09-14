@@ -87,10 +87,10 @@ Window {
         }
     }
 
-    NatsSubscription {
+    JetStreamConsumer {
         id: disownSub
         target: natsConn
-        topic: "timeterm.disown-token"
+        subject: "timeterm.disown-token"
 
         onDisownTokenMessage: function(msg) {
             console.log(`device ${msg.deviceId} has to disown their token`)

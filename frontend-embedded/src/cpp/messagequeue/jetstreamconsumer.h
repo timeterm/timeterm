@@ -13,20 +13,20 @@
 namespace MessageQueue
 {
 
-class NatsSubscription: public QObject
+class JetStreamConsumer: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(MessageQueue::NatsConnection *target READ target WRITE setTarget NOTIFY targetChanged)
-    Q_PROPERTY(QString topic READ topic WRITE setTopic NOTIFY topicChanged)
+    Q_PROPERTY(QString subject READ subject WRITE setSubject NOTIFY subjectChanged)
     Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus NOTIFY lastStatusChanged)
 
 public:
-    explicit NatsSubscription(QObject *parent = nullptr);
-    ~NatsSubscription() override;
+    explicit JetStreamConsumer(QObject *parent = nullptr);
+    ~JetStreamConsumer() override;
 
     [[nodiscard]] NatsStatus::Enum lastStatus() const;
-    [[nodiscard]] QString topic() const;
-    void setTopic(const QString &topic);
+    [[nodiscard]] QString subject() const;
+    void setSubject(const QString &subject);
     [[nodiscard]] NatsConnection *target() const;
     void setTarget(NatsConnection *target);
 
@@ -34,7 +34,7 @@ public:
 
 signals:
     void targetChanged();
-    void topicChanged();
+    void subjectChanged();
     void lastStatusChanged();
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &msg);
     void disownTokenMessage(const MessageQueue::DisownTokenMessage &msg);
@@ -51,7 +51,7 @@ private:
     void handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg);
     void handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg);
 
-    QString m_topic;
+    QString m_subject;
     natsSubscription *m_sub = nullptr;
     QSharedPointer<natsConnection *> m_dontDropConn;
     NatsConnection *m_target = nullptr;

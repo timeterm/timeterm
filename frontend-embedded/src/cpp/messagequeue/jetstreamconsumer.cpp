@@ -1,17 +1,17 @@
-#include "natssubscription.h"
+#include "jetstreamconsumer.h"
 #include "natscallbackhandlersingleton.h"
 #include <QtConcurrent/QtConcurrentRun>
 
 namespace MessageQueue
 {
 
-NatsSubscription::NatsSubscription(QObject *parent)
+JetStreamConsumer::JetStreamConsumer(QObject *parent)
     : QObject(parent)
 {
-    connect(this, &NatsSubscription::updateSubscription, this, &NatsSubscription::setSubscription);
+    connect(this, &JetStreamConsumer::updateSubscription, this, &JetStreamConsumer::setSubscription);
 }
 
-NatsSubscription::~NatsSubscription()
+JetStreamConsumer::~JetStreamConsumer()
 {
     if (m_sub != nullptr) {
         natsSubscription_Destroy(m_sub);
@@ -20,12 +20,12 @@ NatsSubscription::~NatsSubscription()
     }
 }
 
-NatsStatus::Enum NatsSubscription::lastStatus() const
+NatsStatus::Enum JetStreamConsumer::lastStatus() const
 {
     return m_lastStatus;
 }
 
-void NatsSubscription::updateStatus(NatsStatus::Enum s)
+void JetStreamConsumer::updateStatus(NatsStatus::Enum s)
 {
     if (s != m_lastStatus) {
         m_lastStatus = s;
@@ -40,25 +40,25 @@ void NatsSubscription::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
-QString NatsSubscription::topic() const
+QString JetStreamConsumer::subject() const
 {
-    return m_topic;
+    return m_subject;
 }
 
-void NatsSubscription::setTopic(const QString &topic)
+void JetStreamConsumer::setSubject(const QString &subject)
 {
-    if (topic != m_topic) {
-        m_topic = topic;
-        emit topicChanged();
+    if (subject != m_subject) {
+        m_subject = subject;
+        emit subjectChanged();
     }
 }
 
-NatsConnection *NatsSubscription::target() const
+NatsConnection *JetStreamConsumer::target() const
 {
     return m_target;
 }
 
-void NatsSubscription::setTarget(NatsConnection *target)
+void JetStreamConsumer::setTarget(NatsConnection *target)
 {
     if (target != m_target) {
         m_target = target;
@@ -66,7 +66,7 @@ void NatsSubscription::setTarget(NatsConnection *target)
     }
 }
 
-void NatsSubscription::subscribe()
+void JetStreamConsumer::subscribe()
 {
     if (m_target == nullptr || m_sub != nullptr) return;
 
@@ -82,10 +82,10 @@ void NatsSubscription::subscribe()
                 emit updateSubscription(ppSub, dontDropConn, QPrivateSignal());
             }
         },
-        m_target, m_topic);
+        m_target, m_subject);
 }
 
-void NatsSubscription::setSubscription(
+void JetStreamConsumer::setSubscription(
     const QSharedPointer<natsSubscription *> &sub,
     const QSharedPointer<natsConnection *> &spConn)
 {
@@ -105,7 +105,7 @@ void NatsSubscription::setSubscription(
     });
 }
 
-void NatsSubscription::handleMessage(natsMsg *msg)
+void JetStreamConsumer::handleMessage(natsMsg *msg)
 {
     auto topic = QString::fromUtf8(natsMsg_GetSubject(msg));
     if (topic == "timeterm.disown-token") {
@@ -121,7 +121,7 @@ void NatsSubscription::handleMessage(natsMsg *msg)
     }
 }
 
-void NatsSubscription::handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg)
+void JetStreamConsumer::handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg)
 {
     DisownTokenMessage m;
 
@@ -132,7 +132,7 @@ void NatsSubscription::handleDisownTokenProto(const timeterm_proto::messages::Di
     emit disownTokenMessage(m);
 }
 
-void NatsSubscription::handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg)
+void JetStreamConsumer::handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg)
 {
     RetrieveNewTokenMessage m;
 

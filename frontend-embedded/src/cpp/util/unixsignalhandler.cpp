@@ -40,6 +40,8 @@ void UnixSignalHandler::termSignalHandler(int _) {
 
 void UnixSignalHandler::handleSigInt()
 {
+    qInfo() << "Caught SIGINT";
+
     m_snInt->setEnabled(false);
     char tmp;
     ::read(sigintFd[1], &tmp, sizeof(tmp));
@@ -51,6 +53,8 @@ void UnixSignalHandler::handleSigInt()
 
 void UnixSignalHandler::handleSigTerm()
 {
+    qInfo() << "Caught SIGTERM";
+
     m_snTerm->setEnabled(false);
     char tmp;
     ::read(sigtermFd[1], &tmp, sizeof(tmp));
@@ -74,9 +78,8 @@ void UnixSignalHandler::setup()
     sigemptyset(&sigint.sa_mask);
     sigint.sa_flags = SA_RESTART;
 
-    if (sigaction(SIGINT, &sigint, nullptr)) {
-        qCritical() << "Could not setup SIGINT handler";
-    }
+    if (sigaction(SIGINT, &sigint, nullptr))
+        qCritical() << "Could not set up SIGINT handler";
 
     struct sigaction sigterm {
     };
@@ -85,9 +88,8 @@ void UnixSignalHandler::setup()
     sigemptyset(&sigint.sa_mask);
     sigint.sa_flags = SA_RESTART;
 
-    if (sigaction(SIGTERM, &sigterm, nullptr)) {
-        qCritical() << "Could not setup SIGINT handler";
-    }
+    if (sigaction(SIGTERM, &sigterm, nullptr))
+        qCritical() << "Could not set up SIGINT handler";
 }
 
 #endif
