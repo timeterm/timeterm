@@ -69,7 +69,7 @@ Window {
         onConnected: {
             console.log("connected")
 
-            disownSub.subscribe()
+            disownSub.start()
         }
 
         onErrorOccurred: function(code, msg) {
@@ -90,7 +90,9 @@ Window {
     JetStreamConsumer {
         id: disownSub
         target: natsConn
-        subject: "timeterm.disown-token"
+        stream: "DISOWN-TOKEN"
+        consumer: "FEDEV-ozuhLrexlBa4p50INjihAl"
+        type: JetStreamConsumerType.Pull
 
         onDisownTokenMessage: function(msg) {
             console.log(`device ${msg.deviceId} has to disown their token`)
