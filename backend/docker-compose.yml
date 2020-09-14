@@ -17,9 +17,11 @@ services:
     ports:
       - "8432:8080"
 
-  nats-streaming:
-    image: nats-streaming:0.18.0-alpine
+  nats:
+    image: synadia/jsm:nightly-20200904
     restart: always
-    command: nats-streaming-server -store file -dir datastore
+    command: server -sd /datastore
     ports:
       - "4222:4222"
+    volumes:
+    - .nats:/datastore
