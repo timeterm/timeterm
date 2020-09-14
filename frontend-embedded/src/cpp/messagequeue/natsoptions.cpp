@@ -38,6 +38,9 @@ NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
         CHECK_NATS_STATUS(s);
     }
 
+    s = natsOptions_UseOldRequestStyle(pOpts, true);
+    CHECK_NATS_STATUS(s);
+
     return NatsStatus::fromC(s);
 }
 

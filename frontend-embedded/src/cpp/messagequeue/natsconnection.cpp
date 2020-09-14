@@ -121,4 +121,9 @@ void NatsConnection::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
+QSharedPointer<natsConnection *> NatsConnection::getConnection() const
+{
+    return m_natsConnection;
+}
+
 } // namespace MessageQueue

@@ -29,6 +29,10 @@ int runApp(int argc, char *argv[])
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
     qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
+    qmlRegisterUncreatableMetaObject(MessageQueue::JetStreamConsumerType::staticMetaObject,
+                                     "Timeterm.MessageQueue", 1, 0, "JetStreamConsumerType",
+                                     "cannot create namespace JetStreamConsumerType in QML");
+    qRegisterMetaType<MessageQueue::JetStreamConsumerType::Enum>();
     qRegisterMetaType<QSharedPointer<natsConnection *>>();
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();

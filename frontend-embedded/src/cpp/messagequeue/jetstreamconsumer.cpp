@@ -1,5 +1,8 @@
 #include "jetstreamconsumer.h"
 #include "natscallbackhandlersingleton.h"
+#include "strings.h"
+
+#include <QDebug>
 #include <QtConcurrent/QtConcurrentRun>
 
 namespace MessageQueue
@@ -18,6 +21,10 @@ JetStreamConsumer::~JetStreamConsumer()
 
         NatsCallbackHandlerSingleton::singleton().removeMsgHandler(m_sub);
     }
+
+    m_stopMtx.lock();
+    m_stop = true;
+    m_stopMtx.unlock();
 }
 
 NatsStatus::Enum JetStreamConsumer::lastStatus() const
@@ -66,23 +73,62 @@ void JetStreamConsumer::setTarget(NatsConnection *target)
     }
 }
 
-void JetStreamConsumer::subscribe()
+void JetStreamConsumer::start()
 {
     if (m_target == nullptr || m_sub != nullptr) return;
 
     QtConcurrent::run(
-        [this](NatsConnection *target, const QString &topic) {
-            natsSubscription *pSub = nullptr;
-            QSharedPointer<natsConnection *> dontDropConn;
-            auto status = target->subscribe(topic, &pSub, dontDropConn);
-            updateStatus(status);
+        [this](NatsConnection *target, const QString &topic, JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
+            switch (type) {
+            case JetStreamConsumerType::Push: {
+                natsSubscription *pSub = nullptr;
+                QSharedPointer<natsConnection *> dontDropConn;
+                auto status = target->subscribe(topic, &pSub, dontDropConn);
+                updateStatus(status);
 
-            if (status == NatsStatus::Enum::Ok) {
-                auto ppSub = QSharedPointer<natsSubscription *>(new natsSubscription *(pSub));
-                emit updateSubscription(ppSub, dontDropConn, QPrivateSignal());
+                if (status == NatsStatus::Enum::Ok) {
+                    auto ppSub = QSharedPointer<natsSubscription *>(new natsSubscription *(pSub));
+                    emit updateSubscription(ppSub, dontDropConn, QPrivateSignal());
+                }
+                break;
+            }
+            case JetStreamConsumerType::Pull: {
+                auto conn = target->getConnection();
+
+                while (true) {
+                    m_stopMtx.lock();
+                    if (m_stop) break;
+                    m_stopMtx.unlock();
+
+                    natsMsg *reply = nullptr;
+                    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.%2").arg(stream).arg(consumer);
+                    auto jsSubjCstr = asUtf8CString(jsSubj);
+                    auto status = natsConnection_RequestString(&reply, *conn, jsSubjCstr.get(), "1", 1000);
+
+                    if (status != NATS_OK) {
+                        const char *err = nats_GetLastError(&status);
+                        qWarning() << "Could not request JetStream message:" << natsStatus_GetText(status) << "(detail:)" << err;
+                        nats_PrintLastErrorStack(stderr);
+                        if (status == NATS_TIMEOUT) {
+                            continue;
+                        }
+                        QThread::sleep(5);
+
+                        continue;
+                    }
+
+                    handleMessage(reply);
+
+                    natsMsg *ackReply = nullptr;
+                    status = natsConnection_RequestString(&ackReply, *conn, natsMsg_GetReply(reply), "", 1000);
+                    if (status != NATS_OK) {
+                        qWarning() << "Could not ack JetStream message:" << natsStatus_GetText(status);
+                    }
+                }
+            }
             }
         },
-        m_target, m_subject);
+        m_target, m_subject, m_type, m_stream, m_consumer);
 }
 
 void JetStreamConsumer::setSubscription(
@@ -99,9 +145,9 @@ void JetStreamConsumer::setSubscription(
     m_dontDropConn = spConn;
 
     NatsCallbackHandlerSingleton::singleton().setMsgHandler(*sub, [this](natsMsg *msg) {
-      qDebug() << "Emitting messageReceived for message on topic" << natsMsg_GetSubject(msg);
-      emit handleMessage(msg);
-      qDebug() << "Emitted messageReceived for message on topic" << natsMsg_GetSubject(msg);
+        qDebug() << "Emitting messageReceived for message on topic" << natsMsg_GetSubject(msg);
+        emit handleMessage(msg);
+        qDebug() << "Emitted messageReceived for message on topic" << natsMsg_GetSubject(msg);
     });
 }
 
@@ -141,6 +187,45 @@ void JetStreamConsumer::handleRetrieveNewTokenProto(const timeterm_proto::messag
     m.setCurrentTokenHashAlg(QString::fromStdString(msg.current_token_hash_alg()));
 
     emit retrieveNewTokenMessage(m);
+}
+
+JetStreamConsumerType::Enum JetStreamConsumer::type() const
+{
+    return m_type;
+}
+
+void JetStreamConsumer::setType(JetStreamConsumerType::Enum type)
+{
+    if (type != m_type) {
+        m_type = type;
+        emit typeChanged();
+    }
+}
+
+QString JetStreamConsumer::stream() const
+{
+    return m_stream;
+}
+
+void JetStreamConsumer::setStream(const QString &stream)
+{
+    if (stream != m_stream) {
+        m_stream = stream;
+        emit streamChanged();
+    }
+}
+
+QString JetStreamConsumer::consumer() const
+{
+    return m_consumer;
+}
+
+void JetStreamConsumer::setConsumer(const QString &consumer)
+{
+    if (consumer != m_consumer) {
+        m_consumer = consumer;
+        emit consumerChanged();
+    }
 }
 
 } // namespace MessageQueue
