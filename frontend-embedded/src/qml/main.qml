@@ -67,15 +67,11 @@ Window {
         id: disownSub
         target: natsConn
         stream: "DISOWN-TOKEN"
-        consumer: "FEDEV-ozuhLrexlBa4p50INjihAl"
+        consumerId: "ozuhLrexlBa4p50INjihAl"
         type: JetStreamConsumerType.Pull
 
         onDisownTokenMessage: function(msg) {
             console.log(`device ${msg.deviceId} has to disown their token`)
-        }
-
-        onErrorOccurred: function(code, msg) {
-            console.log(`error occurred: code ${code}, message: ${msg}`)
         }
     }
 

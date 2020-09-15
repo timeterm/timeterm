@@ -1,5 +1,4 @@
 #include "natsconnection.h"
-#include "natscallbackhandlersingleton.h"
 #include "strings.h"
 
 #include <QtConcurrent/QtConcurrentRun>
@@ -71,27 +70,6 @@ void NatsConnection::connect()
             emit setConnectionPrivate(natsConnPtr, QPrivateSignal());
             emit connected();
         });
-}
-
-NatsStatus::Enum NatsConnection::subscribe(const QString &topic, natsSubscription **ppNatsSub, QSharedPointer<natsConnection *> &spConn)
-{
-    if (m_natsConnection.isNull())
-        return NatsStatus::Enum::NotYetConnected;
-
-    auto topicCstr = asUtf8CString(topic);
-    auto status = natsConnection_Subscribe(
-        ppNatsSub,
-        *m_natsConnection,
-        topicCstr.get(),
-        NatsCallbackHandlerSingleton::onMsg,
-        nullptr);
-    if (status != NATS_OK)
-        return NatsStatus::fromC(status);
-    spConn.swap(m_natsConnection);
-
-    qDebug() << "Subscribed to topic" << topic;
-
-    return NatsStatus::fromC(status);
 }
 
 void NatsConnection::setConnection(const QSharedPointer<natsConnection *> &conn)
