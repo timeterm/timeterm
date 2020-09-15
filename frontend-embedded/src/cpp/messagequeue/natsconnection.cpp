@@ -1,6 +1,5 @@
 #include "natsconnection.h"
 #include "natscallbackhandlersingleton.h"
-#include "scopedpointer.h"
 #include "strings.h"
 
 #include <QtConcurrent/QtConcurrentRun>
@@ -8,18 +7,10 @@
 namespace MessageQueue
 {
 
-using NatsOptionsScopedPointer = ScopedPointer<natsOptions, natsOptions_Destroy>;
-
 NatsConnection::NatsConnection(QObject *parent)
     : QObject(parent)
 {
     QObject::connect(this, &MessageQueue::NatsConnection::setConnectionPrivate, this, &MessageQueue::NatsConnection::setConnection);
-}
-
-NatsConnection::~NatsConnection()
-{
-    if (!m_natsConnection.isNull()) {
-    }
 }
 
 void NatsConnection::setOptions(NatsOptions *options)

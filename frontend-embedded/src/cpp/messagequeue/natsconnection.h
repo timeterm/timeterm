@@ -16,7 +16,6 @@ class NatsConnection: public QObject
 
 public:
     explicit NatsConnection(QObject *parent = nullptr);
-    ~NatsConnection() override;
 
     [[nodiscard]] NatsStatus::Enum lastStatus();
     void setOptions(NatsOptions *options);
@@ -24,14 +23,13 @@ public:
     [[nodiscard]] QSharedPointer<natsConnection *> getConnection() const;
 
     Q_INVOKABLE void connect();
-    NatsStatus::Enum subscribe(const QString &topic, natsSubscription **ppNatsSub, QSharedPointer<natsConnection *>& spConn);
+    NatsStatus::Enum subscribe(const QString &topic, natsSubscription **ppNatsSub, QSharedPointer<natsConnection *> &spConn);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
     void optionsChanged();
     void connected();
-    // void connectionLost();
-    void setConnectionPrivate(const QSharedPointer<natsConnection *>&conn, QPrivateSignal);
+    void setConnectionPrivate(const QSharedPointer<natsConnection *> &conn, QPrivateSignal);
     void lastStatusChanged();
 
 private slots:
