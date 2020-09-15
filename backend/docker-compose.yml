@@ -20,7 +20,7 @@ services:
   nats:
     image: synadia/jsm:nightly-20200914
     restart: always
-    command: server -sd /datastore -V
+    command: server -sd /datastore
     ports:
       - "4222:4222"
     volumes:
