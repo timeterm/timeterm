@@ -14,6 +14,11 @@ ApplicationWindow {
     height: 480
     title: qsTr("Timeterm")
 
+    header: Label {
+        text: "The magic time"
+        horizontalAlignment: Text.AlignHCenter
+    }
+
     Button {
         text: "blabla"
     }
