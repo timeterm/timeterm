@@ -21,7 +21,7 @@ public:
         qDebug() << "Running on Raspberry Pi, using Mfrc522CardReader";
         return new Mfrc522CardReader();
 #else
-        qDebug() << "Not running on an embedded device, using FakeCardReader";
+        qDebug() << "Not running on a supported embedded device, using FakeCardReader";
         return new FakeCardReader();
 #endif
     }

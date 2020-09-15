@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSharedPointer>
+#include <QThread>
 
 #include "enums.h"
 #include "natsconnection.h"
@@ -31,13 +32,11 @@ signals:
 
 public slots:
     void start();
-
     void stop();
-
     void getNextMessage();
 
 private:
-    QTimer *m_timer;
+    QTimer m_timer;
     QString m_stream;
     QString m_consumer;
     QSharedPointer<natsConnection *> m_conn;
@@ -86,7 +85,7 @@ signals:
 
 private slots:
     void setSubscription(const QSharedPointer<natsSubscription *> &sub, const QSharedPointer<natsConnection *> &spConn);
-    void handleMessage(const QSharedPointer<natsMsg *> &msg);
+    void handleMessageSP(const QSharedPointer<natsMsg *> &msg);
 
 private:
     void updateStatus(NatsStatus::Enum s);
@@ -94,12 +93,12 @@ private:
     void handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg);
     void handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg);
 
-    QMutex m_stopMtx;
-    bool m_stop = false;
     QString m_subject;
     QString m_stream;
     QString m_consumer;
     JetStreamConsumerType::Enum m_type = JetStreamConsumerType::Pull;
+    JetStreamPullConsumerWorker *m_worker = nullptr;
+    QThread m_workerThread;
     natsSubscription *m_sub = nullptr;
     QSharedPointer<natsConnection *> m_dontDropConn;
     NatsConnection *m_target = nullptr;

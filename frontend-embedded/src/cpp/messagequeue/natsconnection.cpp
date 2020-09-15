@@ -1,10 +1,14 @@
 #include "natsconnection.h"
 #include "natscallbackhandlersingleton.h"
+#include "scopedpointer.h"
 #include "strings.h"
+
 #include <QtConcurrent/QtConcurrentRun>
 
 namespace MessageQueue
 {
+
+using NatsOptionsScopedPointer = ScopedPointer<natsOptions, natsOptions_Destroy>;
 
 NatsConnection::NatsConnection(QObject *parent)
     : QObject(parent)
@@ -36,8 +40,26 @@ NatsOptions *NatsConnection::options() const
 
 void NatsConnection::connect()
 {
+    natsOptions *pOpts = nullptr;
+    auto optsStatus = m_options->build(&pOpts);
+    updateStatus(optsStatus);
+    if (optsStatus != NatsStatus::Enum::Ok) {
+        qCritical() << "Could not create NATS options";
+        return;
+    }
+    QSharedPointer<natsOptions *> opts(
+        new natsOptions *(pOpts),
+        [](natsOptions **ppOpts) {
+            if (ppOpts != nullptr) {
+                if (*ppOpts != nullptr) {
+                    natsOptions_Destroy(*ppOpts);
+                }
+                delete ppOpts;
+            }
+        });
+
     QtConcurrent::run(
-        [this]() {
+        [this, opts]() {
             QSharedPointer<natsConnection *> natsConnPtr(
                 new natsConnection *(nullptr),
                 [](natsConnection **ppConn) {
@@ -49,28 +71,13 @@ void NatsConnection::connect()
                     }
                 });
 
-            natsOptions *opts = nullptr;
-            // TODO(rutgerbrf): should m_options be passed to the closure as a parameter?
-            auto optsStatus = m_options->build(&opts);
-            updateStatus(optsStatus);
-            if (optsStatus != NatsStatus::Enum::Ok)
-                return;
-
-            auto connectionStatus = natsConnection_Connect(natsConnPtr.get(), opts);
+            auto connectionStatus = natsConnection_Connect(natsConnPtr.get(), *opts);
             updateStatus(NatsStatus::fromC(connectionStatus));
             if (connectionStatus != NATS_OK)
                 return;
             qDebug() << "Connected";
 
             emit setConnectionPrivate(natsConnPtr, QPrivateSignal());
-
-            // TODO(rutgerbrf): check if this is the right approach for a plain NATS connection.
-//            NatsCallbackHandlerSingleton::singleton().setConnectionLostHandler(
-//                *natsConnPtr,
-//                [this](const char*msg) {
-//                    emit connectionLost();
-//                });
-
             emit connected();
         });
 }

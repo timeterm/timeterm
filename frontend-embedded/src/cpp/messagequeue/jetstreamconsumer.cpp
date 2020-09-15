@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtCore/QTimer>
+#include <src/cpp/util/scopeguard.h>
 #include <utility>
 
 namespace MessageQueue
@@ -24,9 +25,8 @@ JetStreamConsumer::~JetStreamConsumer()
         NatsCallbackHandlerSingleton::singleton().removeMsgHandler(m_sub);
     }
 
-    m_stopMtx.lock();
-    m_stop = true;
-    m_stopMtx.unlock();
+    m_workerThread.quit();
+    m_workerThread.wait();
 }
 
 NatsStatus::Enum JetStreamConsumer::lastStatus() const
@@ -95,8 +95,20 @@ void JetStreamConsumer::start()
                 break;
             }
             case JetStreamConsumerType::Pull: {
-                auto worker = new JetStreamPullConsumerWorker(m_dontDropConn, stream, consumer, this);
-                connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessage);
+                if (m_worker != nullptr) {
+                    m_workerThread.quit();
+                    m_workerThread.wait();
+                }
+
+                m_dontDropConn = m_target->getConnection();
+                m_worker = new JetStreamPullConsumerWorker(m_dontDropConn, stream, consumer);
+                m_worker->moveToThread(&m_workerThread);
+
+                connect(&m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
+                connect(&m_workerThread, &QThread::started, m_worker, &JetStreamPullConsumerWorker::start);
+                connect(m_worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessageSP);
+
+                m_workerThread.start();
             }
             }
         },
@@ -200,8 +212,9 @@ void JetStreamConsumer::setConsumer(const QString &consumer)
     }
 }
 
-void JetStreamConsumer::handleMessage(const QSharedPointer<natsMsg *> &msg)
+void JetStreamConsumer::handleMessageSP(const QSharedPointer<natsMsg *> &msg)
 {
+    handleMessage(*msg);
 }
 
 JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
@@ -215,23 +228,33 @@ JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
     , m_stream(std::move(stream))
     , m_consumer(std::move(consumer))
 {
-    // Poll every second.
-    m_timer->setInterval(1000);
-    connect(m_timer, &QTimer::timeout, this, &JetStreamPullConsumerWorker::getNextMessage);
+    m_timer.setInterval(0);
+    connect(&m_timer, &QTimer::timeout, this, &JetStreamPullConsumerWorker::getNextMessage);
 }
 
 void JetStreamPullConsumerWorker::start()
 {
-    m_timer->start();
+    m_timer.start();
 }
 
 void JetStreamPullConsumerWorker::stop()
 {
-    m_timer->start();
+    m_timer.stop();
 }
 
 void JetStreamPullConsumerWorker::getNextMessage()
 {
+    // Don't fire too often in case of a timeout.
+    m_timer.blockSignals(true);
+    auto guard = onScopeExit([this]() {
+        m_timer.blockSignals(false);
+    });
+
+    if (m_conn.isNull()) {
+        qWarning() << "Not consuming next message, m_conn is null";
+        return;
+    }
+
     auto reply = QSharedPointer<natsMsg *>(
         new natsMsg *(nullptr),
         [](natsMsg **ppMsg) {
@@ -244,25 +267,35 @@ void JetStreamPullConsumerWorker::getNextMessage()
         });
     QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.%2").arg(m_stream).arg(m_consumer);
     auto jsSubjCstr = asUtf8CString(jsSubj);
-    auto status = natsConnection_RequestString(reply.get(), *m_conn, jsSubjCstr.get(), "1", 1000);
+    auto status = natsConnection_RequestString(reply.get(), *m_conn, jsSubjCstr.get(), "", 1000);
 
     if (status != NATS_OK) {
+        m_timer.setInterval(1000);
+
+        if (status == NATS_TIMEOUT) {
+            // No messages available, move along.
+            return;
+        }
+
         const char *err = nats_GetLastError(&status);
         qWarning() << "Could not request JetStream message:" << natsStatus_GetText(status) << "(detail:)" << err;
         nats_PrintLastErrorStack(stderr);
-        if (status == NATS_TIMEOUT) {
-            return;
-        }
         return;
     }
+    qDebug() << "Got message from NATS";
 
     emit messageReceived(reply);
 
     natsMsg *ackReply = nullptr;
     status = natsConnection_RequestString(&ackReply, *m_conn, natsMsg_GetReply(*reply), "", 1000);
     if (status != NATS_OK) {
-        qWarning() << "Could not ack JetStream message:" << natsStatus_GetText(status);
+        m_timer.setInterval(1000);
+
+        qWarning() << "Could not acknowledge JetStream message:" << natsStatus_GetText(status);
     }
+    natsMsg_Destroy(ackReply);
+
+    m_timer.setInterval(0);
 }
 
 } // namespace MessageQueue
