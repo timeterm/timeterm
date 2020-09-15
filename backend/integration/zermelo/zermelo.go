@@ -2,6 +2,7 @@ package zermelo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -19,9 +20,6 @@ type StudentClient struct {
 	studentCode string
 }
 
-type Appointment struct {
-}
-
 type tokenRoundTripper struct {
 	token string
 	next  http.RoundTripper
@@ -33,17 +31,42 @@ func (t tokenRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	return t.next.RoundTrip(r)
 }
 
-func withToken(token string, hc *http.Client) *http.Client {
-	c := *hc
+func (sc *StudentClient) Authenticate(ctx context.Context, authCode string) (*AuthResponse, error) {
+	reqURL := fmt.Sprintf("https://%s.zportal.nl/api/v3/oauth/token", sc.institution)
+	rsp, err := http.PostForm(reqURL, url.Values{
+		"code":       []string{authCode},
+		"grant_type": []string{"authorization_code"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rsp.Body.Close()
+		if err != nil {
+			sc.client.log.Error(err, "integration/zermelo: failed to close response body in (*StudentClient).Authenticate")
+		}
+	}()
+
+	var authRsp AuthResponse
+	err = json.NewDecoder(rsp.Body).Decode(&authRsp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authRsp, nil
+}
+
+func (sc *StudentClient) withToken(token string) *http.Client {
+	c := *http.DefaultClient
 	c.Transport = tokenRoundTripper{
 		token: token,
-		next:  c.Transport,
+		next:  http.DefaultTransport,
 	}
 
 	return &c
 }
 
-func (sc *StudentClient) getAppointments(ctx context.Context, token string, year, week int) ([]Appointment, error) {
+func (sc *StudentClient) getAppointments(ctx context.Context, token string, year, week int) (*AppointmentsResponse, error) {
 	baseURL := fmt.Sprintf("https://%s.zportal.nl/api/v3/liveschedule", sc.institution)
 	reqURL, err := url.Parse(baseURL)
 	if err != nil {
@@ -60,14 +83,22 @@ func (sc *StudentClient) getAppointments(ctx context.Context, token string, year
 		URL:    reqURL,
 	}
 
-	resp, err := withToken(token, http.DefaultClient).Do(req.WithContext(ctx))
+	rsp, err := sc.withToken(token).Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		err = resp.Body.Close()
+		err = rsp.Body.Close()
 		if err != nil {
-			sc.client.log.Error(err, "Failed to close response body in getAppointments")
+			sc.client.log.Error(err, "intergration/zermelo: failed to close response body in (*StudentClient).getAppointments")
 		}
 	}()
+
+	var dest AppointmentsResponse
+	err = json.NewDecoder(rsp.Body).Decode(&dest)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dest, nil
 }
