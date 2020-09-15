@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>src/qml/main.qml</file>
-        <file>assets/images/pas.svg</file>
+        <file>assets/images/card.svg</file>
     </qresource>
 </RCC>

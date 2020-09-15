@@ -1,7 +1,7 @@
-import QtQuick.Controls 2.12
-import QtQuick 2.0
+import QtQuick.Controls 2.14
+import QtQuick 2.14
 
-ApplicationWindow {
+Login {
     visible: true
 
     StackView {
@@ -12,10 +12,10 @@ ApplicationWindow {
             }
 
             Image {
-                id: pas
+                id: card
                 x: parent.width/2
                 y: parent.height/2
-                source: "qrc:/assets/images/pas.svg"
+                source: "qrc:/assets/images/card.svg"
             }
         }
     }

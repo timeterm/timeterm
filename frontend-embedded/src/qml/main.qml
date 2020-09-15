@@ -6,8 +6,8 @@ import Timeterm.Rfid 1.0
 import Timeterm.Api 1.0
 import Timeterm.MessageQueue 1.0
 
-Window {
-    id: window
+ApplicationWindow {
+    id: mainWindow
     visible: true
     visibility: Qt.WindowFullScreen
     width: 640
@@ -21,7 +21,7 @@ Window {
     Connections {
         target: CardReaderController
         function onCardRead(uid) {
-            window.title = uid
+            mainWindow.title = uid
         }
     }
 
@@ -83,15 +83,15 @@ Window {
         id: inputPanel
         z: 99
         x: 0
-        y: window.height
-        width: window.width
+        y: mainWindow.height
+        width: mainWindow.width
 
         states: State {
             name: "visible"
             when: inputPanel.active
             PropertyChanges {
                 target: inputPanel
-                y: window.height - inputPanel.height
+                y: mainWindow.height - inputPanel.height
             }
         }
         transitions: Transition {
