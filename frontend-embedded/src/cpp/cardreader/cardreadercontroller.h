@@ -2,6 +2,7 @@
 
 #include "cardreader.h"
 #include "fakecardreader.h"
+
 #include <QObject>
 #include <QThread>
 

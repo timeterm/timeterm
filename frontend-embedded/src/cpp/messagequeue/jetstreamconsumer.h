@@ -1,16 +1,17 @@
 #pragma once
 
+#include "enums.h"
+#include "messagequeue/messages/disowntokenmessage.h"
+#include "messagequeue/messages/retrievenewtokenmessage.h"
+#include "natsconnection.h"
+
 #include <QObject>
 #include <QSharedPointer>
 #include <QThread>
-
-#include "enums.h"
-#include "natsconnection.h"
 #include <QtCore/QMutex>
 #include <QtCore/QTimer>
+
 #include <nats.h>
-#include <src/cpp/messagequeue/messages/disowntokenmessage.h>
-#include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
 #include <timeterm_proto/messages.pb.h>
 
 namespace MessageQueue

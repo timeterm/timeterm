@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QObject>
-
 #include "enums.h"
 #include "natsoptions.h"
+
+#include <QObject>
 
 namespace MessageQueue
 {

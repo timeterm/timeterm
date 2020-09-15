@@ -1,6 +1,7 @@
 #pragma once
 
 #include "zermeloappointment.h"
+
 #include <QObject>
 
 class ZermeloAppointments

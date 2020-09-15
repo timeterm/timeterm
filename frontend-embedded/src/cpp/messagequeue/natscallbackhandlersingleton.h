@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QHash>
-
 #include <functional>
 
-#include <3rdparty/nats/src/nats.h>
+#include <QHash>
+
+#include <nats.h>
 
 namespace MessageQueue
 {

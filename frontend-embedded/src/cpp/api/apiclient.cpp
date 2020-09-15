@@ -1,12 +1,13 @@
 #include "apiclient.h"
 
+#include <optional>
+#include <utility>
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QNetworkReply>
 #include <QUrlQuery>
-#include <optional>
-#include <utility>
 
 ApiClient::ApiClient(QObject *parent)
     : QObject(parent)

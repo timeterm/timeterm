@@ -1,31 +1,24 @@
+#include "api/apiclient.h"
+#include "cardreader/cardreadercontroller.h"
+#include "messagequeue/enums.h"
+#include "messagequeue/jetstreamconsumer.h"
+#include "messagequeue/messages/disowntokenmessage.h"
+#include "messagequeue/messages/retrievenewtokenmessage.h"
+#include "messagequeue/natsconnection.h"
+#include "messagequeue/natsoptions.h"
+#include "messagequeue/natsstatusstringer.h"
+#include "util/teardown.h"
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include <src/cpp/messagequeue/enums.h>
-#include <src/cpp/messagequeue/jetstreamconsumer.h>
-#include <src/cpp/messagequeue/messages/disowntokenmessage.h>
-#include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
-#include <src/cpp/messagequeue/natsconnection.h>
-#include <src/cpp/messagequeue/natsoptions.h>
-#include <src/cpp/messagequeue/natsstatusstringer.h>
-#include <src/cpp/util/signalhandler.h>
 #include <timeterm_proto/messages.pb.h>
-
-#include "api/apiclient.h"
-#include "cardreader/cardreadercontroller.h"
-
-void msgHdlr(QtMsgType type, const QMessageLogContext &context,
-             const QString &buf) {
-    auto str = qFormatLogMessage(type, context, buf).toStdString();
-    fprintf(stderr, "%s\n", str.c_str());
-}
 
 int runApp(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
-    qInstallMessageHandler(msgHdlr);
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
     auto natsStatusStringer = MessageQueue::NatsStatusStringer();
 
@@ -62,7 +55,7 @@ int runApp(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
 
-    return teardownAppOnSignal<int>(QGuiApplication::exec);
+    return tearDownAppOnSignal<int>(QGuiApplication::exec);
 }
 
 int main(int argc, char *argv[])

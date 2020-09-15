@@ -10,4 +10,4 @@ namespace MessageQueue
 /// Automatically gets destroyed when it goes out of scope.
 QScopedArrayPointer<char> asUtf8CString(const QString &str);
 
-}
+} // namespace MessageQueue

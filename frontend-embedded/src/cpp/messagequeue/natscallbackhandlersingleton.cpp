@@ -1,8 +1,8 @@
 #include "natscallbackhandlersingleton.h"
 #include "enums.h"
+#include "util/scopeguard.h"
 
 #include <QDebug>
-#include <src/cpp/util/scopeguard.h>
 
 namespace MessageQueue
 {

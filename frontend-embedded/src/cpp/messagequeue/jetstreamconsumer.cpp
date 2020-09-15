@@ -1,12 +1,13 @@
 #include "jetstreamconsumer.h"
 #include "natscallbackhandlersingleton.h"
 #include "strings.h"
+#include "util/scopeguard.h"
+
+#include <utility>
 
 #include <QDebug>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtCore/QTimer>
-#include <src/cpp/util/scopeguard.h>
-#include <utility>
 
 namespace MessageQueue
 {

@@ -2,10 +2,10 @@
 
 #include "enums.h"
 
-#include <nats.h>
-
 #include <QObject>
 #include <QSharedPointer>
+
+#include <nats.h>
 
 namespace MessageQueue
 {

@@ -3,8 +3,10 @@
 #pragma once
 
 #include "cardreader.h"
+
 #include <QObject>
 #include <QThread>
+
 #include <mfrc522/mfrc522.h>
 
 class Mfrc522CardReader: public CardReader

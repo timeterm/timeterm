@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cardreader.h"
+
 #include <QtNetwork/QLocalServer>
 
 class FakeCardReader: public CardReader

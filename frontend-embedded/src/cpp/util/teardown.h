@@ -1,13 +1,13 @@
 #pragma once
 
-#include <QGuiApplication>
-
 #ifdef Q_OS_UNIX
 #include "unixsignalhandler.h"
 #endif
 
+#include <QGuiApplication>
+
 template<typename T>
-T teardownAppOnSignal(const std::function<T()> &run)
+T tearDownAppOnSignal(const std::function<T()> &run)
 {
 #ifdef Q_OS_UNIX
     UnixSignalHandler::setup();

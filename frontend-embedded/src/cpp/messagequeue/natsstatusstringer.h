@@ -1,6 +1,7 @@
 #pragma once
 
 #include "enums.h"
+
 #include <QObject>
 
 namespace MessageQueue
