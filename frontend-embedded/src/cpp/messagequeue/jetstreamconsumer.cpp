@@ -4,6 +4,8 @@
 
 #include <QDebug>
 #include <QtConcurrent/QtConcurrentRun>
+#include <QtCore/QTimer>
+#include <utility>
 
 namespace MessageQueue
 {
@@ -93,38 +95,8 @@ void JetStreamConsumer::start()
                 break;
             }
             case JetStreamConsumerType::Pull: {
-                auto conn = target->getConnection();
-
-                while (true) {
-                    m_stopMtx.lock();
-                    if (m_stop) break;
-                    m_stopMtx.unlock();
-
-                    natsMsg *reply = nullptr;
-                    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.%2").arg(stream).arg(consumer);
-                    auto jsSubjCstr = asUtf8CString(jsSubj);
-                    auto status = natsConnection_RequestString(&reply, *conn, jsSubjCstr.get(), "1", 1000);
-
-                    if (status != NATS_OK) {
-                        const char *err = nats_GetLastError(&status);
-                        qWarning() << "Could not request JetStream message:" << natsStatus_GetText(status) << "(detail:)" << err;
-                        nats_PrintLastErrorStack(stderr);
-                        if (status == NATS_TIMEOUT) {
-                            continue;
-                        }
-                        QThread::sleep(5);
-
-                        continue;
-                    }
-
-                    handleMessage(reply);
-
-                    natsMsg *ackReply = nullptr;
-                    status = natsConnection_RequestString(&ackReply, *conn, natsMsg_GetReply(reply), "", 1000);
-                    if (status != NATS_OK) {
-                        qWarning() << "Could not ack JetStream message:" << natsStatus_GetText(status);
-                    }
-                }
+                auto worker = new JetStreamPullConsumerWorker(m_dontDropConn, stream, consumer, this);
+                connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessage);
             }
             }
         },
@@ -225,6 +197,71 @@ void JetStreamConsumer::setConsumer(const QString &consumer)
     if (consumer != m_consumer) {
         m_consumer = consumer;
         emit consumerChanged();
+    }
+}
+
+void JetStreamConsumer::handleMessage(const QSharedPointer<natsMsg *> &msg)
+{
+}
+
+JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
+    const QSharedPointer<natsConnection *> &conn,
+    QString stream,
+    QString consumer,
+    QObject *parent)
+    : QObject(parent)
+    , m_timer(new QTimer(this))
+    , m_conn(conn)
+    , m_stream(std::move(stream))
+    , m_consumer(std::move(consumer))
+{
+    // Poll every second.
+    m_timer->setInterval(1000);
+    connect(m_timer, &QTimer::timeout, this, &JetStreamPullConsumerWorker::getNextMessage);
+}
+
+void JetStreamPullConsumerWorker::start()
+{
+    m_timer->start();
+}
+
+void JetStreamPullConsumerWorker::stop()
+{
+    m_timer->start();
+}
+
+void JetStreamPullConsumerWorker::getNextMessage()
+{
+    auto reply = QSharedPointer<natsMsg *>(
+        new natsMsg *(nullptr),
+        [](natsMsg **ppMsg) {
+            if (ppMsg != nullptr) {
+                if (*ppMsg != nullptr) {
+                    natsMsg_Destroy(*ppMsg);
+                }
+                delete ppMsg;
+            }
+        });
+    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.%2").arg(m_stream).arg(m_consumer);
+    auto jsSubjCstr = asUtf8CString(jsSubj);
+    auto status = natsConnection_RequestString(reply.get(), *m_conn, jsSubjCstr.get(), "1", 1000);
+
+    if (status != NATS_OK) {
+        const char *err = nats_GetLastError(&status);
+        qWarning() << "Could not request JetStream message:" << natsStatus_GetText(status) << "(detail:)" << err;
+        nats_PrintLastErrorStack(stderr);
+        if (status == NATS_TIMEOUT) {
+            return;
+        }
+        return;
+    }
+
+    emit messageReceived(reply);
+
+    natsMsg *ackReply = nullptr;
+    status = natsConnection_RequestString(&ackReply, *m_conn, natsMsg_GetReply(*reply), "", 1000);
+    if (status != NATS_OK) {
+        qWarning() << "Could not ack JetStream message:" << natsStatus_GetText(status);
     }
 }
 

@@ -6,6 +6,7 @@
 #include "enums.h"
 #include "natsconnection.h"
 #include <QtCore/QMutex>
+#include <QtCore/QTimer>
 #include <nats.h>
 #include <src/cpp/messagequeue/messages/disowntokenmessage.h>
 #include <src/cpp/messagequeue/messages/retrievenewtokenmessage.h>
@@ -13,6 +14,34 @@
 
 namespace MessageQueue
 {
+
+class JetStreamPullConsumerWorker: public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit JetStreamPullConsumerWorker(
+        const QSharedPointer<natsConnection *> &conn,
+        QString stream,
+        QString consumer,
+        QObject *parent = nullptr);
+
+signals:
+    void messageReceived(const QSharedPointer<natsMsg *> &msg);
+
+public slots:
+    void start();
+
+    void stop();
+
+    void getNextMessage();
+
+private:
+    QTimer *m_timer;
+    QString m_stream;
+    QString m_consumer;
+    QSharedPointer<natsConnection *> m_conn;
+};
 
 class JetStreamConsumer: public QObject
 {
@@ -57,6 +86,7 @@ signals:
 
 private slots:
     void setSubscription(const QSharedPointer<natsSubscription *> &sub, const QSharedPointer<natsConnection *> &spConn);
+    void handleMessage(const QSharedPointer<natsMsg *> &msg);
 
 private:
     void updateStatus(NatsStatus::Enum s);
@@ -79,3 +109,4 @@ private:
 } // namespace MessageQueue
 
 Q_DECLARE_METATYPE(QSharedPointer<natsSubscription *>)
+Q_DECLARE_METATYPE(QSharedPointer<natsMsg *>)
