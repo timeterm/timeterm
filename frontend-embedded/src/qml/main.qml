@@ -34,16 +34,6 @@ Window {
         }
     }
 
-    // Timer {
-    //     id: natsConnReconnectWait
-    //     repeat: false
-    //     interval: 10000 // wait 10 seconds for reconnection
-    //     onTriggered: {
-    //         console.log("Reconnecting after error")
-    //         natsConn.connect()
-    //     }
-    // }
-
     NatsConnection {
         id: natsConn
         options: NatsOptions {
@@ -53,33 +43,19 @@ Window {
 
         Component.onCompleted: {
             console.log(`natsConn.lastStatus: ${NatsStatusStringer.stringify(natsConn.lastStatus)}`)
-            console.log(`natsConn.connectionOptions.url: ${natsConn.options.url}`)
+            console.log(`natsConn.options.url: ${natsConn.options.url}`)
 
             natsConn.connect()
         }
 
-        // onConnectionLost: {
-        //     console.log("connection lost :(")
-        //     console.log("Triggering reconnection lost connection")
-        //
-        //     // Try to reconnect
-        //     natsConnReconnectWait.restart()
-        // }
-
         onConnected: {
             console.log("connected")
 
-            disownSub.subscribe()
+            disownSub.start()
         }
 
         onErrorOccurred: function(code, msg) {
             console.log(`natsConn: Error occurred: code ${code}, message: ${msg}`)
-            console.log("Triggering reconnection after error")
-
-            // if (code == NatsStatus.NoServer) {
-            //     // Try to reconnect
-            //     natsConnReconnectWait.restart()
-            // }
         }
 
         onLastStatusChanged: {
@@ -90,7 +66,9 @@ Window {
     JetStreamConsumer {
         id: disownSub
         target: natsConn
-        subject: "timeterm.disown-token"
+        stream: "DISOWN-TOKEN"
+        consumer: "FEDEV-ozuhLrexlBa4p50INjihAl"
+        type: JetStreamConsumerType.Pull
 
         onDisownTokenMessage: function(msg) {
             console.log(`device ${msg.deviceId} has to disown their token`)

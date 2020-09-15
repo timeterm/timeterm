@@ -14,11 +14,18 @@
 #include "api/apiclient.h"
 #include "cardreader/cardreadercontroller.h"
 
+void msgHdlr(QtMsgType type, const QMessageLogContext &context,
+             const QString &buf) {
+    auto str = qFormatLogMessage(type, context, buf).toStdString();
+    fprintf(stderr, "%s\n", str.c_str());
+}
+
 int runApp(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
+    qInstallMessageHandler(msgHdlr);
     QScopedPointer<CardReaderController> cardReader(new CardReaderController());
     auto natsStatusStringer = MessageQueue::NatsStatusStringer();
 
@@ -29,6 +36,11 @@ int runApp(int argc, char *argv[])
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
     qRegisterMetaType<MessageQueue::NatsStatus::Enum>();
+    qmlRegisterUncreatableMetaObject(MessageQueue::JetStreamConsumerType::staticMetaObject,
+                                     "Timeterm.MessageQueue", 1, 0, "JetStreamConsumerType",
+                                     "cannot create namespace JetStreamConsumerType in QML");
+    qRegisterMetaType<MessageQueue::JetStreamConsumerType::Enum>();
+    qRegisterMetaType<QSharedPointer<natsMsg *>>();
     qRegisterMetaType<QSharedPointer<natsConnection *>>();
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();

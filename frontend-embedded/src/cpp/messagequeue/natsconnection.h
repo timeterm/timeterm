@@ -21,6 +21,7 @@ public:
     [[nodiscard]] NatsStatus::Enum lastStatus();
     void setOptions(NatsOptions *options);
     [[nodiscard]] NatsOptions *options() const;
+    [[nodiscard]] QSharedPointer<natsConnection *> getConnection() const;
 
     Q_INVOKABLE void connect();
     NatsStatus::Enum subscribe(const QString &topic, natsSubscription **ppNatsSub, QSharedPointer<natsConnection *>& spConn);

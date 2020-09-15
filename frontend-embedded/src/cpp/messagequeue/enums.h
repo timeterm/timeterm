@@ -4,12 +4,15 @@
 
 #include <nats.h>
 
-namespace MessageQueue::NatsStatus
+namespace MessageQueue
+{
+
+namespace NatsStatus
 {
 Q_NAMESPACE
 
 /// Status returned by most of the APIs
-enum class Enum
+enum Enum
 {
     /// Success
     Ok = 0,
@@ -148,5 +151,21 @@ constexpr natsStatus asC(const Enum status)
 }
 
 Q_ENUM_NS(Enum)
+
+} // namespace NatsStatus
+
+namespace JetStreamConsumerType
+{
+Q_NAMESPACE
+
+enum Enum
+{
+    Push,
+    Pull,
+};
+
+Q_ENUM_NS(Enum)
+
+} // namespace JetStreamConsumerType
 
 } // namespace MessageQueue

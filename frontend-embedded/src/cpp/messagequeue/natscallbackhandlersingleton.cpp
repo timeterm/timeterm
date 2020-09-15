@@ -47,30 +47,28 @@ enum class AckMode
 NatsStatus::Enum jsAck(natsConnection *nc, natsMsg *msg, AckMode mode)
 {
     const char *ackMode = ACK_ACK;
-    size_t ackModeLength = sizeof(ACK_ACK) / sizeof(*ACK_ACK);
 
     switch (mode) {
     case AckMode::Ack:
         break; // the default
     case AckMode::Nak:
         ackMode = ACK_NAK;
-        ackModeLength = sizeof(ACK_NAK) / sizeof(*ACK_NAK);
         break;
     case AckMode::Progress:
         ackMode = ACK_PROGRESS;
-        ackModeLength = sizeof(ACK_PROGRESS) / sizeof(*ACK_PROGRESS);
         break;
     case AckMode::Next:
         ackMode = ACK_NEXT;
-        ackModeLength = sizeof(ACK_NEXT) / sizeof(*ACK_NEXT);
         break;
     case AckMode::Term:
         ackMode = ACK_TERM;
-        ackModeLength = sizeof(ACK_TERM) / sizeof(*ACK_TERM);
         break;
     }
 
-    return NatsStatus::fromC(natsConnection_Publish(nc, natsMsg_GetReply(msg), ackMode, ackModeLength));
+    natsMsg *reply = nullptr;
+    auto status = natsConnection_RequestString(&reply, nc, natsMsg_GetReply(msg), ackMode, 1000);
+    natsMsg_Destroy(reply);
+    return NatsStatus::fromC(status);
 }
 
 void NatsCallbackHandlerSingleton::onMsg(natsConnection *nc, natsSubscription *sub, natsMsg *msg)
