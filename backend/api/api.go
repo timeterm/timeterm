@@ -14,10 +14,17 @@ type Server struct {
 	echo *echo.Echo
 }
 
+func newEcho() *echo.Echo {
+	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
+	return e
+}
+
 func NewServer(db *database.Wrapper) Server {
 	server := Server{
 		db:   db,
-		echo: echo.New(),
+		echo: newEcho(),
 	}
 	server.registerRoutes()
 

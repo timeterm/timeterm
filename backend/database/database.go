@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
@@ -65,7 +66,7 @@ func migrate(db *sqlx.DB) error {
 
 func doMigrate(migrate *gomigrate.Migrate) error {
 	currentVersion, isDirty, err := migrate.Version()
-	if err == nil && (isDirty || currentVersion != version) {
+	if (err == nil && (isDirty || currentVersion != version)) || errors.Is(err, gomigrate.ErrNilVersion) {
 		err = migrate.Migrate(version)
 	}
 	return err
