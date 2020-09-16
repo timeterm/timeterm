@@ -38,7 +38,7 @@ ApplicationWindow {
             Label {
                 color: "#e5e5e5"
                 text: "The date is: " + new Date().toLocaleDateString(
-                          Qt.locale("de_DE"))
+                          Qt.locale("nl_NL"))
                 anchors.centerIn: parent
                 fontSizeMode: Text.Fit
                 font.pixelSize: 20
