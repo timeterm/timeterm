@@ -72,7 +72,7 @@ Thumbs.db
 *.exe
 
 # User-specific CMakeLists.txt.user
-CMakeLists.txt.user
+CMakeLists.txt.user*
 
 # CLion
 /.idea
