@@ -12,24 +12,28 @@ else ()
     add_definitions(-D_WIN32_WINNT=0x600)
 endif ()
 
-# This branch assumes that Protobuf is already installed
-# on this system, so it can be located by find_package().
-
-# Find Protobuf installation
-# Looks for protobuf-config.cmake file installed by Protobuf's cmake installation.
-#set(Protobuf_USE_STATIC_LIBS ON)
-find_package(Protobuf REQUIRED)
+set(Protobuf_DEBUG ON)
+set(Protobuf_USE_STATIC_LIBS ON)
+find_package(protobuf CONFIG REQUIRED)
 message(STATUS "Using protobuf ${protobuf_VERSION}")
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS timeterm_proto/messages.proto)
+if(MSVC AND protobuf_MSVC_STATIC_RUNTIME)
+	foreach(flag_var
+			CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+			CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+		if(${flag_var} MATCHES "/MD")
+			string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+		endif(${flag_var} MATCHES "/MD")
+	endforeach()
+endif()
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/timeterm_proto)
-file(GLOB GENERATED_FILES ${CMAKE_CURRENT_BINARY_DIR}/*.pb.*)
-foreach(GENERATED_FILE IN LISTS GENERATED_FILES)
-	string(REGEX REPLACE "^${CMAKE_CURRENT_BINARY_DIR}" "" GENERATED_FILE_RELATIVE ${GENERATED_FILE})
-	file(RENAME ${GENERATED_FILE} ${CMAKE_CURRENT_BINARY_DIR}/timeterm_proto${GENERATED_FILE_RELATIVE})
-endforeach()
+add_library(timeterm_proto STATIC)
 
-add_library(timeterm_proto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
+protobuf_generate(
+		LANGUAGE cpp
+		TARGET timeterm_proto
+		PROTOS timeterm_proto/messages.proto
+)
+
 target_link_libraries(timeterm_proto PUBLIC protobuf::libprotobuf)
 target_include_directories(timeterm_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

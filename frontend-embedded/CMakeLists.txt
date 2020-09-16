@@ -45,11 +45,12 @@ set(BUILD_TESTING NO CACHE BOOL "Build the NATS tests")
 set(NATS_BUILD_EXAMPLES NO CACHE BOOL "Build the NATS examples")
 set(NATS_BUILD_LIB_SHARED NO CACHE BOOL "Build the NATS library shared")
 set(NATS_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Build type: Release, Debug, RelWithDebInfo, MinRelSize")
+set(NATS_BUILD_STREAMING NO CACHE BOOL "Build the NATS library with NATS streaming support")
 add_subdirectory(3rdparty/nats)
 add_subdirectory(../proto/src ${CMAKE_BINARY_DIR}/timeterm_proto)
 
 target_compile_definitions(frontend-embedded
-  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG> NATS_HAS_STREAMING)
+  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(frontend-embedded
   PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 nats_static timeterm_proto)
 target_include_directories(frontend-embedded
