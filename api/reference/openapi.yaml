@@ -46,10 +46,10 @@ paths:
         default:
           $ref:  "#/components/responses/ProblemResponse"
   
-  /user/self:
+  /student/self:
     get:
-      operationId: getUserSelf
-      summary: Get information about the current user
+      operationId: getStudentSelf
+      summary: Get information about the current student
       parameters:
         - name: X-Card-Uid
           in: header
@@ -58,25 +58,25 @@ paths:
             type: string
       responses:
         '200':
-          description: User information
+          description: Student information
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/Student"
         default:
           $ref:  "#/components/responses/ProblemResponse"
 
-  /organization/{organizationId}/user:
+  /organization/{organizationId}/student:
     post:
-      operationId: createUserInOrganization
-      summary: Create a user in an organization
+      operationId: createStudentInOrganization
+      summary: Create a student in an organization
       responses:
         '200':
-          description: User created
+          description: Student created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/Student"
         default:
           $ref:  "#/components/responses/ProblemResponse"
 
@@ -166,22 +166,16 @@ components:
         endTime:
           type: string
           format: date-time
-        
-    # Note: primary key for a user should absolutely not be the card UID!
-    # Rather, it should be a combination of the card UID and the organization ID.
-    User:
+
+    Student:
       type: object
       properties:
-        cardUid:
+        id:
           type: string
-          format: byte
+          format: uuid
         organizationId:
           type: string
           format: uuid
-        name:
-          type: string
-        studentCode:
-          type: string
 
     Device:
       type: object
@@ -190,10 +184,16 @@ components:
           type: string
         name:
           type: string
-        location:
-          type: string
         organizationId:
           type: string
+        status:
+          $ref: "#/components/schemas/DeviceStatus"
+    
+    DeviceStatus:
+      type: string
+      enum:
+      - Online
+      - Offline
 
     DeviceAuth:
       type: object
