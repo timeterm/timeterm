@@ -20,10 +20,10 @@ public:
     {
 #ifdef RASPBERRYPI
         qDebug() << "Running on Raspberry Pi, using Mfrc522CardReader";
-        return new Mfrc522CardReader();
+        return new Mfrc522CardReader(parent);
 #else
         qDebug() << "Not running on a supported embedded device, using FakeCardReader";
-        return new FakeCardReader();
+        return new FakeCardReader(parent);
 #endif
     }
 
