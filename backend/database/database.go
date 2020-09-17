@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/go-logr/logr"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 
 	gomigrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -19,11 +19,40 @@ const version = 1
 // Wrapper wraps the PostgreSQL database.
 type Wrapper struct {
 	db     *sqlx.DB
-	logger *zap.Logger
+	logger logr.Logger
+}
+
+type wrapperOpts struct {
+	migrationsURL string
+}
+
+func newWrapperOpts() wrapperOpts {
+	return wrapperOpts{
+		migrationsURL: "file://database/migrations",
+	}
+}
+
+func createWrapperOpts(opts []WrapperOpt) wrapperOpts {
+	o := newWrapperOpts()
+	for _, opt := range opts {
+		o = opt(o)
+	}
+	return o
+}
+
+type WrapperOpt func(w wrapperOpts) wrapperOpts
+
+func MigrationsURL(url string) WrapperOpt {
+	return func(w wrapperOpts) wrapperOpts {
+		w.migrationsURL = url
+		return w
+	}
 }
 
 // New opens the database and creates a new database wrapper.
-func New(url string, logger *zap.Logger) (*Wrapper, error) {
+func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
+	options := createWrapperOpts(opts)
+
 	db, err := connect(url)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to database: %w", err)
@@ -31,12 +60,12 @@ func New(url string, logger *zap.Logger) (*Wrapper, error) {
 
 	db.MapperFunc(nameMapper)
 
-	err = migrate(db)
+	err = migrate(db, options.migrationsURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	return &Wrapper{db: db, logger: logger}, nil
+	return &Wrapper{db: db, logger: log}, nil
 }
 
 func (w *Wrapper) Close() error {
@@ -47,7 +76,7 @@ func connect(url string) (*sqlx.DB, error) {
 	return sqlx.Connect("postgres", url)
 }
 
-func migrate(db *sqlx.DB) error {
+func migrate(db *sqlx.DB, sourceURL string) error {
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{
 		MigrationsTable: "migrations",
 		DatabaseName:    "timeterm",
@@ -56,7 +85,7 @@ func migrate(db *sqlx.DB) error {
 		return err
 	}
 
-	migrate, err := gomigrate.NewWithDatabaseInstance("file://database/migrations", "timeterm", driver)
+	migrate, err := gomigrate.NewWithDatabaseInstance(sourceURL, "timeterm", driver)
 	if err != nil {
 		return err
 	}
