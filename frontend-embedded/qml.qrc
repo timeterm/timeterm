@@ -2,5 +2,11 @@
     <qresource prefix="/">
         <file>src/qml/main.qml</file>
         <file>assets/images/card.svg</file>
+        <file>assets/icons/wifi-strength-off-outline.svg</file>
+        <file>assets/icons/wifi-strength-outline.svg</file>
+        <file>assets/icons/wifi-strength-1.svg</file>
+        <file>assets/icons/wifi-strength-2.svg</file>
+        <file>assets/icons/wifi-strength-3.svg</file>
+        <file>assets/icons/wifi-strength-4.svg</file>
     </qresource>
 </RCC>

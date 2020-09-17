@@ -37,8 +37,8 @@ ApplicationWindow {
 
             Label {
                 color: "#e5e5e5"
-                text: "The date is: " + new Date().toLocaleDateString(
-                          Qt.locale("nl_NL"))
+                text: new Date().toLocaleString(
+                          Qt.locale("nl_NL"), "dddd d MMMM yyyy h:mm") // eg. Donderdag 17 september 2020 13:08
                 anchors.centerIn: parent
                 fontSizeMode: Text.Fit
                 font.pixelSize: 20
