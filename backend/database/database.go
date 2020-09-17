@@ -102,12 +102,18 @@ func doMigrate(migrate *gomigrate.Migrate) error {
 }
 
 // nameMapper maps Golang struct field names to table columns.
-// For example, ID would be mapped to id and UserID would be mapped to user_id.
-func nameMapper(s string) string {
-	prevUpper := true // we start with true, so we don't get an underscore before every name.
+// For example, ID would be mapped to id and UserID would be mapped to user_id, and IDToken to id_token.
+func nameMapper(fieldName string) string {
+	// prevUpper saves whether the previous characters was an uppercase. If the current character is and the previous
+	// character wasn't, we can put an underscore. It starts with true, so we don't get an underscore before
+	// the start of the name.
+	prevUpper := true
 
+	// We'll put the column name in this character-for-character, and return the built string at the end.
 	var b strings.Builder
-	for _, r := range s {
+
+	for _, r := range fieldName {
+		// If the current character is uppercase and the previous wasn't, we can put an underscore.
 		if unicode.IsUpper(r) {
 			if !prevUpper {
 				b.WriteByte('_')
@@ -116,6 +122,8 @@ func nameMapper(s string) string {
 		} else {
 			prevUpper = false
 		}
+
+		// Write the character in lowercase, we don't want any uppercase letters in the column name.
 		b.WriteRune(unicode.ToLower(r))
 	}
 
