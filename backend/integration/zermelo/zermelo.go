@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/go-logr/logr"
 )
@@ -33,10 +34,19 @@ func (t tokenRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 
 func (sc *StudentClient) Authenticate(ctx context.Context, authCode string) (*AuthResponse, error) {
 	reqURL := fmt.Sprintf("https://%s.zportal.nl/api/v3/oauth/token", sc.institution)
-	rsp, err := http.PostForm(reqURL, url.Values{
+
+	postValues := url.Values{
 		"code":       []string{authCode},
 		"grant_type": []string{"authorization_code"},
-	})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(postValues.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +100,7 @@ func (sc *StudentClient) getAppointments(ctx context.Context, token string, year
 	defer func() {
 		err = rsp.Body.Close()
 		if err != nil {
-			sc.client.log.Error(err, "intergration/zermelo: failed to close response body in (*StudentClient).getAppointments")
+			sc.client.log.Error(err, "integration/zermelo: failed to close response body in (*StudentClient).getAppointments")
 		}
 	}()
 
