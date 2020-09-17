@@ -23,5 +23,3 @@ services:
     command: server -sd /datastore
     ports:
       - "4222:4222"
-    volumes:
-    - .nats:/datastore
