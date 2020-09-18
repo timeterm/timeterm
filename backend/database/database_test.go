@@ -4,11 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	mrand "math/rand"
 	"net"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	"github.com/ory/dockertest"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 type connStringBuilder struct {
@@ -94,4 +101,54 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func createRandomDB(t *testing.T) string {
+	db, err := sql.Open("postgres", connString.Build())
+	require.NoError(t, err)
+
+	name := fmt.Sprintf("timeterm_random_%d", mrand.New(mrand.NewSource(time.Now().UnixNano())).Uint32())
+	_, err = db.Exec("CREATE DATABASE " + name)
+	require.NoError(t, err)
+
+	return name
+}
+
+func dropDB(t *testing.T, name string) {
+	db, err := sql.Open("postgres", connString.Build())
+	require.NoError(t, err)
+
+	_, err = db.Exec("DROP DATABASE " + name)
+	require.NoError(t, err)
+}
+
+type fixture struct {
+	t      *testing.T
+	logger logr.Logger
+	dbName string
+	dbw    *Wrapper
+}
+
+func (f fixture) Close() {
+	assert.NoError(f.t, f.dbw.Close())
+	dropDB(f.t, f.dbName)
+}
+
+func newFixture(t *testing.T) fixture {
+	logger, _ := zap.NewDevelopment()
+	defer func() { _ = logger.Sync() }()
+	log := zapr.NewLogger(logger)
+
+	dbName := createRandomDB(t)
+	dbw, err := New(connString.WithDBName(dbName).Build(), log,
+		MigrationsURL("file://migrations"),
+	)
+	require.NoError(t, err)
+
+	return fixture{
+		t:      t,
+		logger: log,
+		dbName: dbName,
+		dbw:    dbw,
+	}
 }
