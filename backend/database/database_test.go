@@ -5,6 +5,7 @@ import (
 	"fmt"
 	mrand "math/rand"
 	"net"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -19,47 +20,102 @@ import (
 
 const postgresVersion = "12.3"
 
-var connString connStringBuilder
+var connURI connURIBuilder
 
-type connStringBuilder struct {
+type connURIBuilder struct {
+	prev     *connURIBuilder
 	user     string
 	password string
 	address  string
 	dbName   string
-	sslMode  string
+	opts     url.Values
 }
 
-func (b connStringBuilder) WithUser(user string) connStringBuilder {
+func (b connURIBuilder) newLayer() connURIBuilder {
+	return connURIBuilder{
+		prev: &b,
+		opts: make(url.Values),
+	}
+}
+
+func (b connURIBuilder) WithUser(user string) connURIBuilder {
 	b.user = user
 	return b
 }
 
-func (b connStringBuilder) WithPassword(password string) connStringBuilder {
+func (b connURIBuilder) WithPassword(password string) connURIBuilder {
 	b.password = password
 	return b
 }
 
-func (b connStringBuilder) WithAddress(address string) connStringBuilder {
+func (b connURIBuilder) WithAddress(address string) connURIBuilder {
 	b.address = address
 	return b
 }
 
-func (b connStringBuilder) WithDBName(dbName string) connStringBuilder {
+func (b connURIBuilder) WithDBName(dbName string) connURIBuilder {
 	b.dbName = dbName
 	return b
 }
 
-func (b connStringBuilder) WithSSLMode(sslMode string) connStringBuilder {
-	b.sslMode = sslMode
+func (b connURIBuilder) withOpt(k, v string) connURIBuilder {
+	newb := b.newLayer()
+	newb.opts[k] = []string{v}
+	return newb
+}
+
+func (b connURIBuilder) WithSSLMode(sslMode string) connURIBuilder {
+	return b.withOpt("sslmode", sslMode)
+}
+
+func (b connURIBuilder) cloneOpts() url.Values {
+	opts := make(url.Values)
+	for k, vs := range b.opts {
+		opts[k] = vs
+	}
+	return opts
+}
+
+func (b connURIBuilder) inherit() connURIBuilder {
+	b.opts = b.cloneOpts()
+
+	if b.prev != nil {
+		prev := b.prev.inherit()
+
+		for opt, vs := range prev.opts {
+			b.opts[opt] = make([]string, len(vs))
+			for i, v := range vs {
+				b.opts[opt][i] = v
+			}
+		}
+
+		if b.user == "" {
+			b.user = prev.user
+		}
+		if b.password == "" {
+			b.password = prev.password
+		}
+		if b.address == "" {
+			b.address = prev.address
+		}
+		if b.dbName == "" {
+			b.dbName = prev.dbName
+		}
+	}
+
 	return b
 }
 
-func (b connStringBuilder) Build() string {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s", b.user, b.password, b.address, b.dbName)
-	if b.sslMode != "" {
-		connStr += "?sslmode=" + b.sslMode
-	}
-	return connStr
+func (b connURIBuilder) Build() string {
+	final := b.inherit()
+
+	return (&url.URL{
+		Scheme:   "postgres",
+		User:     url.UserPassword(final.user, final.password),
+		Host:     final.address,
+		Path:     final.dbName,
+		RawQuery: final.opts.Encode(),
+	}).String()
 }
 
 func TestMain(m *testing.M) {
@@ -67,7 +123,8 @@ func TestMain(m *testing.M) {
 	defer func() { _ = logger.Sync() }()
 	slog := logger.Sugar()
 
-	connString = connString.WithUser("postgres").
+	connURI = connURI.
+		WithUser("postgres").
 		WithPassword("postgres").
 		WithDBName("postgres").
 		WithSSLMode("disable")
@@ -83,7 +140,7 @@ func TestMain(m *testing.M) {
 	resource, err := pool.Run("postgres", postgresVersion, []string{
 		"POSTGRES_USER=postgres",
 		"POSTGRES_PASSWORD=postgres",
-		"POSTGRES_DB=timeterm",
+		"POSTGRES_DB=postgres",
 	})
 	if err != nil {
 		slog.Fatalf("Could not start resource: %v", err)
@@ -94,11 +151,13 @@ func TestMain(m *testing.M) {
 		slog.Fatalf("Could not set expiration for Postgres: %v", err)
 	}
 
-	// Exponential backoff-retry, because the application in the container might not be ready to accept connections yet
+	// Retry with exponential backoff, because the application in the container might
+	// not be ready to accept connections yet immediately after starting.
 	if err := pool.Retry(func() error {
-		connString = connString.WithAddress(net.JoinHostPort("localhost", resource.GetPort("5432/tcp")))
+		connURI = connURI.WithAddress(net.JoinHostPort("localhost", resource.GetPort("5432/tcp")))
+		uri := connURI.Build()
 
-		db, err := sql.Open("postgres", connString.Build())
+		db, err := sql.Open("postgres", uri)
 		if err != nil {
 			return err
 		}
@@ -121,7 +180,7 @@ func TestMain(m *testing.M) {
 
 // createRandomDB creates a new random database with a unique name, safe for concurrently running tests.
 func createRandomDB(t *testing.T) string {
-	db, err := sql.Open("postgres", connString.Build())
+	db, err := sql.Open("postgres", connURI.Build())
 	require.NoError(t, err)
 
 	// Grab a random number and create the database name with it.
@@ -137,7 +196,7 @@ func createRandomDB(t *testing.T) string {
 
 // forceDropDB forces the drop of a database.
 func forceDropDB(t *testing.T, name string) {
-	db, err := sql.Open("postgres", connString.Build())
+	db, err := sql.Open("postgres", connURI.Build())
 	require.NoError(t, err)
 
 	// Don't allow anyone to connect anymore.
@@ -180,7 +239,7 @@ func newFixture(t *testing.T) fixture {
 	log := zapr.NewLogger(logger)
 
 	dbName := createRandomDB(t)
-	dbw, err := New(connString.WithDBName(dbName).Build(), log,
+	dbw, err := New(connURI.WithDBName(dbName).Build(), log,
 		// Set the migrations URL to ./migrations, because the test is run in its own folder.
 		WithMigrationsURL("file://migrations"),
 	)
