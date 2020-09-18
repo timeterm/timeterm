@@ -2,7 +2,11 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	mrand "math/rand"
 	"testing"
+	"time"
 
 	"github.com/go-logr/zapr"
 	"github.com/stretchr/testify/assert"
@@ -10,12 +14,24 @@ import (
 	"go.uber.org/zap"
 )
 
+func createRandomDB(t *testing.T) string {
+	db, err := sql.Open("postgres", connString.Build())
+	require.NoError(t, err)
+
+	name := fmt.Sprintf("timeterm_random_%d", mrand.New(mrand.NewSource(time.Now().UnixNano())).Uint32())
+	_, err = db.Exec("CREATE DATABASE " + name)
+	require.NoError(t, err)
+
+	return name
+}
+
 func TestWrapper_CreateOrganization(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 	defer func() { _ = logger.Sync() }()
 	log := zapr.NewLogger(logger)
 
-	dbw, err := New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", log,
+	dbName := createRandomDB(t)
+	dbw, err := New(connString.WithDBName(dbName).Build(), log,
 		MigrationsURL("file://migrations"),
 	)
 	require.NoError(t, err)

@@ -3,10 +3,14 @@ module gitlab.com/timeterm/timeterm/backend
 go 1.15
 
 require (
+	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect
 	github.com/go-logr/logr v0.2.1
 	github.com/go-logr/zapr v0.2.0
 	github.com/golang-migrate/migrate/v4 v4.12.2
 	github.com/google/uuid v1.1.2
+	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
@@ -14,6 +18,8 @@ require (
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/nats-io/nats-server/v2 v2.1.8 // indirect
 	github.com/nats-io/nats.go v1.10.0
+	github.com/opencontainers/runc v0.1.1 // indirect
+	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	gitlab.com/timeterm/timeterm/proto/go v0.0.0-20200916202911-1291d3598757
@@ -24,4 +30,5 @@ require (
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200917073148-efd3b9a0ff20 // indirect
 	google.golang.org/protobuf v1.25.0
+	gotest.tools v2.2.0+incompatible // indirect
 )
