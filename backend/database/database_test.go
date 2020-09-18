@@ -75,7 +75,7 @@ func TestMain(m *testing.M) {
 	slog.Info("Connecting with Docker")
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		slog.Fatalf("Could not connect to Docker: %s", err)
+		slog.Fatalf("Could not connect to Docker: %v", err)
 	}
 
 	slog.Info("Starting Postgres...")
@@ -86,7 +86,12 @@ func TestMain(m *testing.M) {
 		"POSTGRES_DB=timeterm",
 	})
 	if err != nil {
-		slog.Fatalf("Could not start resource: %s", err)
+		slog.Fatalf("Could not start resource: %v", err)
+	}
+
+	err = resource.Expire(3600)
+	if err != nil {
+		slog.Fatalf("Could not set expiration for Postgres: %v", err)
 	}
 
 	// Exponential backoff-retry, because the application in the container might not be ready to accept connections yet
@@ -99,7 +104,7 @@ func TestMain(m *testing.M) {
 		}
 		return db.Ping()
 	}); err != nil {
-		slog.Fatalf("Could not connect to Docker: %s", err)
+		slog.Fatalf("Could not connect to Docker: %v", err)
 	}
 	slog.Infof("Postgres started in %s, running tests", time.Since(startTime))
 
@@ -107,7 +112,7 @@ func TestMain(m *testing.M) {
 
 	slog.Info("Tests done, terminating Postgres")
 	if err := pool.Purge(resource); err != nil {
-		slog.Fatalf("Could not purge resource: %s", err)
+		slog.Fatalf("Could not purge resource: %v", err)
 	}
 	slog.Info("Postgres terminated successfully")
 
