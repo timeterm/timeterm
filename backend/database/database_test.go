@@ -146,6 +146,8 @@ func TestMain(m *testing.M) {
 		slog.Fatalf("Could not start resource: %v", err)
 	}
 
+	// Delete the database container after 1 hour, the tests really shouldn't run for that long
+	// and the container shouldn't be leaked even if the tests are killed or stopped by uncatchable signals.
 	err = resource.Expire(3600)
 	if err != nil {
 		slog.Fatalf("Could not set expiration for Postgres: %v", err)
