@@ -25,6 +25,14 @@ func createRandomDB(t *testing.T) string {
 	return name
 }
 
+func dropDB(t *testing.T, name string) {
+	db, err := sql.Open("postgres", connString.Build())
+	require.NoError(t, err)
+
+	_, err = db.Exec("DROP DATABASE " + name)
+	require.NoError(t, err)
+}
+
 func TestWrapper_CreateOrganization(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 	defer func() { _ = logger.Sync() }()
@@ -34,6 +42,11 @@ func TestWrapper_CreateOrganization(t *testing.T) {
 	dbw, err := New(connString.WithDBName(dbName).Build(), log,
 		MigrationsURL("file://migrations"),
 	)
+	defer func() { 
+		_ = dbw.Close() 
+		dropDB(t, dbName)
+	}()
+
 	require.NoError(t, err)
 
 	const orgName = "test"
