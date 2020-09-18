@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	mrand "math/rand"
 	"net"
 	"os"
@@ -62,26 +61,33 @@ func (b connStringBuilder) Build() string {
 var connString connStringBuilder
 
 func TestMain(m *testing.M) {
+	logger, _ := zap.NewDevelopment()
+	defer func() { _ = logger.Sync() }()
+	slog := logger.Sugar()
+
 	connString = connString.WithUser("postgres").
 		WithPassword("postgres").
 		WithDBName("postgres").
 		WithSSLMode("disable")
 
+	slog.Info("Connecting with Docker")
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not connect to Docker: %s", err)
+		slog.Fatalf("Could not connect to Docker: %s", err)
 	}
 
+	slog.Info("Starting Postgres...")
+	startTime := time.Now()
 	resource, err := pool.Run("postgres", "12.3", []string{
 		"POSTGRES_USER=postgres",
 		"POSTGRES_PASSWORD=postgres",
 		"POSTGRES_DB=timeterm",
 	})
 	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
+		slog.Fatalf("Could not start resource: %s", err)
 	}
 
-	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
+	// Exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	if err := pool.Retry(func() error {
 		connString = connString.WithAddress(net.JoinHostPort("localhost", resource.GetPort("5432/tcp")))
 
@@ -91,14 +97,17 @@ func TestMain(m *testing.M) {
 		}
 		return db.Ping()
 	}); err != nil {
-		log.Fatalf("Could not connect to Docker: %s", err)
+		slog.Fatalf("Could not connect to Docker: %s", err)
 	}
+	slog.Infof("Postgres started in %s, running tests", time.Since(startTime))
 
 	code := m.Run()
 
+	slog.Info("Tests done, terminating Postgres")
 	if err := pool.Purge(resource); err != nil {
-		log.Fatalf("Could not purge resource: %s", err)
+		slog.Fatalf("Could not purge resource: %s", err)
 	}
+	slog.Info("Postgres terminated")
 
 	os.Exit(code)
 }
@@ -114,8 +123,20 @@ func createRandomDB(t *testing.T) string {
 	return name
 }
 
-func dropDB(t *testing.T, name string) {
+func forceDropDB(t *testing.T, name string) {
 	db, err := sql.Open("postgres", connString.Build())
+	require.NoError(t, err)
+
+	_, err = db.Exec(`
+		UPDATE pg_database SET datallowconn = 'false' WHERE datname = $1;
+	`, name)
+	require.NoError(t, err)
+
+	_, err = db.Exec(`
+		SELECT pg_terminate_backend(pid)
+		FROM pg_stat_activity
+		WHERE datname = $1;
+	`, name)
 	require.NoError(t, err)
 
 	_, err = db.Exec("DROP DATABASE " + name)
@@ -131,7 +152,7 @@ type fixture struct {
 
 func (f fixture) Close() {
 	assert.NoError(f.t, f.dbw.Close())
-	dropDB(f.t, f.dbName)
+	forceDropDB(f.t, f.dbName)
 }
 
 func newFixture(t *testing.T) fixture {
