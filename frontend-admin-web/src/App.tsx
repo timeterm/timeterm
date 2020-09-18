@@ -38,7 +38,11 @@ function App() {
         >
           <Theme use={["primaryBg", "onPrimary"]} wrap>
             <Drawer>
-              <DrawerHeader>
+              <DrawerHeader
+                style={{
+                  marginTop: 16,
+                }}
+              >
                 <img src={Logo} alt={"Timeterm Logo"} width={96} />
               </DrawerHeader>
               <DrawerContent
