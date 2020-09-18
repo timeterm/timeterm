@@ -20,8 +20,15 @@ import (
 
 const postgresVersion = "12.3"
 
+// connURI contains the 'base' connection URI for connecting to the running
+// Postgres instance. It should not be modified by tests. It is configured in TestMain.
+// Tests can use the methods of the connURIBuilder to set options to their content.
 var connURI connURIBuilder
 
+// connURIBuilder is a Postgres connection URI builder, helping with setting common values.
+// Because we don't want to affect the global connURI, none of the methods has a pointer receiver.
+// You can see the connURIBuilder as a fancy (singly) linked list: it keeps a reference to the previous 'layer',
+// and creates a new layer if an option is set (so we don't completely have to clone the url.Values every time).
 type connURIBuilder struct {
 	prev     *connURIBuilder
 	user     string
@@ -31,6 +38,7 @@ type connURIBuilder struct {
 	opts     url.Values
 }
 
+// newLayer creates a new connURIBuilder layer with a reference to the receiver as previous layer.
 func (b connURIBuilder) newLayer() connURIBuilder {
 	return connURIBuilder{
 		prev: &b,
@@ -38,21 +46,26 @@ func (b connURIBuilder) newLayer() connURIBuilder {
 	}
 }
 
+// WithUser sets the user which is used to log into Postgres with.
 func (b connURIBuilder) WithUser(user string) connURIBuilder {
 	b.user = user
 	return b
 }
 
+// WithPassword sets the password which is used to log into Postgres with.
 func (b connURIBuilder) WithPassword(password string) connURIBuilder {
 	b.password = password
 	return b
 }
 
+// WithAddress sets the address which the running Postgres instance is at.
+// Should either be the host or a host:port combination.
 func (b connURIBuilder) WithAddress(address string) connURIBuilder {
 	b.address = address
 	return b
 }
 
+// WithDBName sets the name of the database to connect with.
 func (b connURIBuilder) WithDBName(dbName string) connURIBuilder {
 	b.dbName = dbName
 	return b
@@ -64,10 +77,14 @@ func (b connURIBuilder) withOpt(k, v string) connURIBuilder {
 	return newb
 }
 
+// WithDBName sets the sslmode option.
+// Valid values are: disable, allow, prefer, require, verify-ca, verify-full.
+// See https://www.postgresql.org/docs/current/libpq-ssl.html
 func (b connURIBuilder) WithSSLMode(sslMode string) connURIBuilder {
 	return b.withOpt("sslmode", sslMode)
 }
 
+// cloneOpts makes a shallow copy of the options of the connURIBuilder.
 func (b connURIBuilder) cloneOpts() url.Values {
 	opts := make(url.Values)
 	for k, vs := range b.opts {
@@ -76,6 +93,9 @@ func (b connURIBuilder) cloneOpts() url.Values {
 	return opts
 }
 
+// inherit creates a new connURIBuilder containing all settings from b and its ancestors.
+// If a value is not set by b and b has an ancestor, the value is retrieved from the ancestor.
+// In the case of options (such as sslmode), slices are not concatenated and/or deduplicated for simplicity.
 func (b connURIBuilder) inherit() connURIBuilder {
 	b.opts = b.cloneOpts()
 
@@ -106,6 +126,7 @@ func (b connURIBuilder) inherit() connURIBuilder {
 	return b
 }
 
+// Build builds the connection URI.
 func (b connURIBuilder) Build() string {
 	final := b.inherit()
 
