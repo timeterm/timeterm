@@ -45,8 +45,8 @@ func (b connStringBuilder) WithSSLMode(sslMode string) connStringBuilder {
 }
 
 func (b connStringBuilder) Build() string {
-	connStr := fmt.Sprintf("postgres://%s:%s@(%s)/%s", b.user, b.password, b.address, b.dbName)
-	if b.sslMode == "" {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s", b.user, b.password, b.address, b.dbName)
+	if b.sslMode != "" {
 		connStr += "?sslmode=" + b.sslMode
 	}
 	return connStr
@@ -55,15 +55,16 @@ func (b connStringBuilder) Build() string {
 var connString connStringBuilder
 
 func TestMain(m *testing.M) {
-	connString = connString.WithUser("postgres")
+	connString = connString.WithUser("postgres").
+		WithPassword("postgres").
+		WithDBName("postgres").
+		WithSSLMode("disable")
 
-	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		log.Fatalf("Could not connect to Docker: %s", err)
 	}
 
-	// pulls an image, creates a container based on it and runs it
 	resource, err := pool.Run("postgres", "12.3", []string{
 		"POSTGRES_USER=postgres",
 		"POSTGRES_PASSWORD=postgres",
@@ -83,12 +84,11 @@ func TestMain(m *testing.M) {
 		}
 		return db.Ping()
 	}); err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		log.Fatalf("Could not connect to Docker: %s", err)
 	}
 
 	code := m.Run()
 
-	// You can't defer this because os.Exit doesn't care for defer
 	if err := pool.Purge(resource); err != nil {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
