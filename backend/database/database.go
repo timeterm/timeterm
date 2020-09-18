@@ -42,7 +42,7 @@ func createWrapperOpts(opts []WrapperOpt) wrapperOpts {
 
 type WrapperOpt func(w wrapperOpts) wrapperOpts
 
-func MigrationsURL(url string) WrapperOpt {
+func WithMigrationsURL(url string) WrapperOpt {
 	return func(w wrapperOpts) wrapperOpts {
 		w.migrationsURL = url
 		return w
