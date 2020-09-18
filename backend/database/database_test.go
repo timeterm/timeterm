@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+	"github.com/lib/pq"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -211,7 +212,7 @@ func createRandomDB(t *testing.T) string {
 	name := fmt.Sprintf("timeterm_random_%d", randNum)
 
 	// Create the database.
-	_, err = db.Exec("CREATE DATABASE " + name)
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", pq.QuoteIdentifier(name)))
 	require.NoError(t, err)
 
 	return name
@@ -237,7 +238,7 @@ func forceDropDB(t *testing.T, name string) {
 	require.NoError(t, err)
 
 	// Drop the database.
-	_, err = db.Exec("DROP DATABASE " + name)
+	_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s", pq.QuoteIdentifier(name)))
 	require.NoError(t, err)
 }
 
