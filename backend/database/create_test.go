@@ -24,7 +24,6 @@ func TestWrapper_CreateOrganization(t *testing.T) {
 func TestWrapper_CreateDevice(t *testing.T) {
 	const orgName = "test"
 	const devName = "Device test"
-	const devStatus = DeviceStatusOffline
 
 	f := newFixture(t)
 	defer f.Close()
@@ -32,12 +31,29 @@ func TestWrapper_CreateDevice(t *testing.T) {
 	org, err := f.dbw.CreateOrganization(context.Background(), orgName)
 	require.NoError(t, err)
 
-	dev, err := f.dbw.CreateDevice(context.Background(), org.ID, devName, devStatus)
-	assert.NoError(t, err)
-	assert.NotZero(t, dev.ID)
-	assert.Equal(t, org.ID, dev.OrganizationID)
-	assert.Equal(t, devName, dev.Name)
-	assert.Equal(t, devStatus, dev.Status)
+	checkCreateDeviceResult := func(t *testing.T, status DeviceStatus, dev Device, err error) {
+		t.Helper()
+
+		assert.NoError(t, err)
+		assert.NotZero(t, dev.ID)
+		assert.Equal(t, org.ID, dev.OrganizationID)
+		assert.Equal(t, devName, dev.Name)
+		assert.Equal(t, status, dev.Status)
+	}
+
+	t.Run("Offline", func(t *testing.T) {
+		const devStatus = DeviceStatusOffline
+
+		dev, err := f.dbw.CreateDevice(context.Background(), org.ID, devName, devStatus)
+		checkCreateDeviceResult(t, devStatus, dev, err)
+	})
+
+	t.Run("Online", func(t *testing.T) {
+		const devStatus = DeviceStatusOffline
+
+		dev, err := f.dbw.CreateDevice(context.Background(), org.ID, devName, devStatus)
+		checkCreateDeviceResult(t, devStatus, dev, err)
+	})
 }
 
 func TestWrapper_CreateStudent(t *testing.T) {
