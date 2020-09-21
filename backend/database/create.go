@@ -7,8 +7,8 @@ import (
 )
 
 type Organization struct {
-	ID   uuid.UUID
-	Name string
+	ID                 uuid.UUID
+	Name               string
 	ZermeloInstitution string
 }
 
@@ -33,7 +33,8 @@ type Device struct {
 
 func (w *Wrapper) CreateOrganization(ctx context.Context, name string, zermeloInstitution string) (Organization, error) {
 	org := Organization{
-		Name: name,
+		Name:               name,
+		ZermeloInstitution: zermeloInstitution,
 	}
 
 	row := w.db.QueryRowContext(ctx, `INSERT INTO "organization" ("id", "name", "zermelo_institution") VALUES (DEFAULT, $1, $2) RETURNING "id"`, name, zermeloInstitution)
