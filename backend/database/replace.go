@@ -5,13 +5,19 @@ import (
 )
 
 func (w *Wrapper) ReplaceOrganization(ctx context.Context, org Organization) error {
-	_, err := w.db.ExecContext(ctx, `UPDATE "organization" SET "name" = $1, "zermelo_institution" = $2 WHERE "id" = $3`, org.Name, org.ZermeloInstitution, org.ID)
+	_, err := w.db.ExecContext(ctx,
+		`UPDATE "organization" SET "name" = $1, "zermelo_institution" = $2 WHERE "id" = $3`,
+		org.Name, org.ZermeloInstitution, org.ID,
+	)
 
 	return err
 }
 
 func (w *Wrapper) ReplaceDevice(ctx context.Context, dev Device) error {
-	_, err := w.db.ExecContext(ctx, `UPDATE "device" SET "name" = $1 WHERE "id" = $2`, dev.Name, dev.ID)
+	_, err := w.db.ExecContext(ctx,
+		`UPDATE "device" SET "name" = $1, "organization_id" = $2, "status" = $3 WHERE "id" = $4`,
+		dev.Name, dev.OrganizationID, dev.Status, dev.ID,
+	)
 
 	return err
 }
