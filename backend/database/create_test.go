@@ -52,7 +52,7 @@ func TestWrapper_CreateDevice(t *testing.T) {
 	})
 
 	t.Run("Online", func(t *testing.T) {
-		const devStatus = DeviceStatusOffline
+		const devStatus = DeviceStatusOnline
 
 		dev, err := f.dbw.CreateDevice(context.Background(), org.ID, devName, devStatus)
 		checkCreateDeviceResult(t, devStatus, dev, err)
