@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-
 )
 
 func (w *Wrapper) GetOrganization(ctx context.Context, id uuid.UUID) (*Organization, error) {
