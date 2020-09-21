@@ -66,6 +66,37 @@ paths:
         default:
           $ref:  "#/components/responses/ProblemResponse"
 
+  /organization/{organizationId}:
+    get:
+      operationId: getOrganization
+      summary: Get an organization.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+    patch:
+      operationId: updateOrganization
+      summary: Patch an organization.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                zermelo:
+                  properties:
+                    institution:
+                      type: string
+      responses:
+        '200':
+          description: Organization updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
   /organization/{organizationId}/student:
     post:
       operationId: createStudentInOrganization
@@ -79,6 +110,23 @@ paths:
                 $ref: "#/components/schemas/Student"
         default:
           $ref:  "#/components/responses/ProblemResponse"
+
+  /zermelo/connect:
+    post:
+      operationId: connectZermelo
+      summary: |
+        Connect an organization to Zermelo.
+        The integration will create a new token for itself and destroy the provided token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Connected
 
   /organization/{organizationId}/device:
     post:
@@ -176,6 +224,19 @@ components:
         organizationId:
           type: string
           format: uuid
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        zermelo:
+          properties:
+            institution:
+              type: string
 
     Device:
       type: object
