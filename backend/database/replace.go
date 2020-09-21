@@ -5,7 +5,7 @@ import (
 )
 
 func (w *Wrapper) ReplaceOrganization(ctx context.Context, org Organization) error {
-	_, err := w.db.ExecContext(ctx, `UPDATE "organization" SET "name" = $1 WHERE "id" = $2`, org.Name, org.ID)
+	_, err := w.db.ExecContext(ctx, `UPDATE "organization" SET "name" = $1, "zermelo_institution" = $2 WHERE "id" = $3`, org.Name, org.ZermeloInstitution, org.ID)
 
 	return err
 }

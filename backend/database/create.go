@@ -9,6 +9,7 @@ import (
 type Organization struct {
 	ID   uuid.UUID
 	Name string
+	ZermeloInstitution string
 }
 
 type Student struct {
@@ -30,12 +31,12 @@ type Device struct {
 	Status         DeviceStatus
 }
 
-func (w *Wrapper) CreateOrganization(ctx context.Context, name string) (Organization, error) {
+func (w *Wrapper) CreateOrganization(ctx context.Context, name string, zermeloInstitution string) (Organization, error) {
 	org := Organization{
 		Name: name,
 	}
 
-	row := w.db.QueryRowContext(ctx, `INSERT INTO "organization" ("id", "name") VALUES (DEFAULT, $1) RETURNING "id"`, name)
+	row := w.db.QueryRowContext(ctx, `INSERT INTO "organization" ("id", "name", "zermelo_institution") VALUES (DEFAULT, $1, $2) RETURNING "id"`, name, zermeloInstitution)
 
 	return org, row.Scan(&org.ID)
 }
