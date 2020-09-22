@@ -16,15 +16,15 @@ type ZermeloInfo struct {
 }
 
 type Student struct {
-	ID uuid.UUID `json:"id"`
+	ID             uuid.UUID `json:"id"`
 	OrganizationID uuid.UUID `json:"organization_id"`
 }
 
 type Device struct {
-	ID uuid.UUID `json:"id"`
+	ID             uuid.UUID `json:"id"`
 	OrganizationID uuid.UUID `json:"organization_id"`
-	Name string
-	Status database.DeviceStatus `json:"device_status`
+	Name           string
+	Status         database.DeviceStatus `json:"device_status`
 }
 
 func OrganizationFrom(org database.Organization) Organization {
@@ -39,16 +39,16 @@ func OrganizationFrom(org database.Organization) Organization {
 
 func StudentFrom(student database.Student) Student {
 	return Student{
-		ID: student.ID,
+		ID:             student.ID,
 		OrganizationID: student.OrganizationID,
 	}
 }
 
 func DeviceFrom(device database.Device) Device {
 	return Device{
-		ID: device.ID,
+		ID:             device.ID,
 		OrganizationID: device.OrganizationID,
-		Name: device.Name,
-		Status: device.Status,
+		Name:           device.Name,
+		Status:         device.Status,
 	}
 }
