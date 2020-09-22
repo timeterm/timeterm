@@ -11,7 +11,7 @@ security:
   - ApiKeyAuth: []
 
 servers:
-  - url: 'http://localhost:3000'
+  - url: 'https://api.timeterm.nl/v1/'
 
 paths:
   /zermelo/appointment:
