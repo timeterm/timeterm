@@ -24,7 +24,7 @@ type Device struct {
 	ID             uuid.UUID `json:"id"`
 	OrganizationID uuid.UUID `json:"organization_id"`
 	Name           string
-	Status         database.DeviceStatus `json:"device_status`
+	Status         database.DeviceStatus `json:"device_status"`
 }
 
 func OrganizationFrom(org database.Organization) Organization {
