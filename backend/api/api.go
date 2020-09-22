@@ -32,26 +32,60 @@ func NewServer(db *database.Wrapper) Server {
 }
 
 func (s *Server) registerRoutes() {
-	s.echo.GET("/test", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Leutige boel")
-	})
+	s.echo.GET("/organization/:id", s.getOrganization)
+	s.echo.GET("/student/:id", s.getStudent)
+	s.echo.GET("/device/:id", s.getDevice)
+}
 
-	s.echo.GET("/user/:id", func(c echo.Context) error {
-		id := c.Param("id")
+func (s *Server) getOrganization(c echo.Context) error {
+	id := c.Param("id")
 
-		uid, err := uuid.Parse(id)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
-		}
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
 
-		dbUser, err := s.db.ReadUser(c.Request().Context(), uid)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "could not read user")
-		}
+	dbOrg, err := s.db.GetOrganization(c.Request().Context(), uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read organization from database")
+	}
 
-		apiUser := UserFrom(dbUser)
-		return c.JSON(http.StatusOK, apiUser)
-	})
+	apiOrg := OrganizationFrom(dbOrg)
+	return c.JSON(http.StatusOK, apiOrg)
+}
+
+func (s *Server) getStudent(c echo.Context) error {
+	id := c.Param("id")
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
+
+	dbStudent, err := s.db.GetStudent(c.Request().Context(), uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read student from database")
+	}
+
+	apiStudent := StudentFrom(dbStudent)
+	return c.JSON(http.StatusOK, apiStudent)
+}
+
+func (s *Server) getDevice(c echo.Context) error {
+	id := c.Param("id")
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
+
+	dbDevice, err := s.db.GetDevice(c.Request().Context(), uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read device from database")
+	}
+
+	apiDevice := DeviceFrom(dbDevice)
+	return c.JSON(http.StatusOK, apiDevice)
 }
 
 func (s *Server) Run(ctx context.Context) error {
