@@ -180,6 +180,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
+                      width: "100%"
                     }}
                   >
                     <DeviceStatusIcon status={dev.status} />
