@@ -68,11 +68,19 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
   setSelectedItems,
 }) => {
   const [allSelected, setAllSelected] = useState(SelectionStatus.None);
+
+  // toggleAllSelected updates the selection status when the 'all selected' checkbox is ticked.
+  // If currently no items are selected, all items are selected. If some but not all items are
+  // checked, all items are selected. If all items are selected, the selection is cleared.
   const toggleAllSelected = () => {
+    // Get the opposite selection status of the current.
     const newStatus = oppositeSelectionStatus(allSelected);
 
+    // Update the 'all selected' checkbox with the new status.
     setAllSelected(newStatus);
 
+    // If the new selection status is 'All', then select all items (tick the checkbox).
+    // Otherwise, unselect all items (untick the checkbox).
     setCheckboxProps(
       Object.fromEntries(
         Object.entries(checkboxProps).map(([k, props]) => {
@@ -82,6 +90,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
     );
   };
 
+  // allSelectedProps contains the props for the 'all selected' checkbox.
   const allSelectedProps = useMemo<CheckboxProps>(() => {
     return {
       indeterminate: allSelected === SelectionStatus.Some,
@@ -89,31 +98,43 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
     };
   }, [allSelected]);
 
+  // checkboxProps contains the props for each checkbox (in each device row).
   const [checkboxProps, setCheckboxProps] = useState(
+    // Create an initial list of checkbox props where each device is not selected by default.
     devices.reduce((accProps, _dev, i) => {
       return { ...accProps, [i]: { checked: false } };
     }, {} as { [key: number]: Parameters<typeof Checkbox>[0] })
   );
 
+  // This effect is used to determine if all devices are selected (or some) to make the 
+  // 'all selected' checkbox show the correct state (indeterminate meaning 
+  // partial selection and checked meaning all on the current page selected).
   useEffect(() => {
     const selectedCheckboxes = Object.values(checkboxProps).filter(
       (props) => props.checked
     );
 
     const numSelected = selectedCheckboxes.length;
-
     const numCheckboxes = Object.keys(checkboxProps).length;
+
     if (numSelected === 0) {
+      // Not even a single device is selected, set the status to unchecked (empty selection).
       setAllSelected(SelectionStatus.None);
     } else if (numSelected < numCheckboxes) {
+      // Not all devices are selected, set the status to indeterminate (partial selection).
       setAllSelected(SelectionStatus.Some);
     } else {
+      // All devices are selected, set the status to checked (full selection).
       setAllSelected(SelectionStatus.All);
     }
 
+    // Propagate the selected items to the parent element so they can use the IDs of the
+    // selected devices (the device ID is put into the tag of the checkbox).
+    // TODO(rutgerbrf): this is really weird, perhaps don't use props?
     setSelectedItems(selectedCheckboxes.map((props) => props.tag));
   }, [checkboxProps, setSelectedItems]);
 
+  // toggleSelectionStatus toggles the selection status of the checkbox with the key i.
   const toggleSelectionStatus = (i: number) => {
     setCheckboxProps({
       ...checkboxProps,
