@@ -60,13 +60,19 @@ function oppositeSelectionStatus(s: SelectionStatus): SelectionStatus {
 
 interface DevicesTableProps {
   devices: Device[];
-  setSelectedItems: (items: string[]) => void;
+  setSelectedItems: (items: Device[]) => void;
+}
+
+interface DeviceTableItem {
+  device: Device;
+  selected: boolean;
 }
 
 const DevicesTable: React.FC<DevicesTableProps> = ({
   devices,
   setSelectedItems,
 }) => {
+  // By default no items are selected.
   const [allSelected, setAllSelected] = useState(SelectionStatus.None);
 
   // toggleAllSelected updates the selection status when the 'all selected' checkbox is ticked.
@@ -81,10 +87,10 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
 
     // If the new selection status is 'All', then select all items (tick the checkbox).
     // Otherwise, unselect all items (untick the checkbox).
-    setCheckboxProps(
+    setItems(
       Object.fromEntries(
-        Object.entries(checkboxProps).map(([k, props]) => {
-          return [k, { ...props, checked: newStatus === SelectionStatus.All }];
+        Object.entries(items).map(([k, item]) => {
+          return [k, { ...item, selected: newStatus === SelectionStatus.All }];
         })
       )
     );
@@ -98,24 +104,32 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
     };
   }, [allSelected]);
 
-  // checkboxProps contains the props for each checkbox (in each device row).
-  const [checkboxProps, setCheckboxProps] = useState(
-    // Create an initial list of checkbox props where each device is not selected by default.
-    devices.reduce((accProps, _dev, i) => {
-      return { ...accProps, [i]: { checked: false } };
-    }, {} as { [key: number]: Parameters<typeof Checkbox>[0] })
+  // Create a map where the key is the key of the device item and the value is a DeviceItem
+  // which contains the device itself an its selection status. This map is used to determine
+  // whether the device item is selected or not, and to provide information about the current
+  // selection to the parent element (for API calls).
+  const [items, setItems] = useState(
+    devices.reduce((accItems, dev, i) => {
+      return {
+        ...accItems,
+        [i]: {
+          device: dev,
+          selected: false,
+        },
+      };
+    }, {} as { [key: number]: DeviceTableItem })
   );
 
-  // This effect is used to determine if all devices are selected (or some) to make the 
-  // 'all selected' checkbox show the correct state (indeterminate meaning 
+  // This effect is used to determine if all devices are selected (or some) to make the
+  // 'all selected' checkbox show the correct state (indeterminate meaning
   // partial selection and checked meaning all on the current page selected).
   useEffect(() => {
-    const selectedCheckboxes = Object.values(checkboxProps).filter(
-      (props) => props.checked
+    const selectedCheckboxes = Object.values(items).filter(
+      (item) => item.selected
     );
 
     const numSelected = selectedCheckboxes.length;
-    const numCheckboxes = Object.keys(checkboxProps).length;
+    const numCheckboxes = Object.keys(items).length;
 
     if (numSelected === 0) {
       // Not even a single device is selected, set the status to unchecked (empty selection).
@@ -128,19 +142,17 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
       setAllSelected(SelectionStatus.All);
     }
 
-    // Propagate the selected items to the parent element so they can use the IDs of the
-    // selected devices (the device ID is put into the tag of the checkbox).
-    // TODO(rutgerbrf): this is really weird, perhaps don't use props?
-    setSelectedItems(selectedCheckboxes.map((props) => props.tag));
-  }, [checkboxProps, setSelectedItems]);
+    // Propagate the selected items to the parent element so they can use the IDs of the selected devices.
+    setSelectedItems(selectedCheckboxes.map((item) => item.device));
+  }, [items, setSelectedItems]);
 
   // toggleSelectionStatus toggles the selection status of the checkbox with the key i.
   const toggleSelectionStatus = (i: number) => {
-    setCheckboxProps({
-      ...checkboxProps,
+    setItems({
+      ...items,
       [i]: {
-        ...checkboxProps[i],
-        checked: !checkboxProps[i].checked,
+        ...items[i],
+        selected: !items[i].selected,
       },
     });
   };
@@ -184,13 +196,13 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           <DataTableBody>
             {devices.map((dev, i) => {
               return (
-                <DataTableRow selected={checkboxProps[i].checked} key={i}>
+                <DataTableRow selected={items[i].selected} key={i}>
                   <DataTableCell
                     hasFormControl
                     style={{ whiteSpace: "nowrap" }}
                   >
                     <Checkbox
-                      {...checkboxProps[i]}
+                      checked={items[i].selected}
                       tag={dev.id}
                       onClick={() => toggleSelectionStatus(i)}
                     />
@@ -201,7 +213,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      width: "100%"
+                      width: "100%",
                     }}
                   >
                     <DeviceStatusIcon status={dev.status} />

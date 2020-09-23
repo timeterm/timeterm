@@ -12,11 +12,11 @@ import {
 import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider, Theme } from "@rmwc/theme";
 import Logo from "./logo-white.svg";
-import DevicesTable, { DeviceStatus } from "./DevicesTable";
+import DevicesTable, { DeviceStatus, Device } from "./DevicesTable";
 import { Button } from "@rmwc/button";
 
 function App() {
-  const [selectedItems, setSelectedItems] = useState([] as string[]);
+  const [selectedItems, setSelectedItems] = useState([] as Device[]);
 
   return (
     <ThemeProvider
