@@ -132,6 +132,11 @@ paths:
     post:
       operationId: createDeviceInOrganization
       summary: Create a new device in an organization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Device"
       responses:
         '200':
           description: Device created
