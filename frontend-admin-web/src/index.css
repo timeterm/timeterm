@@ -12,3 +12,7 @@ body {
 #root {
   height: 100%;
 }
+
+.mdc-checkbox__mixedmark {
+    background-color: var(--mdc-theme-text-primary-on-dark);
+}
