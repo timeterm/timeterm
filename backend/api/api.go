@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"gitlab.com/timeterm/timeterm/backend/database"
@@ -11,6 +12,7 @@ import (
 
 type Server struct {
 	db   *database.Wrapper
+	log  logr.Logger
 	echo *echo.Echo
 }
 
@@ -21,9 +23,10 @@ func newEcho() *echo.Echo {
 	return e
 }
 
-func NewServer(db *database.Wrapper) Server {
+func NewServer(db *database.Wrapper, log logr.Logger) Server {
 	server := Server{
 		db:   db,
+		log:  log,
 		echo: newEcho(),
 	}
 	server.registerRoutes()
@@ -35,6 +38,7 @@ func (s *Server) registerRoutes() {
 	s.echo.GET("/organization/:id", s.getOrganization)
 	s.echo.GET("/student/:id", s.getStudent)
 	s.echo.GET("/device/:id", s.getDevice)
+	s.echo.POST("/organization/:organization/student", s.createStudent)
 }
 
 func (s *Server) getOrganization(c echo.Context) error {
@@ -86,6 +90,24 @@ func (s *Server) getDevice(c echo.Context) error {
 
 	apiDevice := DeviceFrom(dbDevice)
 	return c.JSON(http.StatusOK, apiDevice)
+}
+
+func (s *Server) createStudent(c echo.Context) error {
+	organizationID := c.Param("organization")
+
+	uid, err := uuid.Parse(organizationID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
+
+	dbStudent, err := s.db.CreateStudent(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not create student")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not create student")
+	}
+
+	apiStudent := StudentFrom(dbStudent)
+	return c.JSON(http.StatusOK, apiStudent)
 }
 
 func (s *Server) Run(ctx context.Context) error {

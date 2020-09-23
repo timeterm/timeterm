@@ -22,6 +22,6 @@ func main() {
 		sugar.Fatalf("Could not open database: %v", err)
 	}
 
-	server := api.NewServer(db)
+	server := api.NewServer(db, log)
 	sugar.Fatalf("Error running API server: %v", server.Run(context.Background()))
 }
