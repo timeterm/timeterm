@@ -39,6 +39,7 @@ func (s *Server) registerRoutes() {
 	s.echo.GET("/student/:id", s.getStudent)
 	s.echo.GET("/device/:id", s.getDevice)
 	s.echo.POST("/organization/:organization/student", s.createStudent)
+	s.echo.POST("/organization/:organization/device", s.createDevice)
 }
 
 func (s *Server) getOrganization(c echo.Context) error {
@@ -108,6 +109,30 @@ func (s *Server) createStudent(c echo.Context) error {
 
 	apiStudent := StudentFrom(dbStudent)
 	return c.JSON(http.StatusOK, apiStudent)
+}
+
+func (s *Server) createDevice(c echo.Context) error {
+	organizationID := c.Param("organization")
+
+	uid, err := uuid.Parse(organizationID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
+
+	var dev Device
+	err = c.Bind(&dev)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not bind data")
+	}
+
+	dbDevice, err := s.db.CreateDevice(c.Request().Context(), uid, dev.Name, dev.Status)
+	if err != nil {
+		s.log.Error(err, "could not create device")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not create device")
+	}
+
+	apiDevice := DeviceFrom(dbDevice)
+	return c.JSON(http.StatusOK, apiDevice)
 }
 
 func (s *Server) Run(ctx context.Context) error {
