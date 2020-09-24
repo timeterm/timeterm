@@ -89,9 +89,6 @@ ApplicationWindow {
         }
 
         Component.onCompleted: {
-            console.log()
-            console.log()
-
             natsConn.connect()
         }
 
