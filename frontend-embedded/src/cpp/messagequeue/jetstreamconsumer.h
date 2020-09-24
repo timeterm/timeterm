@@ -47,7 +47,7 @@ private:
 class JetStreamConsumer: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MessageQueue::NatsConnection *target READ target WRITE setTarget NOTIFY targetChanged)
+    Q_PROPERTY(MessageQueue::NatsConnection *connection READ connection WRITE setConnection NOTIFY connectionChanged)
     Q_PROPERTY(QString subject READ subject WRITE setSubject NOTIFY subjectChanged)
     Q_PROPERTY(QString stream READ stream WRITE setStream NOTIFY streamChanged)
     Q_PROPERTY(QString consumerId READ consumerId WRITE setConsumerId NOTIFY consumerIdChanged)
@@ -63,20 +63,19 @@ public:
     void setStream(const QString &stream);
     [[nodiscard]] QString consumerId() const;
     void setConsumerId(const QString &consumerId);
-    [[nodiscard]] NatsConnection *target() const;
-    void setTarget(NatsConnection *target);
+    [[nodiscard]] NatsConnection *connection() const;
+    void setConnection(NatsConnection *connection);
     [[nodiscard]] JetStreamConsumerType::Enum type() const;
     void setType(JetStreamConsumerType::Enum consumerType);
 
     Q_INVOKABLE void start();
 
 signals:
-    void targetChanged();
+    void connectionChanged();
     void subjectChanged();
     void streamChanged();
     void consumerIdChanged();
     void typeChanged();
-    void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &msg);
     void disownTokenMessage(const MessageQueue::DisownTokenMessage &msg);
     void retrieveNewTokenMessage(const MessageQueue::RetrieveNewTokenMessage &msg);
 
@@ -93,8 +92,7 @@ private:
     QString m_consumerId;
     JetStreamConsumerType::Enum m_type = JetStreamConsumerType::Pull;
     QThread m_workerThread;
-    natsSubscription *m_sub = nullptr;
-    NatsConnection *m_target = nullptr;
+    NatsConnection *m_connection = nullptr;
 };
 
 } // namespace MessageQueue

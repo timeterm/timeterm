@@ -112,7 +112,7 @@ ApplicationWindow {
 
     JetStreamConsumer {
         id: disownSub
-        target: natsConn
+        connection: natsConn
         stream: "DISOWN-TOKEN"
         consumerId: "ozuhLrexlBa4p50INjihAl"
         type: JetStreamConsumerType.Pull

@@ -18,9 +18,6 @@ JetStreamConsumer::JetStreamConsumer(QObject *parent)
 
 JetStreamConsumer::~JetStreamConsumer()
 {
-    if (m_sub != nullptr)
-        natsSubscription_Destroy(m_sub);
-
     m_workerThread.quit();
     m_workerThread.wait();
 }
@@ -38,30 +35,33 @@ void JetStreamConsumer::setSubject(const QString &subject)
     }
 }
 
-NatsConnection *JetStreamConsumer::target() const
+NatsConnection *JetStreamConsumer::connection() const
 {
-    return m_target;
+    return m_connection;
 }
 
-void JetStreamConsumer::setTarget(NatsConnection *target)
+void JetStreamConsumer::setConnection(NatsConnection *connection)
 {
-    if (target != m_target) {
-        m_target = target;
-        emit targetChanged();
+    if (connection != m_connection) {
+        m_connection = connection;
+        emit connectionChanged();
     }
 }
 
 void JetStreamConsumer::start()
 {
-    if (m_target == nullptr || m_sub != nullptr) return;
+    if (m_connection == nullptr) {
+        qCritical("JetStreamConsumer::start() called without a connection, not starting");
+        return;
+    }
 
-    auto conn = m_target->getConnection();
+    auto conn = m_connection->getConnection();
 
     QtConcurrent::run(
-        [this, conn](NatsConnection *target, JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
+        [this, conn](JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
             switch (type) {
             case JetStreamConsumerType::Push:
-                qCritical() << "Push consumers are currently not supported";
+                qCritical("Push consumers are currently not supported");
                 break;
             case JetStreamConsumerType::Pull:
                 if (m_workerThread.isRunning()) {
@@ -79,7 +79,7 @@ void JetStreamConsumer::start()
                 break;
             }
         },
-        m_target, m_type, m_stream, m_consumerId);
+        m_type, m_stream, m_consumerId);
 }
 
 void JetStreamConsumer::handleMessage(natsMsg *msg)
@@ -205,7 +205,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
     });
 
     if (m_conn.isNull()) {
-        qWarning() << "Not consuming next message, m_conn is null";
+        qWarning("Not consuming next message, m_conn is null");
         return;
     }
 
@@ -243,6 +243,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
 
     emit messageReceived(reply);
 
+    // Acknowledge having received the message so JetStream doesn't redeliver it indefinitely.
     natsMsg *ackReply = nullptr;
     status = natsConnection_RequestString(&ackReply, *m_conn, natsMsg_GetReply(*reply), "", 1000);
     if (status != NATS_OK) {
@@ -250,9 +251,12 @@ void JetStreamPullConsumerWorker::getNextMessage()
         m_timer.setInterval(1000);
 
         qWarning() << "Could not acknowledge JetStream message:" << natsStatus_GetText(status);
+        return;
     }
-    natsMsg_Destroy(ackReply);
+    if (ackReply != nullptr)
+        natsMsg_Destroy(ackReply);
 
+    // Everything went well, we can keep on consuming.
     m_timer.setInterval(0);
 }
 
