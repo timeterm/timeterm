@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
@@ -40,6 +43,7 @@ func (s *Server) registerRoutes() {
 	s.echo.GET("/device/:id", s.getDevice)
 	s.echo.POST("/organization/:organization/student", s.createStudent)
 	s.echo.POST("/organization/:organization/device", s.createDevice)
+	s.echo.PATCH("/organization/:id", s.patchOrganization)
 }
 
 func (s *Server) getOrganization(c echo.Context) error {
@@ -133,6 +137,57 @@ func (s *Server) createDevice(c echo.Context) error {
 
 	apiDevice := DeviceFrom(dbDevice)
 	return c.JSON(http.StatusOK, apiDevice)
+}
+
+func (s *Server) patchOrganization(c echo.Context) error {
+	organizationID := c.Param("id")
+
+	uid, err := uuid.Parse(organizationID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+	}
+
+	bytes, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		s.log.Error(err, "could not read request body")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read request body")
+	}
+
+	oldDBOrganization, err := s.db.GetOrganization(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not read organization from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read organization from database")
+	}
+
+	jsonOrganization, err := json.Marshal(oldDBOrganization)
+	if err != nil {
+		s.log.Error(err, "could not marshal the old organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not marshal the old organization")
+	}
+
+	newJSONOrganization, err := jsonpatch.MergePatch(bytes, jsonOrganization)
+	if err != nil {
+		s.log.Error(err, "could not patch the organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not patch the organization")
+	}
+
+	var newOrganization database.Organization
+	err = json.Unmarshal(newJSONOrganization, &newOrganization)
+	if err != nil {
+		s.log.Error(err, "could not unmarshal patched organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not unmarshal patched organization")
+	}
+
+	newOrganization.ID = uid
+
+	err = s.db.ReplaceOrganization(c.Request().Context(), newOrganization)
+	if err != nil {
+		s.log.Error(err, "could not update the organization in the database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not update the organization in the database")
+	}
+
+	apiOrganization := OrganizationFrom(newOrganization)
+	return c.JSON(http.StatusOK, apiOrganization)
 }
 
 func (s *Server) Run(ctx context.Context) error {
