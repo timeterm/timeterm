@@ -159,7 +159,9 @@ func (s *Server) patchOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not read organization from database")
 	}
 
-	jsonOrganization, err := json.Marshal(oldDBOrganization)
+	oldAPIOrganization := OrganizationFrom(oldDBOrganization)
+
+	jsonOrganization, err := json.Marshal(oldAPIOrganization)
 	if err != nil {
 		s.log.Error(err, "could not marshal the old organization")
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not marshal the old organization")
