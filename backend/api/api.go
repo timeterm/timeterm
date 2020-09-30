@@ -173,22 +173,24 @@ func (s *Server) patchOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not patch the organization")
 	}
 
-	var newOrganization database.Organization
-	err = json.Unmarshal(newJSONOrganization, &newOrganization)
+	var newAPIOrganization Organization
+	err = json.Unmarshal(newJSONOrganization, &newAPIOrganization)
 	if err != nil {
 		s.log.Error(err, "could not unmarshal patched organization")
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not unmarshal patched organization")
 	}
 
-	newOrganization.ID = uid
+	newAPIOrganization.ID = uid
+	
+	newDBOrganization := OrganisationToDB(newAPIOrganization)
 
-	err = s.db.ReplaceOrganization(c.Request().Context(), newOrganization)
+	err = s.db.ReplaceOrganization(c.Request().Context(), newDBOrganization)
 	if err != nil {
 		s.log.Error(err, "could not update the organization in the database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not update the organization in the database")
 	}
 
-	apiOrganization := OrganizationFrom(newOrganization)
+	apiOrganization := OrganizationFrom(newDBOrganization)
 	return c.JSON(http.StatusOK, apiOrganization)
 }
 

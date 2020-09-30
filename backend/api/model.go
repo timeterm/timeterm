@@ -37,6 +37,14 @@ func OrganizationFrom(org database.Organization) Organization {
 	}
 }
 
+func OrganisationToDB(org Organization) database.Organization {
+	return database.Organization{
+		ID: org.ID,
+		Name: org.Name,
+		ZermeloInstitution: org.Zermelo.Institution,
+	}
+}
+
 func StudentFrom(student database.Student) Student {
 	return Student{
 		ID:             student.ID,
