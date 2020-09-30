@@ -27,10 +27,6 @@ type Device struct {
 	Status         database.DeviceStatus `json:"device_status"`
 }
 
-type Devices struct {
-	Devices []Device `json:"devices"`
-}
-
 func OrganizationFrom(org database.Organization) Organization {
 	return Organization{
 		ID:   org.ID,
@@ -65,10 +61,17 @@ func DeviceFrom(device database.Device) Device {
 	}
 }
 
-func DevicesFrom(devices database.Devices) Devices {
-	return Devices{
-		Devices: []Device{
+func DevicesFrom(dbDevices []database.Device) []Device {
+	apiDevices := []Device{}
 
-		},
+	for _, dev := range dbDevices {
+		apiDev := Device{
+			ID:             dev.ID,
+			OrganizationID: dev.OrganizationID,
+			Name:           dev.Name,
+			Status:         dev.Status,
+		}
+		apiDevices = append(apiDevices, apiDev)
 	}
+	return apiDevices
 }

@@ -193,7 +193,7 @@ func (s *Server) patchOrganization(c echo.Context) error {
 	}
 
 	newAPIOrganization.ID = uid
-	
+
 	newDBOrganization := OrganisationToDB(newAPIOrganization)
 
 	err = s.db.ReplaceOrganization(c.Request().Context(), newDBOrganization)

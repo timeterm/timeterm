@@ -30,8 +30,8 @@ func (w *Wrapper) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 	return device, err
 }
 
-func (w *Wrapper) GetDevices(ctx context.Context) (Devices, error) {
-	var devices Devices
+func (w *Wrapper) GetDevices(ctx context.Context) ([]Device, error) {
+	var devices []Device
 
 	err := w.db.GetContext(ctx, &devices, `SELECT * FROM "device"`)
 	
