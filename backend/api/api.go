@@ -41,6 +41,7 @@ func (s *Server) registerRoutes() {
 	s.echo.GET("/organization/:id", s.getOrganization)
 	s.echo.GET("/student/:id", s.getStudent)
 	s.echo.GET("/device/:id", s.getDevice)
+	s.echo.GET("/device", s.getDevices)
 	s.echo.POST("/organization/:organization/student", s.createStudent)
 	s.echo.POST("/organization/:organization/device", s.createDevice)
 	s.echo.PATCH("/organization/:id", s.patchOrganization)
@@ -95,6 +96,17 @@ func (s *Server) getDevice(c echo.Context) error {
 
 	apiDevice := DeviceFrom(dbDevice)
 	return c.JSON(http.StatusOK, apiDevice)
+}
+
+func (s *Server) getDevices(c echo.Context) error {
+	dbDevices, err := s.db.GetDevices(c.Request().Context())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read devices from database")
+	}
+
+	apiDevices := DevicesFrom(dbDevices)
+
+	return c.JSON(http.StatusOK, apiDevices)
 }
 
 func (s *Server) createStudent(c echo.Context) error {

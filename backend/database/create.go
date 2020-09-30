@@ -31,6 +31,10 @@ type Device struct {
 	Status         DeviceStatus
 }
 
+type Devices struct {
+	Devices []Device
+}
+
 func (w *Wrapper) CreateOrganization(ctx context.Context, name string, zermeloInstitution string) (Organization, error) {
 	org := Organization{
 		Name:               name,

@@ -21,10 +21,14 @@ type Student struct {
 }
 
 type Device struct {
-	ID             uuid.UUID `json:"id"`
-	OrganizationID uuid.UUID `json:"organization_id"`
-	Name           string
+	ID             uuid.UUID             `json:"id"`
+	OrganizationID uuid.UUID             `json:"organization_id"`
+	Name           string                `json:"name"`
 	Status         database.DeviceStatus `json:"device_status"`
+}
+
+type Devices struct {
+	Devices []Device `json:"devices"`
 }
 
 func OrganizationFrom(org database.Organization) Organization {
@@ -39,8 +43,8 @@ func OrganizationFrom(org database.Organization) Organization {
 
 func OrganisationToDB(org Organization) database.Organization {
 	return database.Organization{
-		ID: org.ID,
-		Name: org.Name,
+		ID:                 org.ID,
+		Name:               org.Name,
 		ZermeloInstitution: org.Zermelo.Institution,
 	}
 }
@@ -58,5 +62,13 @@ func DeviceFrom(device database.Device) Device {
 		OrganizationID: device.OrganizationID,
 		Name:           device.Name,
 		Status:         device.Status,
+	}
+}
+
+func DevicesFrom(devices database.Devices) Devices {
+	return Devices{
+		Devices: []Device{
+
+		},
 	}
 }
