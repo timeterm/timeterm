@@ -190,8 +190,7 @@ func (s *Server) patchOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not update the organization in the database")
 	}
 
-	apiOrganization := OrganizationFrom(newDBOrganization)
-	return c.JSON(http.StatusOK, apiOrganization)
+	return c.JSON(http.StatusOK, newAPIOrganization)
 }
 
 func (s *Server) Run(ctx context.Context) error {
