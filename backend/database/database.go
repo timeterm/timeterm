@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -14,16 +15,19 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-const version = 3
+const version = 4
 
 // Wrapper wraps the PostgreSQL database.
 type Wrapper struct {
 	db     *sqlx.DB
 	logger logr.Logger
+
+	stopJanitor func()
 }
 
 type wrapperOpts struct {
 	migrationsURL string
+	janitorOn     bool
 }
 
 func newWrapperOpts() wrapperOpts {
@@ -49,6 +53,13 @@ func WithMigrationsURL(url string) WrapperOpt {
 	}
 }
 
+func WithJanitor(on bool) WrapperOpt {
+	return func(w wrapperOpts) wrapperOpts {
+		w.janitorOn = on
+		return w
+	}
+}
+
 // New opens the database and creates a new database wrapper.
 func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 	options := createWrapperOpts(opts)
@@ -65,10 +76,30 @@ func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	return &Wrapper{db: db, logger: log}, nil
+	wrapper := &Wrapper{db: db, logger: log}
+
+	if options.janitorOn {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		donec := make(chan struct{})
+		go func() {
+			wrapper.runJanitor(ctx)
+			close(donec)
+		}()
+
+		wrapper.stopJanitor = func() {
+			cancel()
+			<-donec
+		}
+	}
+
+	return wrapper, nil
 }
 
 func (w *Wrapper) Close() error {
+	if w.stopJanitor != nil {
+		w.stopJanitor()
+	}
 	return w.db.Close()
 }
 

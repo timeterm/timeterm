@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,6 +16,29 @@ type Organization struct {
 type Student struct {
 	ID             uuid.UUID
 	OrganizationID uuid.UUID
+}
+
+type OAuth2State struct {
+	State       uuid.UUID
+	Issuer      string
+	RedirectURL string
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+}
+
+func (w *Wrapper) CreateOAuth2State(ctx context.Context, issuer, redirectURL string) (OAuth2State, error) {
+	state := OAuth2State{
+		Issuer:      issuer,
+		RedirectURL: redirectURL,
+	}
+
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "oauth2_state" ("state", "issuer", "redirect_url")
+		VALUES (DEFAULT, $1, $2)
+		RETURNING "state"
+	`, issuer, redirectURL)
+
+	return state, row.Scan(&state.State)
 }
 
 type DeviceStatus string

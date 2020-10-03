@@ -20,3 +20,8 @@ func (w *Wrapper) DeleteDevice(ctx context.Context, id uuid.UUID) error {
 	_, err := w.db.ExecContext(ctx, `DELETE FROM "device" WHERE "id" = $1`, id)
 	return err
 }
+
+func (w *Wrapper) DeleteOldOAuth2States(ctx context.Context) error {
+	_, err := w.db.ExecContext(ctx, `DELETE FROM "oauth2_state" WHERE "expires_at" < now()`)
+	return err
+}

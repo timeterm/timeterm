@@ -5,9 +5,10 @@ import (
 
 	"github.com/go-logr/zapr"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -17,7 +18,9 @@ func main() {
 	log := zapr.NewLogger(logger)
 	sugar := logger.Sugar()
 
-	db, err := database.New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", log)
+	db, err := database.New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", log,
+		database.WithJanitor(true),
+	)
 	if err != nil {
 		sugar.Fatalf("Could not open database: %v", err)
 	}
