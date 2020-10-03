@@ -20,4 +20,7 @@ CREATE TABLE "oidc_federation"
     FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE
 );
 
+ALTER TABLE "user"
+    DROP COLUMN "keycloak_subject";
+
 COMMIT;
