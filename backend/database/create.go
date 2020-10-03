@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/sha3"
 )
 
 type Organization struct {
@@ -26,19 +27,18 @@ type OAuth2State struct {
 	ExpiresAt   time.Time
 }
 
-func (w *Wrapper) CreateOAuth2State(ctx context.Context, issuer, redirectURL string) (OAuth2State, error) {
-	state := OAuth2State{
-		Issuer:      issuer,
-		RedirectURL: redirectURL,
-	}
+type OIDCFederation struct {
+	OIDCIssuer   string
+	OIDCSubject  string
+	OIDCAudience string
+	UserID       uuid.UUID
+}
 
-	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "oauth2_state" ("state", "issuer", "redirect_url")
-		VALUES (DEFAULT, $1, $2)
-		RETURNING "state"
-	`, issuer, redirectURL)
-
-	return state, row.Scan(&state.State)
+type User struct {
+	ID             uuid.UUID
+	Name           string
+	Email          string
+	OrganizationID uuid.UUID
 }
 
 type DeviceStatus string
@@ -86,4 +86,67 @@ func (w *Wrapper) CreateDevice(ctx context.Context, organizationID uuid.UUID, na
 	row := w.db.QueryRowContext(ctx, `INSERT INTO "device" ("id", "organization_id", "name", "status") VALUES (DEFAULT, $1, $2, $3) RETURNING "id"`, organizationID, name, status)
 
 	return dev, row.Scan(&dev.ID)
+}
+
+func (w *Wrapper) CreateOAuth2State(ctx context.Context, issuer, redirectURL string) (OAuth2State, error) {
+	state := OAuth2State{
+		Issuer:      issuer,
+		RedirectURL: redirectURL,
+	}
+
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "oauth2_state" ("state", "issuer", "redirect_url")
+		VALUES (DEFAULT, $1, $2)
+		RETURNING "state"
+	`, issuer, redirectURL)
+
+	return state, row.Scan(&state.State)
+}
+
+func (w *Wrapper) CreateOIDCFederation(ctx context.Context, federation OIDCFederation) (OIDCFederation, error) {
+	_, err := w.db.ExecContext(ctx, `
+		INSERT INTO "oidc_federation" (oidc_subject, oidc_issuer, oidc_audience, user_id)
+		VALUES ($1, $2, $3, $4)
+	`, federation.OIDCSubject, federation.OIDCIssuer, federation.OIDCAudience, federation.UserID)
+
+	return federation, err
+}
+
+func (w *Wrapper) CreateUser(ctx context.Context, name, email string, organizationID uuid.UUID) (User, error) {
+	user := User{
+		Name:           name,
+		Email:          email,
+		OrganizationID: organizationID,
+	}
+
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "user" (id, name, email, organization_id) 
+		VALUES (DEFAULT, $1, $2, $3)
+		RETURNING "id"
+	`, name, email, organizationID)
+
+	return user, row.Scan(&user.ID)
+}
+
+func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	token := uuid.New()
+
+	h := sha3.NewShake256()
+	_, err := h.Write(token[:])
+	if err != nil {
+		return token, err
+	}
+
+	hash := make([]byte, 64)
+	_, err = h.Read(hash)
+	if err != nil {
+		return token, err
+	}
+
+	_, err = w.db.ExecContext(ctx, `
+		INSERT INTO "user_token" ("token_hash", "user_id", "created_at", "expires_at")
+		VALUES ($1, $2, DEFAULT, DEFAULT)
+	`, hash, userID)
+
+	return token, err
 }

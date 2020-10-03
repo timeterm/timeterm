@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE "user"
+    DROP COLUMN "email";
+
+COMMIT;

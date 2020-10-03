@@ -40,6 +40,28 @@ func (w *Wrapper) GetDevices(ctx context.Context) ([]Device, error) {
 	return devices, err
 }
 
+func (w *Wrapper) GetUserByOIDCFederation(ctx context.Context, federation OIDCFederation) (User, error) {
+	var user User
+
+	err := w.db.GetContext(ctx, &user, `
+		SELECT "user".* FROM "user"
+		INNER JOIN oidc_federation o ON "user".id = o.user_id
+		WHERE o.oidc_subject = $1
+		AND o.oidc_issuer = $2
+		LIMIT 1
+	`, federation.OIDCSubject, federation.OIDCIssuer)
+
+	return user, err
+}
+
+func (w *Wrapper) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	var user User
+
+	err := w.db.GetContext(ctx, &user, `SELECT * FROM "user" WHERE "email" = $1`, email)
+
+	return user, err
+}
+
 func (w *Wrapper) GetOAuth2State(ctx context.Context, state uuid.UUID) (OAuth2State, error) {
 	tx, err := w.db.Begin()
 	if err != nil {

@@ -27,6 +27,18 @@ func (w *Wrapper) runJanitor(ctx context.Context) {
 		}
 	}))
 
+	c.Schedule(&cron.ConstantDelaySchedule{
+		Delay: time.Minute,
+	}, cron.FuncJob(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), maxJobRunTime)
+		defer cancel()
+
+		err := w.DeleteOldUserTokens(ctx)
+		if err != nil {
+			w.logger.Error(err, "could not delete old user tokens")
+		}
+	}))
+
 	go c.Run()
 
 	<-ctx.Done()

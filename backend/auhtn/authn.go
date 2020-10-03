@@ -2,11 +2,13 @@ package authn
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/go-logr/logr"
@@ -122,13 +124,15 @@ func (a *Authorizer) setupIssuerMicrosoft() error {
 }
 
 func (a *Authorizer) HandleLogin(c echo.Context) error {
+	redirectURL := c.QueryParam("redirectTo")
+
 	issuerName := c.Param("issuer")
 	issuer, ok := a.issuers[issuerName]
 	if !ok {
 		return echo.NewHTTPError(http.StatusBadRequest, "Unknown issuer")
 	}
 
-	state, err := a.dbw.CreateOAuth2State(c.Request().Context(), issuerName, a.redirectURL.String())
+	state, err := a.dbw.CreateOAuth2State(c.Request().Context(), issuerName, redirectURL)
 	if err != nil {
 		a.log.Error(err, "could not create token")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
@@ -137,68 +141,66 @@ func (a *Authorizer) HandleLogin(c echo.Context) error {
 	return c.Redirect(http.StatusFound, issuer.config.AuthCodeURL(state.State.String()))
 }
 
-func (a *Authorizer) issuerNameFromState(ctx context.Context, state uuid.UUID) (string, error) {
-	stateInfo, err := a.dbw.GetOAuth2State(ctx, state)
-	if err != nil {
-		return "", fmt.Errorf("could not get OAuth2 state: %w", err)
-	}
-
-	return stateInfo.Issuer, nil
-}
-
-func (a *Authorizer) issuerFromState(ctx context.Context, state uuid.UUID) (Issuer, error) {
-	issuerName, err := a.issuerNameFromState(ctx, state)
-	if err != nil {
-		return Issuer{}, err
-	}
-
-	issuer, ok := a.issuers[issuerName]
+func (a *Authorizer) issuerFromState(state database.OAuth2State) (Issuer, error) {
+	issuer, ok := a.issuers[state.Issuer]
 	if !ok {
-		return Issuer{}, errors.New("unknown issuer")
-	}
-	return issuer, nil
-}
-
-func (a *Authorizer) issuerFromRequest(ctx context.Context, data oauth2CallbackData) (Issuer, error) {
-	state, err := uuid.Parse(data.State)
-	if err != nil {
-		return Issuer{}, echo.NewHTTPError(http.StatusBadRequest, "Invalid state")
-	}
-
-	issuer, err := a.issuerFromState(ctx, state)
-	if err != nil {
 		return Issuer{}, echo.NewHTTPError(http.StatusBadRequest, "Invalid issuer")
 	}
 	return issuer, nil
 }
 
-type oauth2CallbackData struct {
+func (a *Authorizer) stateFromRequest(ctx context.Context, data oauth2CallbackRequest) (database.OAuth2State, error) {
+	state, err := uuid.Parse(data.State)
+	if err != nil {
+		return database.OAuth2State{}, echo.NewHTTPError(http.StatusBadRequest, "Invalid state")
+	}
+
+	stateInfo, err := a.dbw.GetOAuth2State(ctx, state)
+	if err != nil {
+		return database.OAuth2State{}, echo.NewHTTPError(http.StatusBadRequest, "Nonexistent state")
+	}
+
+	return stateInfo, nil
+}
+
+type oauth2CallbackRequest struct {
 	State string `form:"state"`
 	Code  string `query:"code"`
 }
 
 func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
-	var data oauth2CallbackData
-	if err := c.Bind(&data); err != nil {
+	ctx := context.Background()
+
+	var reqData oauth2CallbackRequest
+	if err := c.Bind(&reqData); err != nil {
 		return err
 	}
 
-	issuer, err := a.issuerFromRequest(c.Request().Context(), data)
+	state, err := a.stateFromRequest(ctx, reqData)
 	if err != nil {
 		return err
 	}
 
-	oauth2Token, err := issuer.config.Exchange(c.Request().Context(), data.Code)
+	issuer, err := a.issuerFromState(state)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not exchange code with provider")
+		return err
+	}
+
+	oauth2Token, err := issuer.config.Exchange(ctx, reqData.Code)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError,
+			"Could not exchange code with provider",
+		)
 	}
 
 	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 	if !ok {
-		return echo.NewHTTPError(http.StatusPreconditionFailed, "Could not exchange code with provider (id_token not present or string)")
+		return echo.NewHTTPError(http.StatusPreconditionFailed,
+			"Could not exchange code with provider (id_token not present or string)",
+		)
 	}
 
-	idToken, err := issuer.verifier.Verify(c.Request().Context(), rawIDToken)
+	idToken, err := issuer.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not verify token")
 	}
@@ -219,12 +221,70 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read claims")
 	}
 
-	a.log.Info("user authenticated",
-		"email", claims.Email,
-		"subject", claims.Subject,
-		"issuer", claims.Issuer,
-		"audience", claims.Audience,
-	)
+	user, err := a.dbw.GetUserByEmail(c.Request().Context(), claims.Email)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			a.log.Error(err, "could not get user by email")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
+		}
+	}
+	userExists := err == nil
 
-	return nil
+	user, err = a.dbw.GetUserByOIDCFederation(c.Request().Context(), database.OIDCFederation{
+		OIDCIssuer:  claims.Issuer,
+		OIDCSubject: claims.Subject,
+	})
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			a.log.Error(err, "could not get user by OIDC federation")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
+		}
+	}
+	userPreviouslyLoggedInWithIssuer := err == nil
+
+	if userExists {
+		if !userPreviouslyLoggedInWithIssuer {
+			// TODO(rutgerbrf): do this some other way for the user to be able to use multiple providers.
+			return echo.NewHTTPError(http.StatusBadRequest, "User created with different provider")
+		}
+	} else if !userPreviouslyLoggedInWithIssuer {
+		org, err := a.dbw.CreateOrganization(context.Background(), "", "")
+		if err != nil {
+			a.log.Error(err, "could not create organization")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create organization")
+		}
+
+		// TODO(rutgerbrf): do CreateUser & CreateOIDCFederation in a transaction to prevent corruption.
+		user, err = a.dbw.CreateUser(context.Background(), claims.Name, claims.Email, org.ID)
+		if err != nil {
+			a.log.Error(err, "could not create user")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create user")
+		}
+
+		_, err = a.dbw.CreateOIDCFederation(context.Background(), database.OIDCFederation{
+			OIDCIssuer:   claims.Issuer,
+			OIDCSubject:  claims.Subject,
+			OIDCAudience: claims.Audience,
+			UserID:       user.ID,
+		})
+		if err != nil {
+			a.log.Error(err, "could not create OIDC federation")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not save login info")
+		}
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, "No user for login")
+	}
+
+	token, err := a.dbw.CreateToken(c.Request().Context(), user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:    "ttsess",
+		Value:   token.String(),
+		Expires: time.Now().Add(time.Hour * 24),
+	})
+
+	return c.Redirect(http.StatusSeeOther, state.RedirectURL)
 }
