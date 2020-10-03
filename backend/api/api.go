@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 
+	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
 )
 
@@ -27,7 +28,7 @@ func newEcho() *echo.Echo {
 	return e
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger) Server {
+func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
 	server := Server{
 		db:   db,
 		log:  log,
@@ -35,7 +36,13 @@ func NewServer(db *database.Wrapper, log logr.Logger) Server {
 	}
 	server.registerRoutes()
 
-	return server
+	authnr, err := authn.New(db, log)
+	if err != nil {
+		return server, err
+	}
+	authnr.RegisterRoutes(server.echo)
+
+	return server, nil
 }
 
 func (s *Server) registerRoutes() {

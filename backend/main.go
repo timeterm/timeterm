@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/zapr"
+	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 
@@ -22,9 +23,12 @@ func main() {
 		database.WithJanitor(true),
 	)
 	if err != nil {
-		sugar.Fatalf("Could not open database: %v", err)
+		sugar.Fatalf("could not open database: %v", err)
 	}
 
-	server := api.NewServer(db, log)
+	server, err := api.NewServer(db, log)
+	if err != nil {
+		sugar.Fatalf("could not create API server: %v", err)
+	}
 	sugar.Fatalf("Error running API server: %v", server.Run(context.Background()))
 }

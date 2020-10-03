@@ -2,11 +2,11 @@ BEGIN;
 
 CREATE TABLE "oauth2_state"
 (
-    "state"        uuid PRIMARY KEY,
+    "state"        uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "issuer"       text        NOT NULL,
     "redirect_url" text        NOT NULL,
-    "created_at"   timestamptz NOT NULL,
-    "expires_at"   timestamptz NOT NULL
+    "created_at"   timestamptz NOT NULL DEFAULT now(),
+    "expires_at"   timestamptz NOT NULL DEFAULT now() + '30 minutes'
 );
 
 CREATE TABLE "oidc_federation"

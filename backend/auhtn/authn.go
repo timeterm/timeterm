@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"golang.org/x/oauth2"
+	microsoftoauth2 "golang.org/x/oauth2/microsoft"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
 )
@@ -23,22 +24,22 @@ type Issuer struct {
 }
 
 type Authorizer struct {
+	dbw     *database.Wrapper
 	log     logr.Logger
 	issuers map[string]Issuer
-	dbw     *database.Wrapper
 
 	redirectURL *url.URL
 }
 
-func New(log logr.Logger, dbw *database.Wrapper) (*Authorizer, error) {
+func New(dbw *database.Wrapper, log logr.Logger) (*Authorizer, error) {
 	redirectURL, err := url.Parse(os.Getenv("OIDC_REDIRECT_URL"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid OIDC_REDIRECT_URL: %w", err)
 	}
 
 	a := &Authorizer{
-		log:         log,
 		dbw:         dbw,
+		log:         log,
 		issuers:     make(map[string]Issuer),
 		redirectURL: redirectURL,
 	}
@@ -51,20 +52,25 @@ func New(log logr.Logger, dbw *database.Wrapper) (*Authorizer, error) {
 }
 
 func (a *Authorizer) RegisterRoutes(r *echo.Echo) {
-	r.GET("/oauth2/login/:issuer", a.HandleLogin)
-	r.GET("/oauth2/callback", a.HandleOauth2Callback)
+	r.GET("/oidc/login/:issuer", a.HandleLogin)
+	r.GET("/oidc/callback", a.HandleOauth2Callback)
 }
 
 func (a *Authorizer) setupIssuers() error {
-	err := a.setupIssuerGoogle(a.redirectURL.String())
+	err := a.setupIssuerGoogle()
 	if err != nil {
 		return fmt.Errorf("could not setup Google issuer: %w", err)
+	}
+
+	err = a.setupIssuerMicrosoft()
+	if err != nil {
+		return fmt.Errorf("could not setup Microsoft issuer: %w", err)
 	}
 
 	return nil
 }
 
-func (a *Authorizer) setupIssuerGoogle(oauth2RedirectURL string) error {
+func (a *Authorizer) setupIssuerGoogle() error {
 	googleClientID := os.Getenv("OIDC_PROVIDERS_GOOGLE_CLIENT_ID")
 	googleClientSecret := os.Getenv("OIDC_PROVIDERS_GOOGLE_CLIENT_SECRET")
 	googleProvider, err := oidc.NewProvider(context.Background(), "https://accounts.google.com")
@@ -76,12 +82,39 @@ func (a *Authorizer) setupIssuerGoogle(oauth2RedirectURL string) error {
 		config: &oauth2.Config{
 			ClientID:     googleClientID,
 			ClientSecret: googleClientSecret,
-			RedirectURL:  oauth2RedirectURL,
+			RedirectURL:  a.redirectURL.String(),
 			Endpoint:     googleProvider.Endpoint(),
 			Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 		},
 		verifier: googleProvider.Verifier(&oidc.Config{
 			ClientID: googleClientID,
+		}),
+	}
+
+	return nil
+}
+
+const microsoftIssuerURL = "https://login.microsoftonline.com/common/v2.0"
+const microsoftJWKSURL = "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+
+func (a *Authorizer) setupIssuerMicrosoft() error {
+	microsoftClientID := os.Getenv("OIDC_PROVIDERS_MICROSOFT_CLIENT_ID")
+	microsoftClientSecret := os.Getenv("OIDC_PROVIDERS_MICROSOFT_CLIENT_SECRET")
+
+	keySet := oidc.NewRemoteKeySet(context.Background(), microsoftJWKSURL)
+
+	a.issuers["microsoft"] = Issuer{
+		config: &oauth2.Config{
+			ClientID:     microsoftClientID,
+			ClientSecret: microsoftClientSecret,
+			RedirectURL:  a.redirectURL.String(),
+			Endpoint:     microsoftoauth2.AzureADEndpoint("common"),
+			Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+		},
+		verifier: oidc.NewVerifier(microsoftIssuerURL, keySet, &oidc.Config{
+			ClientID:             microsoftClientID,
+			SkipIssuerCheck:      true,
+			SupportedSigningAlgs: []string{oidc.RS256},
 		}),
 	}
 
@@ -97,6 +130,7 @@ func (a *Authorizer) HandleLogin(c echo.Context) error {
 
 	state, err := a.dbw.CreateOAuth2State(c.Request().Context(), issuerName, a.redirectURL.String())
 	if err != nil {
+		a.log.Error(err, "could not create token")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
 	}
 
