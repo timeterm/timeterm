@@ -15,7 +15,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-const version = 6
+const version = 7
 
 // Wrapper wraps the PostgreSQL database.
 type Wrapper struct {
