@@ -23,8 +23,10 @@ import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
 import UsersPage from "./UsersPage";
 import ConnectPage from "./ConnectPage";
+import LoginPage from "./LoginPage";
+import { useLocation } from "react-router-dom";
 
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
       <ThemeProvider
@@ -39,30 +41,45 @@ function App() {
         }}
       >
         <div className="App">
-          <Elevation
-            z={24}
-            style={{
-              height: "100%",
-            }}
-          >
-            <AppDrawer />
-          </Elevation>
-
-          <Switch>
-            <Route path="/devices">
-              <DevicesPage />
-            </Route>
-            <Route path="/users">
-              <UsersPage />
-            </Route>
-            <Route path="/connect">
-              <ConnectPage />
-            </Route>
-          </Switch>
+          <AppContents />
         </div>
       </ThemeProvider>
     </Router>
   );
-}
+};
+
+const AppContents: React.FC = () => {
+  const location = useLocation();
+
+  return (
+    <>
+      {location.pathname !== "/" && (
+        <Elevation
+          z={24}
+          style={{
+            height: "100%",
+          }}
+        >
+          <AppDrawer />
+        </Elevation>
+      )}
+
+      <Switch>
+        <Route path="/devices">
+          <DevicesPage />
+        </Route>
+        <Route path="/users">
+          <UsersPage />
+        </Route>
+        <Route path="/connect">
+          <ConnectPage />
+        </Route>
+        <Route path="/">
+          <LoginPage />
+        </Route>
+      </Switch>
+    </>
+  );
+};
 
 export default App;
