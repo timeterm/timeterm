@@ -2,11 +2,7 @@ import React from "react";
 import "./App.css";
 import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider } from "@rmwc/theme";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-} from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
 import UsersPage from "./UsersPage";
@@ -20,7 +16,7 @@ const App: React.FC = () => {
       <ThemeProvider
         options={{
           primary: "rgba(57, 156, 248, 1)",
-          secondary: "rgb(127, 193, 255)",
+          secondary: "rgb(127,193,255)",
           onPrimary: "white",
           surface: "white",
         }}

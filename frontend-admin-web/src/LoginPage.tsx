@@ -1,31 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { Typography } from "@rmwc/typography";
 import "@rmwc/typography/styles";
 import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import Logo from "./logo-white.svg";
+import Logo from "./logo-black.svg";
 
 const LoginPage: React.FC = (props) => {
+  const [isHovering, setIsHovering] = useState(false);
+
   return (
     <div
+      className={"LoginPage"}
       style={{
         width: "100%",
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundSize: "400% 400%",
+        background:
+          "#efefef linear-gradient(120deg, #7fc1ff 10%, #2a73b4 100%)",
+        transition: "0.3s",
+        backgroundPosition: isHovering ? 300 : undefined,
       }}
     >
-      <Theme use={["primaryBg", "onPrimary"]} wrap>
+      <Theme use={["surface"]} wrap>
         <Elevation
           z={16}
           style={{
-            borderRadius: 16,
             padding: 32,
-            height: "30em",
-            width: "17em",
+            height: "100%",
+            boxSizing: "border-box",
+            width: "26em",
             justifyContent: "space-between",
             display: "flex",
             flexDirection: "column",
@@ -41,22 +45,30 @@ const LoginPage: React.FC = (props) => {
               Inloggen
             </Typography>
             Welkom terug!
+            <Button
+              raised
+              style={{
+                backgroundColor: "black",
+                color: "white",
+                marginTop: 64,
+              }}
+              className={"LoginBtn"}
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23">
+                  <path fill="#f35325" d="M1 1h10v10H1z" />
+                  <path fill="#81bc06" d="M12 1h10v10H12z" />
+                  <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                  <path fill="#ffba08" d="M12 12h10v10H12z" />
+                </svg>
+              }
+              onMouseOver={() => setIsHovering(true)}
+              onMouseOut={() => setIsHovering(false)}
+            >
+              Inloggen met Microsoft
+            </Button>
           </div>
 
-          <Button
-            raised
-            style={{ backgroundColor: "white", color: "black" }}
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23">
-                <path fill="#f35325" d="M1 1h10v10H1z" />
-                <path fill="#81bc06" d="M12 1h10v10H12z" />
-                <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                <path fill="#ffba08" d="M12 12h10v10H12z" />
-              </svg>
-            }
-          >
-            Inloggen met Microsoft
-          </Button>
+          <span>&copy; {new Date().getFullYear()} de auteurs van Timeterm</span>
         </Elevation>
       </Theme>
     </div>
