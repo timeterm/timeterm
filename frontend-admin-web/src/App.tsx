@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import "./App.css";
-import { Drawer, DrawerContent, DrawerHeader } from "@rmwc/drawer";
-import {
-  List,
-  ListItem,
-  ListItemGraphic,
-  ListItemPrimaryText,
-  ListItemSecondaryText,
-  ListItemText,
-} from "@rmwc/list";
 import { Elevation } from "@rmwc/elevation";
-import { ThemeProvider, Theme } from "@rmwc/theme";
-import Logo from "./logo-white.svg";
+import { ThemeProvider } from "@rmwc/theme";
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link,
-  useHistory,
 } from "react-router-dom";
 import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
