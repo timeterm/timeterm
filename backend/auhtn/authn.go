@@ -3,12 +3,12 @@ package authn
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/go-logr/logr"
@@ -18,6 +18,7 @@ import (
 	microsoftoauth2 "golang.org/x/oauth2/microsoft"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
 type Issuer struct {
@@ -54,8 +55,9 @@ func New(dbw *database.Wrapper, log logr.Logger) (*Authorizer, error) {
 }
 
 func (a *Authorizer) RegisterRoutes(r *echo.Echo) {
-	r.GET("/oidc/login/:issuer", a.HandleLogin)
-	r.GET("/oidc/callback", a.HandleOauth2Callback)
+	g := r.Group("/oidc")
+	g.GET("/login/:issuer", a.HandleLogin)
+	g.GET("/callback", a.HandleOauth2Callback)
 }
 
 func (a *Authorizer) setupIssuers() error {
@@ -123,19 +125,54 @@ func (a *Authorizer) setupIssuerMicrosoft() error {
 	return nil
 }
 
+type Status string
+
+const (
+	StatusError Status = "error"
+	StatusOK    Status = "ok"
+)
+
+func errorMsg(msg string) url.Values {
+	return url.Values{"error": []string{msg}}
+}
+
+func tokenData(token string) url.Values {
+	return url.Values{"token": []string{
+		base64.URLEncoding.EncodeToString([]byte(token)),
+	}}
+}
+
+func redirectToOrigin(c echo.Context, redirectTo *url.URL, status Status, data url.Values) error {
+	origin := *redirectTo
+
+	q := origin.Query()
+	q.Set("status", string(status))
+	if data != nil {
+		for k, v := range data {
+			q[k] = v
+		}
+	}
+	origin.RawQuery = q.Encode()
+
+	return c.Redirect(http.StatusFound, origin.String())
+}
+
 func (a *Authorizer) HandleLogin(c echo.Context) error {
-	redirectURL := c.QueryParam("redirectTo")
+	redirectURL, err := url.Parse(c.QueryParam("redirectTo"))
+	if err != nil {
+		return err
+	}
 
 	issuerName := c.Param("issuer")
 	issuer, ok := a.issuers[issuerName]
 	if !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, "Unknown issuer")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Unknown issuer"))
 	}
 
-	state, err := a.dbw.CreateOAuth2State(c.Request().Context(), issuerName, redirectURL)
+	state, err := a.dbw.CreateOAuth2State(c.Request().Context(), issuerName, redirectURL.String())
 	if err != nil {
 		a.log.Error(err, "could not create token")
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create token"))
 	}
 
 	return c.Redirect(http.StatusFound, issuer.config.AuthCodeURL(state.State.String()))
@@ -149,15 +186,15 @@ func (a *Authorizer) issuerFromState(state database.OAuth2State) (Issuer, error)
 	return issuer, nil
 }
 
-func (a *Authorizer) stateFromRequest(ctx context.Context, data oauth2CallbackRequest) (database.OAuth2State, error) {
+func (a *Authorizer) stateFromRequest(c echo.Context, data oauth2CallbackRequest) (database.OAuth2State, error) {
 	state, err := uuid.Parse(data.State)
 	if err != nil {
-		return database.OAuth2State{}, echo.NewHTTPError(http.StatusBadRequest, "Invalid state")
+		return database.OAuth2State{}, templates.RenderError(c, http.StatusBadRequest, "Invalid state")
 	}
 
-	stateInfo, err := a.dbw.GetOAuth2State(ctx, state)
+	stateInfo, err := a.dbw.GetOAuth2State(c.Request().Context(), state)
 	if err != nil {
-		return database.OAuth2State{}, echo.NewHTTPError(http.StatusBadRequest, "Nonexistent state")
+		return database.OAuth2State{}, templates.RenderError(c, http.StatusBadRequest, "Nonexistent state")
 	}
 
 	return stateInfo, nil
@@ -176,9 +213,14 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 		return err
 	}
 
-	state, err := a.stateFromRequest(ctx, reqData)
+	state, err := a.stateFromRequest(c, reqData)
 	if err != nil {
 		return err
+	}
+
+	redirectURL, err := url.Parse(state.RedirectURL)
+	if err != nil {
+		return templates.RenderError(c, http.StatusInternalServerError, "Invalid redirect URL")
 	}
 
 	issuer, err := a.issuerFromState(state)
@@ -188,21 +230,17 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 
 	oauth2Token, err := issuer.config.Exchange(ctx, reqData.Code)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError,
-			"Could not exchange code with provider",
-		)
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not exchange code with provider"))
 	}
 
 	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 	if !ok {
-		return echo.NewHTTPError(http.StatusPreconditionFailed,
-			"Could not exchange code with provider (id_token not present or string)",
-		)
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not exchange code with provider"))
 	}
 
 	idToken, err := issuer.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Could not verify token")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not verify token"))
 	}
 
 	var claims struct {
@@ -218,14 +256,14 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 		FamilyName string `json:"family_name"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Could not read claims")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not read claims"))
 	}
 
 	user, err := a.dbw.GetUserByEmail(c.Request().Context(), claims.Email)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			a.log.Error(err, "could not get user by email")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
+			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not query database"))
 		}
 	}
 	userExists := err == nil
@@ -237,7 +275,7 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			a.log.Error(err, "could not get user by OIDC federation")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
+			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not query database"))
 		}
 	}
 	userPreviouslyLoggedInWithIssuer := err == nil
@@ -245,46 +283,27 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 	if userExists {
 		if !userPreviouslyLoggedInWithIssuer {
 			// TODO(rutgerbrf): do this some other way for the user to be able to use multiple providers.
-			return echo.NewHTTPError(http.StatusBadRequest, "User created with different provider")
+			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("User created with different provider"))
 		}
 	} else if !userPreviouslyLoggedInWithIssuer {
-		org, err := a.dbw.CreateOrganization(context.Background(), "", "")
-		if err != nil {
-			a.log.Error(err, "could not create organization")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create organization")
-		}
-
-		// TODO(rutgerbrf): do CreateUser & CreateOIDCFederation in a transaction to prevent corruption.
-		user, err = a.dbw.CreateUser(context.Background(), claims.Name, claims.Email, org.ID)
-		if err != nil {
-			a.log.Error(err, "could not create user")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create user")
-		}
-
-		_, err = a.dbw.CreateOIDCFederation(context.Background(), database.OIDCFederation{
+		_, err := a.dbw.CreateNewUser(context.Background(), claims.Name, claims.Email, database.OIDCFederation{
 			OIDCIssuer:   claims.Issuer,
 			OIDCSubject:  claims.Subject,
 			OIDCAudience: claims.Audience,
-			UserID:       user.ID,
 		})
 		if err != nil {
-			a.log.Error(err, "could not create OIDC federation")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not save login info")
+			a.log.Error(err, "could not create user")
+			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create user"))
 		}
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, "No user for login")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("No user for login"))
 	}
 
 	token, err := a.dbw.CreateToken(c.Request().Context(), user.ID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
+		a.log.Error(err, "could not create token")
+		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create token"))
 	}
 
-	c.SetCookie(&http.Cookie{
-		Name:    "ttsess",
-		Value:   token.String(),
-		Expires: time.Now().Add(time.Hour * 24),
-	})
-
-	return c.Redirect(http.StatusSeeOther, state.RedirectURL)
+	return redirectToOrigin(c, redirectURL, StatusOK, tokenData(token.String()))
 }

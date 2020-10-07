@@ -13,6 +13,7 @@ import (
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
 type Server struct {
@@ -21,18 +22,31 @@ type Server struct {
 	echo *echo.Echo
 }
 
-func newEcho() *echo.Echo {
+func newEcho() (*echo.Echo, error) {
+	var err error
+
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-	return e
+
+	e.Renderer, err = templates.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
+	e, err := newEcho()
+	if err != nil {
+		return Server{}, err
+	}
+
 	server := Server{
 		db:   db,
 		log:  log,
-		echo: newEcho(),
+		echo: e,
 	}
 	server.registerRoutes()
 
@@ -46,13 +60,16 @@ func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
 }
 
 func (s *Server) registerRoutes() {
-	s.echo.GET("/organization/:id", s.getOrganization)
-	s.echo.GET("/student/:id", s.getStudent)
 	s.echo.GET("/device/:id", s.getDevice)
 	s.echo.GET("/device", s.getDevices)
-	s.echo.POST("/organization/:organization/student", s.createStudent)
-	s.echo.POST("/organization/:organization/device", s.createDevice)
-	s.echo.PATCH("/organization/:id", s.patchOrganization)
+
+	orgGroup := s.echo.Group("/organization")
+	orgGroup.POST("/:organization/student", s.createStudent)
+	orgGroup.POST("/:organization/device", s.createDevice)
+	orgGroup.PATCH("/:id", s.patchOrganization)
+	orgGroup.GET("/:id", s.getOrganization)
+
+	s.echo.GET("/student/:id", s.getStudent)
 }
 
 func (s *Server) getOrganization(c echo.Context) error {

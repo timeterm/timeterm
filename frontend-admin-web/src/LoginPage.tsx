@@ -5,9 +5,15 @@ import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
 import Logo from "./logo-black.svg";
+import Cookies from "universal-cookie";
+import { useHistory } from "react-router-dom";
 
 const LoginPage: React.FC = (props) => {
   const [isHovering, setIsHovering] = useState(false);
+  const history = useHistory();
+  if (new Cookies().get("ttsess")) {
+    history.push("/devices");
+  }
 
   return (
     <div
@@ -63,6 +69,11 @@ const LoginPage: React.FC = (props) => {
               }
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
+              onClick={() => {
+                window.location.href = `http://localhost:1323/oidc/login/microsoft?redirectTo=${encodeURIComponent(
+                  window.location.href + "login/done"
+                )}`;
+              }}
             >
               Inloggen met Microsoft
             </Button>

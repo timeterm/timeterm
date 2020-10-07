@@ -128,6 +128,47 @@ func (w *Wrapper) CreateUser(ctx context.Context, name, email string, organizati
 	return user, row.Scan(&user.ID)
 }
 
+func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federation OIDCFederation) (User, error) {
+	user := User{
+		Name:  name,
+		Email: email,
+	}
+
+	tx, err := w.db.Beginx()
+	if err != nil {
+		return user, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = tx.GetContext(ctx, &user.OrganizationID, `
+		INSERT INTO "organization" (id, name, zermelo_institution)
+		VALUES (DEFAULT, '', '')
+		RETURNING "id"
+	`)
+	if err != nil {
+		return user, err
+	}
+
+	err = tx.GetContext(ctx, &user.ID, `
+		INSERT INTO "user" (id, name, organization_id, email)
+		VALUES (DEFAULT, $1, $2, $3)
+		RETURNING "id"
+	`, user.Name, user.OrganizationID, user.Email)
+	if err != nil {
+		return user, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO "oidc_federation" (oidc_subject, oidc_issuer, oidc_audience, user_id)
+		VALUES ($1, $2, $3, $4)
+	`, federation.OIDCSubject, federation.OIDCIssuer, federation.OIDCAudience, user.ID)
+	if err != nil {
+		return user, err
+	}
+
+	return user, tx.Commit()
+}
+
 func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
 	token := uuid.New()
 

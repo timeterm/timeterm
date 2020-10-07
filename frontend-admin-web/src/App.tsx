@@ -2,13 +2,20 @@ import React from "react";
 import "./App.css";
 import { Elevation } from "@rmwc/elevation";
 import { ThemeProvider } from "@rmwc/theme";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Redirect,
+} from "react-router-dom";
 import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
 import UsersPage from "./UsersPage";
 import ConnectPage from "./ConnectPage";
 import LoginPage from "./LoginPage";
 import { useLocation } from "react-router-dom";
+import LoginDonePage from "./LoginDonePage";
+import Cookies from "universal-cookie";
 
 const App: React.FC = () => {
   return (
@@ -34,10 +41,11 @@ const App: React.FC = () => {
 
 const AppContents: React.FC = () => {
   const location = useLocation();
+  const loggedIn = !!new Cookies().get("ttsess");
 
   return (
     <>
-      {location.pathname !== "/" && (
+      {!["/", "/login/done"].includes(location.pathname) && (
         <Elevation
           z={24}
           style={{
@@ -49,6 +57,15 @@ const AppContents: React.FC = () => {
       )}
 
       <Switch>
+        <Route path={"/login/done"}>
+          <LoginDonePage />
+        </Route>
+        <Route exact path="/">
+          <LoginPage />
+        </Route>
+
+        {!loggedIn && <Redirect to={"/"} />}
+
         <Route path="/devices">
           <DevicesPage />
         </Route>
@@ -57,9 +74,6 @@ const AppContents: React.FC = () => {
         </Route>
         <Route path="/connect">
           <ConnectPage />
-        </Route>
-        <Route path="/">
-          <LoginPage />
         </Route>
       </Switch>
     </>
