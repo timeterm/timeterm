@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
@@ -19,7 +20,7 @@ func main() {
 	log := zapr.NewLogger(logger)
 	sugar := logger.Sugar()
 
-	db, err := database.New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", log,
+	db, err := database.New(os.Getenv("DATABASE_URL"), log,
 		database.WithJanitor(true),
 	)
 	if err != nil {
