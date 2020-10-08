@@ -123,22 +123,26 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
       // All devices are selected, set the status to checked (full selection).
       setAllSelected(SelectionStatus.All);
     }
-
-    // Propagate the selected items to the parent element so they can use the IDs of the selected devices.
-    setSelectedItems(devices.data.filter((dev) => selectedDevices.has(dev.id)));
   }, [devices, selectedDevices, setSelectedItems]);
 
   useEffect(() => {
-    setSelectedDevices(
-      selectedDevices.intersect(
-        Set(
-          devices.data
-            .map((dev) => dev.id)
-            .filter((id) => selectedDevices.has(id))
-        )
+    const newSelectedDevices = selectedDevices.intersect(
+      Set(
+        devices.data
+          .map((dev) => dev.id)
+          .filter((id) => selectedDevices.has(id))
       )
     );
-  }, [devices, selectedDevices]);
+
+    if (!newSelectedDevices.equals(selectedDevices)) {
+      setSelectedDevices(newSelectedDevices);
+
+      // Propagate the selected items to the parent element so they can use the IDs of the selected devices.
+      setSelectedItems(
+        devices.data.filter((dev) => selectedDevices.has(dev.id))
+      );
+    }
+  }, [devices, selectedDevices, setSelectedItems]);
 
   // toggleSelectionStatus toggles the selection status of the checkbox with the key i.
   const toggleSelectionStatus = (device: Device) => {
