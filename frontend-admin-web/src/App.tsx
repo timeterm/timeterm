@@ -11,7 +11,6 @@ import {
 import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
 import UsersPage from "./UsersPage";
-import ConnectPage from "./ConnectPage";
 import LoginPage from "./LoginPage";
 import { useLocation } from "react-router-dom";
 import LoginDonePage from "./LoginDonePage";
@@ -41,7 +40,8 @@ const App: React.FC = () => {
 
 const AppContents: React.FC = () => {
   const location = useLocation();
-  const loggedIn = !!new Cookies().get("ttsess");
+  const session = new Cookies().get("ttsess");
+  const loggedIn = !!session;
 
   return (
     <>
@@ -71,9 +71,6 @@ const AppContents: React.FC = () => {
         </Route>
         <Route path="/users">
           <UsersPage />
-        </Route>
-        <Route path="/connect">
-          <ConnectPage />
         </Route>
       </Switch>
     </>

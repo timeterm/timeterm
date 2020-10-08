@@ -193,15 +193,7 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 
 func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
 	token := uuid.New()
-
-	h := sha3.NewShake256()
-	_, err := h.Write(token[:])
-	if err != nil {
-		return token, err
-	}
-
-	hash := make([]byte, 64)
-	_, err = h.Read(hash)
+	tokenHash, err := hashToken(token)
 	if err != nil {
 		return token, err
 	}
@@ -209,7 +201,23 @@ func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID,
 	_, err = w.db.ExecContext(ctx, `
 		INSERT INTO "user_token" ("token_hash", "user_id", "created_at", "expires_at")
 		VALUES ($1, $2, DEFAULT, DEFAULT)
-	`, hash, userID)
+	`, tokenHash, userID)
 
 	return token, err
+}
+
+func hashToken(token uuid.UUID) ([]byte, error) {
+	h := sha3.NewShake256()
+	_, err := h.Write(token[:])
+	if err != nil {
+		return nil, err
+	}
+
+	hash := make([]byte, 64)
+	_, err = h.Read(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	return hash, err
 }

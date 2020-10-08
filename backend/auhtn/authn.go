@@ -54,8 +54,8 @@ func New(dbw *database.Wrapper, log logr.Logger) (*Authorizer, error) {
 	return a, nil
 }
 
-func (a *Authorizer) RegisterRoutes(r *echo.Echo) {
-	g := r.Group("/oidc")
+func (a *Authorizer) RegisterRoutes(g *echo.Group) {
+	g = g.Group("/oidc")
 	g.GET("/login/:issuer", a.HandleLogin)
 	g.GET("/callback", a.HandleOauth2Callback)
 }

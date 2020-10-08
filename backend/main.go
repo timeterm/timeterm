@@ -18,18 +18,23 @@ func main() {
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
-	sugar := logger.Sugar()
 
+	log.Info("starting")
 	db, err := database.New(os.Getenv("DATABASE_URL"), log,
 		database.WithJanitor(true),
 	)
 	if err != nil {
-		sugar.Fatalf("could not open database: %v", err)
+		log.Error(err, "could not open database")
+		os.Exit(1)
 	}
 
 	server, err := api.NewServer(db, log)
 	if err != nil {
-		sugar.Fatalf("could not create API server: %v", err)
+		log.Error(err, "could not create API server")
+		os.Exit(1)
 	}
-	sugar.Fatalf("Error running API server: %v", server.Run(context.Background()))
+
+	err = server.Run(context.Background())
+	log.Error(err, "error running API server")
+	os.Exit(1)
 }

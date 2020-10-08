@@ -57,18 +57,23 @@ const UsersPage: React.FC = () => {
           }}
         >
           <DevicesTable
-            devices={[
-              {
-                name: "Mediatheek 1",
-                id: "2f100454-7209-4379-9fc0-8f323a14da8b",
-                status: DeviceStatus.Online,
-              },
-              {
-                name: "Mediatheek 2",
-                id: "b1960ab9-d8dd-4a56-837e-9ccb80292ad2",
-                status: DeviceStatus.Offline,
-              },
-            ]}
+            devices={{
+              offset: 0,
+              maxAmount: 50,
+              total: 2,
+              data: [
+                {
+                  name: "Mediatheek 1",
+                  id: "2f100454-7209-4379-9fc0-8f323a14da8b",
+                  status: DeviceStatus.Online,
+                },
+                {
+                  name: "Mediatheek 2",
+                  id: "b1960ab9-d8dd-4a56-837e-9ccb80292ad2",
+                  status: DeviceStatus.Offline,
+                },
+              ],
+            }}
             setSelectedItems={setSelectedItems}
           />
         </Elevation>
