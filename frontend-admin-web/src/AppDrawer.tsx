@@ -13,6 +13,7 @@ import React from "react";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import Cookies from "universal-cookie";
 import { useQuery } from "react-query";
+import { fetchAuthnd } from "./DevicesPage";
 
 interface LinkListItemProps {
   to: string;
@@ -76,12 +77,7 @@ interface UserResponse {
 const AppDrawer: React.FC = () => {
   const { isLoading, error, data: user } = useQuery<UserResponse>(
     "userInfo",
-    () =>
-      fetch("/api/user/me", {
-        headers: {
-          "X-Api-Key": new Cookies().get("ttsess"),
-        },
-      }).then((res) => res.json())
+    () => fetchAuthnd("/api/user/me").then((res) => res.json())
   );
   const history = useHistory();
 

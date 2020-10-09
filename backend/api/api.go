@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -12,7 +12,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/nats-io/nats.go"
+	timetermpb "gitlab.com/timeterm/timeterm/proto/go"
+	"google.golang.org/protobuf/proto"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
@@ -24,6 +26,29 @@ type Server struct {
 	log      logr.Logger
 	echo     *echo.Echo
 	apiGroup *echo.Group
+	enc      *nats.EncodedConn
+}
+
+type protoEncoder struct{}
+
+func (p protoEncoder) Encode(_ string, v interface{}) ([]byte, error) {
+	msg, ok := v.(proto.Message)
+	if !ok {
+		return nil, errors.New("v is not proto.Message")
+	}
+	return proto.Marshal(msg)
+}
+
+func (p protoEncoder) Decode(_ string, data []byte, vPtr interface{}) error {
+	msg, ok := vPtr.(proto.Message)
+	if !ok {
+		return errors.New("vPtr is not proto.Message")
+	}
+	return proto.Unmarshal(data, msg)
+}
+
+func init() {
+	nats.RegisterEncoder("proto", &protoEncoder{})
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -42,8 +67,13 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, error) {
 	e, err := newEcho(log)
+	if err != nil {
+		return Server{}, err
+	}
+
+	enc, err := nats.NewEncodedConn(nc, "proto")
 	if err != nil {
 		return Server{}, err
 	}
@@ -53,6 +83,7 @@ func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
 		log:      log,
 		echo:     e,
 		apiGroup: e.Group("/api"),
+		enc:      enc,
 	}
 	server.registerRoutes()
 
@@ -67,36 +98,14 @@ func NewServer(db *database.Wrapper, log logr.Logger) (Server, error) {
 
 func (s *Server) registerRoutes() {
 	g := s.apiGroup.Group("")
-	g.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		KeyLookup:  "header:X-Api-Key",
-		AuthScheme: "",
-		Validator: func(key string, c echo.Context) (bool, error) {
-			token, err := uuid.Parse(key)
-			if err != nil {
-				return false, echo.NewHTTPError(http.StatusBadRequest, "Invalid token format")
-			}
-
-			user, err := s.db.GetUserByToken(c.Request().Context(), token)
-			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return false, echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
-				}
-
-				s.log.Error(err, "failed to get user by token")
-				return false, echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
-			}
-
-			c.Set("user", user)
-
-			return true, nil
-		},
-	}))
+	g.Use(authn.Middleware(s.db, s.log))
 
 	g.GET("/user/me", s.getCurrentUser)
 
-	g.GET("/device/:id", s.getDevice)
-	g.DELETE("/device/:id", s.deleteDevice)
 	g.GET("/device", s.getDevices)
+	g.GET("/device/:id", s.getDevice)
+	g.POST("/device/:id/restart", s.rebootDevice)
+	g.DELETE("/device/:id", s.deleteDevice)
 
 	orgGroup := s.apiGroup.Group("/organization")
 	orgGroup.POST("/:organization/student", s.createStudent)
@@ -108,7 +117,11 @@ func (s *Server) registerRoutes() {
 }
 
 func (s *Server) getCurrentUser(c echo.Context) error {
-	dbUser := c.Get("user").(database.User)
+	dbUser, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
 
 	apiUser := UserFrom(dbUser)
 	return c.JSON(http.StatusOK, apiUser)
@@ -179,7 +192,11 @@ func (s *Server) deleteDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Could not get device")
 	}
 
-	user := c.Get("user").(database.User)
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
 	if dev.OrganizationID != user.OrganizationID {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
@@ -191,6 +208,36 @@ func (s *Server) deleteDevice(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (s *Server) rebootDevice(c echo.Context) error {
+	id := c.Param("id")
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	dev, err := s.db.GetDevice(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not get device")
+		return echo.NewHTTPError(http.StatusBadRequest, "Could not get device")
+	}
+
+	user := c.Get("user").(database.User)
+	if dev.OrganizationID != user.OrganizationID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
+	}
+
+	err = s.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", id), &timetermpb.RebootMessage{
+		DeviceId: id,
+	})
+	if err != nil {
+		s.log.Error(err, "could not publish reboot message")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
+	}
+
+	return c.NoContent(http.StatusOK)
 }
 
 type getDevicesParams struct {
@@ -206,7 +253,11 @@ func (s *Server) getDevices(c echo.Context) error {
 		return err
 	}
 
-	user := c.Get("user").(database.User)
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
 
 	dbDevices, err := s.db.GetDevices(c.Request().Context(), database.GetDevicesOpts{
 		OrganizationID: user.OrganizationID,

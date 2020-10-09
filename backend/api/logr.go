@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -105,11 +104,11 @@ func (e echoLogrLogger) Infoj(j log.JSON) {
 }
 
 func (e echoLogrLogger) Warn(i ...interface{}) {
-	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(errors.New(""), fmt.Sprint(i...))
+	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(nil, fmt.Sprint(i...))
 }
 
 func (e echoLogrLogger) Warnf(format string, args ...interface{}) {
-	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(errors.New(""), fmt.Sprintf(format, args...))
+	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(nil, fmt.Sprintf(format, args...))
 }
 
 func (e echoLogrLogger) Warnj(j log.JSON) {
@@ -118,15 +117,15 @@ func (e echoLogrLogger) Warnj(j log.JSON) {
 		kvs = append(kvs, k, v)
 	}
 
-	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(errors.New(""), "", kvs...)
+	e.logr.V(int(e.v)+1).WithName(e.prefix).Error(nil, "", kvs...)
 }
 
 func (e echoLogrLogger) Error(i ...interface{}) {
-	e.logr.V(int(e.v)).WithName(e.prefix).Error(errors.New(""), fmt.Sprint(i...))
+	e.logr.V(int(e.v)).WithName(e.prefix).Error(nil, fmt.Sprint(i...))
 }
 
 func (e echoLogrLogger) Errorf(format string, args ...interface{}) {
-	e.logr.V(int(e.v)).WithName(e.prefix).Error(errors.New(""), fmt.Sprintf(format, args...))
+	e.logr.V(int(e.v)).WithName(e.prefix).Error(nil, fmt.Sprintf(format, args...))
 }
 
 func (e echoLogrLogger) Errorj(j log.JSON) {
@@ -135,7 +134,7 @@ func (e echoLogrLogger) Errorj(j log.JSON) {
 		kvs = append(kvs, k, v)
 	}
 
-	e.logr.V(int(e.v)).WithName(e.prefix).Error(errors.New(""), "", kvs...)
+	e.logr.V(int(e.v)).WithName(e.prefix).Error(nil, "", kvs...)
 }
 
 func (e echoLogrLogger) Fatal(i ...interface{}) {

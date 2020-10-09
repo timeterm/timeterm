@@ -6,13 +6,34 @@ import React, { useState } from "react";
 import { queryCache, useMutation, useQuery } from "react-query";
 import Cookies from "universal-cookie";
 
-const removeDevice = (dev: Device) => {
-  return fetch(`/api/device/${dev.id}`, {
+const removeDevice = (dev: Device) =>
+  fetchAuthnd(`/api/device/${dev.id}`, {
     method: "DELETE",
-    headers: {
-      "X-Api-Key": new Cookies().get("ttsess"),
-    },
   });
+
+const restartDevice = (dev: Device) =>
+  fetchAuthnd(`/api/device/${dev.id}/restart`, {
+    method: "POST",
+  });
+
+export const fetchAuthnd = (input: RequestInfo, init?: RequestInit) => {
+  const session = new Cookies().get("ttsess");
+  const headers = {
+    ...init?.headers,
+    "X-Api-Key": session,
+  };
+
+  return fetch(
+    input,
+    init
+      ? {
+          ...init,
+          headers: headers,
+        }
+      : {
+          headers: headers,
+        }
+  );
 };
 
 const DevicesPage: React.FC = () => {
@@ -20,15 +41,10 @@ const DevicesPage: React.FC = () => {
 
   const { isLoading, error, data: devices } = useQuery<Paginated<Device>>(
     "organizationDevices",
-    () =>
-      fetch("/api/device", {
-        headers: {
-          "X-Api-Key": new Cookies().get("ttsess"),
-        },
-      }).then((res) => res.json())
+    () => fetchAuthnd("/api/device").then((res) => res.json())
   );
 
-  const [mutate] = useMutation(removeDevice, {
+  const [deleteDevice] = useMutation(removeDevice, {
     onSuccess: async () => {
       await queryCache.invalidateQueries("organizationDevices");
     },
@@ -37,7 +53,17 @@ const DevicesPage: React.FC = () => {
   const onDeleteDevices = async () => {
     for (const dev of selectedItems) {
       try {
-        await mutate(dev);
+        await deleteDevice(dev);
+      } catch (error) {}
+    }
+  };
+
+  const [rebootDevice] = useMutation(restartDevice);
+
+  const onRebootDevices = async () => {
+    for (const dev of selectedItems) {
+      try {
+        await rebootDevice(dev);
       } catch (error) {}
     }
   };
@@ -77,6 +103,7 @@ const DevicesPage: React.FC = () => {
             disabled={selectedItems.length === 0}
             raised
             style={{ marginLeft: 8 }}
+            onClick={() => onRebootDevices()}
           >
             Opnieuw opstarten
           </Button>

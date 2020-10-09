@@ -7,6 +7,7 @@ import (
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
+	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
@@ -28,7 +29,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	server, err := api.NewServer(db, log)
+	nc, err := nats.Connect(os.Getenv("NATS_URL"))
+	if err != nil {
+		log.Error(err, "could not connect to NATS")
+		os.Exit(1)
+	}
+
+	server, err := api.NewServer(db, log, nc)
 	if err != nil {
 		log.Error(err, "could not create API server")
 		os.Exit(1)
