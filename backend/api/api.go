@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,10 +13,10 @@ import (
 	"github.com/labstack/echo"
 	"github.com/nats-io/nats.go"
 	timetermpb "gitlab.com/timeterm/timeterm/proto/go"
-	"google.golang.org/protobuf/proto"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/helper/natspb"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -27,28 +26,6 @@ type Server struct {
 	echo     *echo.Echo
 	apiGroup *echo.Group
 	enc      *nats.EncodedConn
-}
-
-type protoEncoder struct{}
-
-func (p protoEncoder) Encode(_ string, v interface{}) ([]byte, error) {
-	msg, ok := v.(proto.Message)
-	if !ok {
-		return nil, errors.New("v is not proto.Message")
-	}
-	return proto.Marshal(msg)
-}
-
-func (p protoEncoder) Decode(_ string, data []byte, vPtr interface{}) error {
-	msg, ok := vPtr.(proto.Message)
-	if !ok {
-		return errors.New("vPtr is not proto.Message")
-	}
-	return proto.Unmarshal(data, msg)
-}
-
-func init() {
-	nats.RegisterEncoder("proto", &protoEncoder{})
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -73,7 +50,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, er
 		return Server{}, err
 	}
 
-	enc, err := nats.NewEncodedConn(nc, "proto")
+	enc, err := nats.NewEncodedConn(nc, natspb.EncoderType)
 	if err != nil {
 		return Server{}, err
 	}

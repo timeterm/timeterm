@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	_ "gitlab.com/timeterm/timeterm/backend/helper/natspb"
 )
 
 func main() {
