@@ -1735,6 +1735,25 @@
     "@material/feature-targeting" "^5.1.0"
     "@material/rtl" "^5.1.0"
 
+"@material/snackbar@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@material/snackbar/-/snackbar-5.1.0.tgz#f5a075cebc314f5d3fbe887c7d2231c9587e9d9d"
+  integrity sha512-bn6WydEGKZxq24aZ6BfnLGPbhCww2srOe+mn2W9VJFBfZEh9qnCcya2jHs295pPbzRtDM1b2oR2LiAKBfIBt3A==
+  dependencies:
+    "@material/animation" "^5.1.0"
+    "@material/base" "^5.1.0"
+    "@material/button" "^5.1.0"
+    "@material/dom" "^5.1.0"
+    "@material/elevation" "^5.1.0"
+    "@material/feature-targeting" "^5.1.0"
+    "@material/icon-button" "^5.1.0"
+    "@material/ripple" "^5.1.0"
+    "@material/rtl" "^5.1.0"
+    "@material/shape" "^5.1.0"
+    "@material/theme" "^5.1.0"
+    "@material/typography" "^5.1.0"
+    tslib "^1.9.3"
+
 "@material/switch@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@material/switch/-/switch-5.1.0.tgz#80894dbfdf799aa4220189f39fcd3100722df2b6"
@@ -1988,6 +2007,18 @@
     "@rmwc/menu" "^6.1.4"
     "@rmwc/notched-outline" "^6.1.4"
     "@rmwc/ripple" "^6.1.4"
+    "@rmwc/types" "^6.0.5"
+
+"@rmwc/snackbar@^6.1.4":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@rmwc/snackbar/-/snackbar-6.1.4.tgz#c399b5ab3d6a92bd0eacfd0e6db2ab6572929782"
+  integrity sha512-VpjYdkMT9TxbuGaAXq4asqdFN4WBZkZbw3FUhB/m4DIaVawWBWTIqFLiE42KSPSt5pBJAKSAt2Z+LJw2UJBklw==
+  dependencies:
+    "@material/snackbar" "^5.1.0"
+    "@rmwc/base" "^6.1.4"
+    "@rmwc/button" "^6.1.4"
+    "@rmwc/icon" "^6.1.4"
+    "@rmwc/icon-button" "^6.1.4"
     "@rmwc/types" "^6.0.5"
 
 "@rmwc/switch@^6.1.4":

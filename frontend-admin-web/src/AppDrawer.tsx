@@ -9,11 +9,13 @@ import {
   ListItemSecondaryText,
   ListItemText,
 } from "@rmwc/list";
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import Cookies from "universal-cookie";
 import { useQuery } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
+import { queue } from "./snackbarQueue";
+import "@rmwc/snackbar/styles";
 
 interface LinkListItemProps {
   to: string;
@@ -81,6 +83,22 @@ const AppDrawer: React.FC = () => {
   );
   const history = useHistory();
 
+  useEffect(() => {
+    if (error)
+      queue.notify({
+        title: <b>Er is een fout opgetreden</b>,
+        body: "Kon data niet van server ophalen",
+        icon: "error",
+        dismissesOnAction: true,
+        actions: [
+          {
+            title: "Sluiten",
+            icon: "close",
+          },
+        ],
+      });
+  }, [error]);
+
   return (
     <Theme use={["primaryBg", "onPrimary"]} wrap>
       <Drawer>
@@ -140,11 +158,11 @@ const AppDrawer: React.FC = () => {
                   </Theme>
                   <ListItemText>
                     <ListItemPrimaryText>
-                      {!isLoading && !error && user?.name}
+                      {!isLoading && user?.name}
                     </ListItemPrimaryText>
                     <Theme use={["onPrimary"]} wrap>
                       <ListItemSecondaryText>
-                        {!isLoading && !error && user?.email}
+                        {!isLoading && user?.email}
                       </ListItemSecondaryText>
                     </Theme>
                   </ListItemText>
