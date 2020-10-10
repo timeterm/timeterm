@@ -97,12 +97,32 @@ func DeviceStatusFrom(s database.DeviceStatus) DeviceStatus {
 	}
 }
 
+func DeviceStatusToDB(s DeviceStatus) database.DeviceStatus {
+	switch s {
+	case DeviceStatusOnline:
+		return database.DeviceStatusOnline
+	case DeviceStatusOffline:
+		fallthrough
+	default:
+		return database.DeviceStatusOffline
+	}
+}
+
 func DeviceFrom(device database.Device) Device {
 	return Device{
 		ID:             device.ID,
 		OrganizationID: device.OrganizationID,
 		Name:           device.Name,
 		Status:         DeviceStatusFrom(device.Status),
+	}
+}
+
+func DeviceToDB(device Device) database.Device {
+	return database.Device{
+		ID:             device.ID,
+		OrganizationID: device.OrganizationID,
+		Name:           device.Name,
+		Status:         DeviceStatusToDB(device.Status),
 	}
 }
 

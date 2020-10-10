@@ -1,5 +1,6 @@
 import { MouseEventHandler } from "react";
 import {
+  IdType,
   TableInstance,
   UseColumnOrderInstanceProps,
   UseColumnOrderState,
@@ -62,7 +63,9 @@ declare module "react-table" {
       UsePaginationOptions<D>,
       UseResizeColumnsOptions<D>,
       UseRowSelectOptions<D>,
-      UseSortByOptions<D> {}
+      UseSortByOptions<D> {
+    updateData?: (index: number, id: IdType<D>, value: string) => void;
+  }
 
   export interface Hooks<D extends object = {}>
     extends UseExpandedHooks<D>,

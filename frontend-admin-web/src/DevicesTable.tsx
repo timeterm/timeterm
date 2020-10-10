@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Icon } from "@rmwc/icon";
 import { Checkbox } from "@rmwc/checkbox";
 import {
@@ -12,7 +18,7 @@ import {
 } from "@rmwc/data-table";
 import { Select } from "@rmwc/select";
 import { IconButton } from "@rmwc/icon-button";
-import { usePaginatedQuery } from "react-query";
+import { queryCache, useMutation, usePaginatedQuery } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
 import { LinearProgress } from "@rmwc/linear-progress";
 import "@rmwc/linear-progress/styles";
@@ -21,6 +27,7 @@ import {
   Column,
   HeaderProps,
   Hooks,
+  IdType,
   usePagination,
   useRowSelect,
   useTable,
@@ -94,6 +101,58 @@ const selectionHook = <T extends {}>(hooks: Hooks<T>) => {
   ]);
 };
 
+interface EditableCellProps<T extends object> extends CellProps<T> {
+  updateData: (index: number, id: IdType<T>, data: string) => void;
+}
+
+const EditableCell: React.FC<EditableCellProps<Device>> = ({
+  value: initialValue,
+  row: { index },
+  column: { id },
+  updateData,
+}) => {
+  const [value, setValue] = useState(initialValue);
+
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+
+  const onBlur = () => {
+    console.log("onBlur called");
+    updateData(index, id, value);
+  };
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      style={{
+        fontSize: "var(--mdc-typography-body2-font-size, 0.875rem)",
+        padding: 0,
+        margin: 0,
+        border: 0,
+        background: "inherit",
+      }}
+    />
+  );
+};
+
+interface DevicePatch {
+  id: string;
+  name?: string;
+}
+
+const updateDevice = (patch: DevicePatch) =>
+  fetchAuthnd(`/api/device/${patch.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
 const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
   const [currentData, setCurrentData] = useState({
     total: 0,
@@ -103,11 +162,18 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
   } as Paginated<Device>);
   const [currentPageCount, setCurrentPageCount] = useState(0);
 
+  const [updateDeviceMut] = useMutation(updateDevice, {
+    onSuccess: async () => {
+      await queryCache.invalidateQueries("organizationDevices");
+    },
+  });
+
   const columns = useMemo<Array<Column<Device>>>(
     () => [
       {
         Header: "Naam",
         accessor: (dev) => dev.name,
+        Cell: EditableCell,
       },
       {
         Header: "Status",
@@ -122,6 +188,8 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     ],
     []
   );
+
+  const [skipPageReset, setSkipPageReset] = useState(false);
 
   const {
     getTableProps,
@@ -138,21 +206,38 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     setPageSize,
     selectedFlatRows,
     state: { pageIndex, pageSize, selectedRowIds },
-  } = useTable(
+  } = useTable<Device>(
     {
       columns: columns,
       data: currentData.data,
       manualPagination: true,
+      autoResetPage: !skipPageReset,
       initialState: {
         pageIndex: 0,
         pageSize: 50,
       },
       pageCount: currentPageCount,
+      updateData: async (rowIndex, columnId, value) => {
+        if (columnId === "Naam") {
+          setSkipPageReset(true);
+
+          try {
+            await updateDeviceMut({
+              id: currentData.data[rowIndex].id,
+              name: value,
+            });
+          } catch (e) {}
+        }
+      },
     },
     usePagination,
     useRowSelect,
     selectionHook
   );
+
+  useEffect(() => {
+    setSkipPageReset(false);
+  }, [currentData]);
 
   const fetchDevices = useCallback(async (key, page = 0, pageSize = 50) => {
     return fetchAuthnd(

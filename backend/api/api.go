@@ -82,6 +82,7 @@ func (s *Server) registerRoutes() {
 	g.GET("/device", s.getDevices)
 	g.GET("/device/:id", s.getDevice)
 	g.POST("/device/:id/restart", s.rebootDevice)
+	g.PATCH("/device/:id", s.patchDevice)
 	g.DELETE("/device/:id", s.deleteDevice)
 
 	orgGroup := s.apiGroup.Group("/organization")
@@ -109,12 +110,12 @@ func (s *Server) getOrganization(c echo.Context) error {
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
 	dbOrg, err := s.db.GetOrganization(c.Request().Context(), uid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not read organization from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read organization from database")
 	}
 
 	apiOrg := OrganizationFrom(dbOrg)
@@ -126,12 +127,12 @@ func (s *Server) getStudent(c echo.Context) error {
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
 	dbStudent, err := s.db.GetStudent(c.Request().Context(), uid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not read student from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read student from database")
 	}
 
 	apiStudent := StudentFrom(dbStudent)
@@ -201,7 +202,11 @@ func (s *Server) rebootDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Could not get device")
 	}
 
-	user := c.Get("user").(database.User)
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not logged in")
+	}
+
 	if dev.OrganizationID != user.OrganizationID {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
@@ -244,7 +249,7 @@ func (s *Server) getDevices(c echo.Context) error {
 	})
 	if err != nil {
 		s.log.Error(err, "could not get devices")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not read devices from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read devices from database")
 	}
 
 	apiDevices := PaginatedDevicesFrom(dbDevices)
@@ -257,17 +262,83 @@ func (s *Server) createStudent(c echo.Context) error {
 
 	uid, err := uuid.Parse(organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
 	dbStudent, err := s.db.CreateStudent(c.Request().Context(), uid)
 	if err != nil {
 		s.log.Error(err, "could not create student")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not create student")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create student")
 	}
 
 	apiStudent := StudentFrom(dbStudent)
 	return c.JSON(http.StatusOK, apiStudent)
+}
+
+func (s *Server) patchDevice(c echo.Context) error {
+	deviceID := c.Param("id")
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not logged in")
+	}
+
+	uid, err := uuid.Parse(deviceID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	patchData, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		s.log.Error(err, "could not read request body")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read request body")
+	}
+
+	oldDBDevice, err := s.db.GetDevice(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not read organization from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read organization from database")
+	}
+
+	if oldDBDevice.OrganizationID != user.OrganizationID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Device not in organization")
+	}
+
+	oldAPIDevice := DeviceFrom(oldDBDevice)
+
+	jsonDevice, err := json.Marshal(oldAPIDevice)
+	if err != nil {
+		s.log.Error(err, "could not marshal the old device")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not marshal the old device")
+	}
+
+	newJSONDevice, err := jsonpatch.MergePatch(jsonDevice, patchData)
+	if err != nil {
+		s.log.Error(err, "could not patch the device")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not patch the device")
+	}
+
+	var newAPIDevice Device
+	err = json.Unmarshal(newJSONDevice, &newAPIDevice)
+	if err != nil {
+		s.log.Error(err, "could not unmarshal patched device")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not unmarshal patched device")
+	}
+
+	newAPIDevice.ID = oldDBDevice.ID
+	newAPIDevice.Status = oldAPIDevice.Status
+	newAPIDevice.OrganizationID = oldDBDevice.OrganizationID
+
+	newDBDevice := DeviceToDB(newAPIDevice)
+	newDBDevice.LastHeartbeat = oldDBDevice.LastHeartbeat
+
+	err = s.db.ReplaceDevice(c.Request().Context(), newDBDevice)
+	if err != nil {
+		s.log.Error(err, "could not update the device in the database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the device in the database")
+	}
+
+	return c.JSON(http.StatusOK, newAPIDevice)
 }
 
 func (s *Server) createDevice(c echo.Context) error {
@@ -275,19 +346,19 @@ func (s *Server) createDevice(c echo.Context) error {
 
 	uid, err := uuid.Parse(organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
 	var dev Device
 	err = c.Bind(&dev)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not bind data")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
 	}
 
 	dbDevice, err := s.db.CreateDevice(c.Request().Context(), uid, dev.Name, database.DeviceStatusOffline)
 	if err != nil {
 		s.log.Error(err, "could not create device")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not create device")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create device")
 	}
 
 	apiDevice := DeviceFrom(dbDevice)
@@ -299,19 +370,19 @@ func (s *Server) patchOrganization(c echo.Context) error {
 
 	uid, err := uuid.Parse(organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
-	bytes, err := ioutil.ReadAll(c.Request().Body)
+	patchData, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		s.log.Error(err, "could not read request body")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not read request body")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read request body")
 	}
 
 	oldDBOrganization, err := s.db.GetOrganization(c.Request().Context(), uid)
 	if err != nil {
 		s.log.Error(err, "could not read organization from database")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not read organization from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read organization from database")
 	}
 
 	oldAPIOrganization := OrganizationFrom(oldDBOrganization)
@@ -319,30 +390,29 @@ func (s *Server) patchOrganization(c echo.Context) error {
 	jsonOrganization, err := json.Marshal(oldAPIOrganization)
 	if err != nil {
 		s.log.Error(err, "could not marshal the old organization")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not marshal the old organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not marshal the old organization")
 	}
 
-	newJSONOrganization, err := jsonpatch.MergePatch(bytes, jsonOrganization)
+	newJSONOrganization, err := jsonpatch.MergePatch(jsonOrganization, patchData)
 	if err != nil {
 		s.log.Error(err, "could not patch the organization")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not patch the organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not patch the organization")
 	}
 
 	var newAPIOrganization Organization
 	err = json.Unmarshal(newJSONOrganization, &newAPIOrganization)
 	if err != nil {
 		s.log.Error(err, "could not unmarshal patched organization")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not unmarshal patched organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not unmarshal patched organization")
 	}
 
-	newAPIOrganization.ID = uid
-
+	newAPIOrganization.ID = oldDBOrganization.ID
 	newDBOrganization := OrganisationToDB(newAPIOrganization)
 
 	err = s.db.ReplaceOrganization(c.Request().Context(), newDBOrganization)
 	if err != nil {
 		s.log.Error(err, "could not update the organization in the database")
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not update the organization in the database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the organization in the database")
 	}
 
 	return c.JSON(http.StatusOK, newAPIOrganization)

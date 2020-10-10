@@ -286,7 +286,7 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("User created with different provider"))
 		}
 	} else if !userPreviouslyLoggedInWithIssuer {
-		_, err := a.dbw.CreateNewUser(context.Background(), claims.Name, claims.Email, database.OIDCFederation{
+		user, err = a.dbw.CreateNewUser(context.Background(), claims.Name, claims.Email, database.OIDCFederation{
 			OIDCIssuer:   claims.Issuer,
 			OIDCSubject:  claims.Subject,
 			OIDCAudience: claims.Audience,
