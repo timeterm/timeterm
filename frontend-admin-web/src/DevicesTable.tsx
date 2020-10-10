@@ -294,7 +294,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
                 {headerGroup.headers.map((column) => (
                   <DataTableHeadCell
                     {...column.getHeaderProps()}
-                    style={{ ...(column as any).style }}
+                    style={column.style}
                   >
                     {column.render("Header")}
                   </DataTableHeadCell>

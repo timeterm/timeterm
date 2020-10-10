@@ -1,4 +1,4 @@
-import { MouseEventHandler } from "react";
+import { CSSProperties, MouseEventHandler } from "react";
 import {
   IdType,
   TableInstance,
@@ -104,6 +104,7 @@ declare module "react-table" {
       UseResizeColumnsColumnOptions<D>,
       UseSortByColumnOptions<D> {
     align?: string;
+    style?: CSSProperties;
   }
 
   export interface ColumnInstance<D extends object = {}>
