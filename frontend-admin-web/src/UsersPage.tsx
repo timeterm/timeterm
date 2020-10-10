@@ -1,7 +1,7 @@
 import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import DevicesTable, { Device, DeviceStatus } from "./DevicesTable";
+import DevicesTable, { Device } from "./DevicesTable";
 import React, { useState } from "react";
 
 const UsersPage: React.FC = () => {
@@ -56,26 +56,7 @@ const UsersPage: React.FC = () => {
             borderRadius: 8,
           }}
         >
-          <DevicesTable
-            devices={{
-              offset: 0,
-              maxAmount: 50,
-              total: 2,
-              data: [
-                {
-                  name: "Mediatheek 1",
-                  id: "2f100454-7209-4379-9fc0-8f323a14da8b",
-                  status: DeviceStatus.Online,
-                },
-                {
-                  name: "Mediatheek 2",
-                  id: "b1960ab9-d8dd-4a56-837e-9ccb80292ad2",
-                  status: DeviceStatus.Offline,
-                },
-              ],
-            }}
-            setSelectedItems={setSelectedItems}
-          />
+          <DevicesTable setSelectedItems={setSelectedItems} />
         </Elevation>
       </Theme>
     </div>

@@ -58,7 +58,7 @@ const LoginDonePage: React.FC = (props) => {
               alt={"Timeterm Logo"}
               style={{ width: 96, marginBottom: 16 }}
             />
-            <Typography use="headline4" style={{ marginBottom: 8 }}>
+            <Typography use="headline5" style={{ marginBottom: 8 }}>
               {status === "ok" ? "Ingelogd" : "Er is een fout opgetreden"}
             </Typography>
 

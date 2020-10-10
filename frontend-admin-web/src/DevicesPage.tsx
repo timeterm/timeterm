@@ -1,9 +1,9 @@
 import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import DevicesTable, { Device, Paginated } from "./DevicesTable";
+import DevicesTable, { Device } from "./DevicesTable";
 import React, { useState } from "react";
-import { queryCache, useMutation, useQuery } from "react-query";
+import { queryCache, useMutation } from "react-query";
 import Cookies from "universal-cookie";
 
 const removeDevice = (dev: Device) =>
@@ -23,26 +23,14 @@ export const fetchAuthnd = (input: RequestInfo, init?: RequestInit) => {
     "X-Api-Key": session,
   };
 
-  return fetch(
-    input,
-    init
-      ? {
-          ...init,
-          headers: headers,
-        }
-      : {
-          headers: headers,
-        }
-  );
+  return fetch(input, {
+    ...init,
+    headers,
+  });
 };
 
 const DevicesPage: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState([] as Device[]);
-
-  const { isLoading, error, data: devices } = useQuery<Paginated<Device>>(
-    "organizationDevices",
-    () => fetchAuthnd("/api/device").then((res) => res.json())
-  );
 
   const [deleteDevice] = useMutation(removeDevice, {
     onSuccess: async () => {
@@ -119,17 +107,7 @@ const DevicesPage: React.FC = () => {
             borderRadius: 8,
           }}
         >
-          <DevicesTable
-            devices={
-              (!isLoading && !error && devices) || {
-                total: 0,
-                data: [],
-                maxAmount: 0,
-                offset: 0,
-              }
-            }
-            setSelectedItems={setSelectedItems}
-          />
+          <DevicesTable setSelectedItems={setSelectedItems} />
         </Elevation>
       </Theme>
     </div>

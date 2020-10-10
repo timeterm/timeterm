@@ -1613,6 +1613,18 @@
     "@material/theme" "^5.1.0"
     tslib "^1.9.3"
 
+"@material/linear-progress@5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@material/linear-progress/-/linear-progress-5.1.0.tgz#e1d9c0f65f19588845c2f30370545441c9fe505a"
+  integrity sha512-wuBH2Y7psdiG5ubsKCHFWriHv4IqLeUARCmHoHyFsAdW0snwMPzSgb2mbVDiGl5gjWbSDxBsqGjKo5kOl3Vaug==
+  dependencies:
+    "@material/animation" "^5.1.0"
+    "@material/base" "^5.1.0"
+    "@material/feature-targeting" "^5.1.0"
+    "@material/progress-indicator" "^5.1.0"
+    "@material/theme" "^5.1.0"
+    tslib "^1.9.3"
+
 "@material/list@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@material/list/-/list-5.1.0.tgz#04c010e393c88c7da2091426fd12b8206585c37e"
@@ -1670,6 +1682,13 @@
     "@material/rtl" "^5.1.0"
     "@material/shape" "^5.1.0"
     "@material/theme" "^5.1.0"
+    tslib "^1.9.3"
+
+"@material/progress-indicator@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@material/progress-indicator/-/progress-indicator-5.1.0.tgz#d7885c4d2de7d3c9c0951bf19cc4bb6344d75cab"
+  integrity sha512-+bsiQogKFu42Td8cXpsxX1u2BOyB4erR6NBWMrSWZJNmKM95EFQrQEnr9nxfU94bY47V3UqYtcAY9Y6GgfJyZQ==
+  dependencies:
     tslib "^1.9.3"
 
 "@material/ripple@^5.1.0":
@@ -1893,6 +1912,15 @@
   integrity sha512-lynjPp436hDrhspPFGzzqzUidsMS+D+zwSnH6G527Le7wEYjx13r2x3zCJ2tHVJWx6oxmJti+Y0QyvtPu0ehbQ==
   dependencies:
     "@material/line-ripple" "^5.1.0"
+    "@rmwc/base" "^6.1.4"
+    "@rmwc/types" "^6.0.5"
+
+"@rmwc/linear-progress@^6.1.4":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@rmwc/linear-progress/-/linear-progress-6.1.4.tgz#f615dd82452539f4f261f0956c48986afef921c1"
+  integrity sha512-7ZXUEcqIGmiWSaMuY2ZzCfhd58IOpKgXOlzp4rTx78+cMuRfBmF9xpC7WYMbpHu2o4WU2mukIH55p7DFdBR17g==
+  dependencies:
+    "@material/linear-progress" "5.1.0"
     "@rmwc/base" "^6.1.4"
     "@rmwc/types" "^6.0.5"
 
@@ -2332,6 +2360,13 @@
   integrity sha512-HzOyJb+wFmyEhyfp4D4NYrumi+LQgQL/68HvJO+q6XtuHSDvw6Aqov7sCAhjbNq3bUPgPqbdvjXC5HeB2oEAPg==
   dependencies:
     "@types/history" "*"
+    "@types/react" "*"
+
+"@types/react-table@^7.0.24":
+  version "7.0.24"
+  resolved "https://registry.yarnpkg.com/@types/react-table/-/react-table-7.0.24.tgz#ef27334f8da55d7890dc8dbec63a3f873f8d97fe"
+  integrity sha512-71JT+7R+Av1mF249SUAyAvH0Y8ZiI/8Rbbei3ka3ofPtD2yHUhm6XC68WHPoHSwQ71wkscKZfI3EcuxepWC7Mw==
+  dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.9.0":
@@ -9875,6 +9910,11 @@ react-scripts@3.4.3:
     workbox-webpack-plugin "4.3.1"
   optionalDependencies:
     fsevents "2.1.2"
+
+react-table@^7.5.2:
+  version "7.5.2"
+  resolved "https://registry.yarnpkg.com/react-table/-/react-table-7.5.2.tgz#d82ceee3d4d40b119159bce1708f084a95d3435c"
+  integrity sha512-qiceR/gQUOBsO/q1z1wZ3RbRvkRt39Gbzo631HiPuWmo+eTmTgaXDqLGzCmU+bOr81PB6kDxXhoWQR8hiWaUJA==
 
 react@^16.13.1:
   version "16.13.1"
