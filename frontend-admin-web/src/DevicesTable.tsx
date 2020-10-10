@@ -305,9 +305,24 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
           <DataTableBody {...getTableBodyProps()}>
             <tr>
               <td colSpan={10000} style={{ padding: 0 }}>
-                <LinearProgress
-                  style={{ maxHeight: isFetching ? 4 : 0, transition: "0.5s" }}
-                />
+                {error ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: 4,
+                    }}
+                  >
+                    Er is een fout opgetreden bij het ophalen van de data
+                  </div>
+                ) : (
+                  <LinearProgress
+                    style={{
+                      maxHeight: isFetching ? 4 : 0,
+                      transition: "0.5s",
+                    }}
+                  />
+                )}
               </td>
             </tr>
             {page.map((row, i) => {

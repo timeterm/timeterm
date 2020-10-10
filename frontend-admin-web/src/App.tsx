@@ -15,6 +15,7 @@ import LoginPage from "./LoginPage";
 import { useLocation } from "react-router-dom";
 import LoginDonePage from "./LoginDonePage";
 import Cookies from "universal-cookie";
+import { QueryCache, ReactQueryCacheProvider } from "react-query";
 
 const App: React.FC = () => {
   return (
@@ -38,13 +39,15 @@ const App: React.FC = () => {
   );
 };
 
+const queryCache = new QueryCache();
+
 const AppContents: React.FC = () => {
   const location = useLocation();
   const session = new Cookies().get("ttsess");
   const loggedIn = !!session;
 
   return (
-    <>
+    <ReactQueryCacheProvider queryCache={queryCache}>
       {!["/", "/login/done"].includes(location.pathname) && (
         <Elevation
           z={24}
@@ -73,7 +76,7 @@ const AppContents: React.FC = () => {
           <UsersPage />
         </Route>
       </Switch>
-    </>
+    </ReactQueryCacheProvider>
   );
 };
 
