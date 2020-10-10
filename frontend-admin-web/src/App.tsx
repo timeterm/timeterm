@@ -22,7 +22,7 @@ const App: React.FC = () => {
     <Router>
       <ThemeProvider
         options={{
-          primary: "rgba(57, 156, 248, 1)",
+          primary: "rgb(57,156,248)",
           secondary: "rgb(127,193,255)",
           onPrimary: "white",
           surface: "white",
