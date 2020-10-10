@@ -135,6 +135,7 @@ const EditableCell: React.FC<EditableCellProps<Device>> = ({
         padding: 0,
         margin: 0,
         border: 0,
+        width: "100%",
         color: "inherit",
         fontSize: "inherit",
         fontWeight: "inherit",
