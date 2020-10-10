@@ -132,10 +132,15 @@ const EditableCell: React.FC<EditableCellProps<Device>> = ({
       onChange={onChange}
       onBlur={onBlur}
       style={{
-        fontSize: "var(--mdc-typography-body2-font-size, 0.875rem)",
         padding: 0,
         margin: 0,
         border: 0,
+        color: "inherit",
+        fontSize: "inherit",
+        fontWeight: "inherit",
+        letterSpacing: "inherit",
+        textTransform: "inherit",
+        fontFamily: "inherit",
         background: "inherit",
       }}
     />
@@ -171,11 +176,13 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
   const columns = useMemo<Array<Column<Device>>>(
     () => [
       {
+        id: "name",
         Header: "Naam",
         accessor: (dev) => dev.name,
         Cell: EditableCell,
       },
       {
+        id: "status",
         Header: "Status",
         accessor: (dev) => (
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -218,7 +225,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
       },
       pageCount: currentPageCount,
       updateData: async (rowIndex, columnId, value) => {
-        if (columnId === "Naam") {
+        if (columnId === "name") {
           setSkipPageReset(true);
 
           try {
@@ -287,7 +294,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
                 {headerGroup.headers.map((column) => (
                   <DataTableHeadCell
                     {...column.getHeaderProps()}
-                    style={(column as any).style}
+                    style={{ ...(column as any).style }}
                   >
                     {column.render("Header")}
                   </DataTableHeadCell>
