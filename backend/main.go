@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
+	"os/signal"
 
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
@@ -42,7 +44,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = server.Run(context.Background())
-	log.Error(err, "error running API server")
-	os.Exit(1)
+	ctx, cancel := contextWithTermination(context.Background())
+	defer cancel()
+
+	err = server.Run(ctx)
+	if !errors.Is(err, context.Canceled) {
+		log.Error(err, "error running API server")
+		os.Exit(1)
+	}
+}
+
+func contextWithTermination(ctx context.Context) (context.Context, func()) {
+	ctx, cancel := context.WithCancel(ctx)
+
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, os.Interrupt)
+		defer signal.Stop(sigs)
+
+		select {
+		case <-sigs:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	return ctx, cancel
 }

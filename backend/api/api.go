@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/go-logr/logr"
@@ -430,7 +431,10 @@ func (s *Server) Run(ctx context.Context) error {
 	case err := <-errc:
 		return err
 	case <-ctx.Done():
-		_ = s.echo.Close()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel()
+
+		_ = s.echo.Shutdown(shutdownCtx)
 		return ctx.Err()
 	}
 }
