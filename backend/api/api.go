@@ -81,6 +81,8 @@ func (s *Server) registerRoutes() {
 	g.GET("/user/me", s.getCurrentUser)
 
 	g.GET("/device", s.getDevices)
+	g.DELETE("/device", s.deleteDevices)
+	g.POST("/device/restart", s.rebootDevices)
 	g.GET("/device/:id", s.getDevice)
 	g.POST("/device/:id/restart", s.rebootDevice)
 	g.PATCH("/device/:id", s.patchDevice)
@@ -157,6 +159,40 @@ func (s *Server) getDevice(c echo.Context) error {
 	return c.JSON(http.StatusOK, apiDevice)
 }
 
+type deleteDevicesParams struct {
+	DeviceIDs []uuid.UUID `json:"deviceIds"`
+}
+
+func (s *Server) deleteDevices(c echo.Context) error {
+	var params deleteDevicesParams
+	err := c.Bind(&params)
+	if err != nil {
+		return err
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	allInOrg, err := s.db.AreDevicesInOrganization(c.Request().Context(), user.OrganizationID, params.DeviceIDs...)
+	if err != nil {
+		s.log.Error(err, "could not get devices in organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not retrieve device information")
+	}
+	if !allInOrg {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not all devices are in user's organization")
+	}
+
+	err = s.db.DeleteDevices(c.Request().Context(), params.DeviceIDs)
+	if err != nil {
+		s.log.Error(err, "could not delete devices")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not delete devices")
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (s *Server) deleteDevice(c echo.Context) error {
 	id := c.Param("id")
 
@@ -218,6 +254,44 @@ func (s *Server) rebootDevice(c echo.Context) error {
 	if err != nil {
 		s.log.Error(err, "could not publish reboot message")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+type rebootDevicesParams struct {
+	DeviceIDs []uuid.UUID `json:"deviceIds"`
+}
+
+func (s *Server) rebootDevices(c echo.Context) error {
+	var params rebootDevicesParams
+	err := c.Bind(&params)
+	if err != nil {
+		return err
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	allInOrg, err := s.db.AreDevicesInOrganization(c.Request().Context(), user.OrganizationID, params.DeviceIDs...)
+	if err != nil {
+		s.log.Error(err, "could not get devices in organization")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not retrieve device information")
+	}
+	if !allInOrg {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not all devices are in user's organization")
+	}
+
+	for _, deviceID := range params.DeviceIDs {
+		err = s.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", deviceID), &timetermpb.RebootMessage{
+			DeviceId: deviceID.String(),
+		})
+		if err != nil {
+			s.log.Error(err, "could not publish reboot message")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
+		}
 	}
 
 	return c.NoContent(http.StatusOK)

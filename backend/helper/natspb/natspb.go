@@ -1,4 +1,4 @@
-// Package natspb registeres a Protocol Buffers encoder for NATS.
+// Package natspb registers a Protocol Buffers encoder for NATS.
 package natspb
 
 import (

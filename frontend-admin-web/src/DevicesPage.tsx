@@ -3,17 +3,32 @@ import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
 import DevicesTable, { Device } from "./DevicesTable";
 import React, { useState } from "react";
-import { queryCache, useMutation } from "react-query";
+import { useMutation } from "react-query";
 import Cookies from "universal-cookie";
+import { queryCache } from "./App";
 
-const removeDevice = (dev: Device) =>
-  fetchAuthnd(`/api/device/${dev.id}`, {
+const removeDevice = (devices: Device[]) =>
+  fetchAuthnd(`/api/device`, {
     method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      deviceIds: devices.map((device) => device.id),
+    }),
   });
 
-const restartDevice = (dev: Device) =>
-  fetchAuthnd(`/api/device/${dev.id}/restart`, {
+const restartDevices = (devices: Device[]) =>
+  fetchAuthnd(`/api/device/restart`, {
     method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      deviceIds: devices.map((device) => device.id),
+    }),
   });
 
 export const fetchAuthnd = (input: RequestInfo, init?: RequestInit) => {
@@ -32,28 +47,24 @@ export const fetchAuthnd = (input: RequestInfo, init?: RequestInit) => {
 const DevicesPage: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState([] as Device[]);
 
-  const [deleteDevice] = useMutation(removeDevice, {
+  const [deleteDevices] = useMutation(removeDevice, {
     onSuccess: async () => {
-      await queryCache.invalidateQueries("organizationDevices");
+      await queryCache.invalidateQueries("devices");
     },
   });
 
   const onDeleteDevices = async () => {
-    for (const dev of selectedItems) {
-      try {
-        await deleteDevice(dev);
-      } catch (error) {}
-    }
+    try {
+      await deleteDevices(selectedItems);
+    } catch (error) {}
   };
 
-  const [rebootDevice] = useMutation(restartDevice);
+  const [rebootDevices] = useMutation(restartDevices);
 
   const onRebootDevices = async () => {
-    for (const dev of selectedItems) {
-      try {
-        await rebootDevice(dev);
-      } catch (error) {}
-    }
+    try {
+      await rebootDevices(selectedItems);
+    } catch (error) {}
   };
 
   return (

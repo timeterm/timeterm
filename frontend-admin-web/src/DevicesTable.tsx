@@ -18,7 +18,7 @@ import {
 } from "@rmwc/data-table";
 import { Select } from "@rmwc/select";
 import { IconButton } from "@rmwc/icon-button";
-import { queryCache, useMutation, usePaginatedQuery } from "react-query";
+import { useMutation, usePaginatedQuery } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
 import { LinearProgress } from "@rmwc/linear-progress";
 import "@rmwc/linear-progress/styles";
@@ -32,6 +32,7 @@ import {
   useRowSelect,
   useTable,
 } from "react-table";
+import { queryCache } from "./App";
 
 export enum DeviceStatus {
   Online = "Online",
@@ -118,7 +119,6 @@ const EditableCell: React.FC<EditableCellProps<Device>> = ({
   };
 
   const onBlur = () => {
-    console.log("onBlur called");
     updateData(index, id, value);
   };
 
@@ -170,7 +170,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
 
   const [updateDeviceMut] = useMutation(updateDevice, {
     onSuccess: async () => {
-      await queryCache.invalidateQueries("organizationDevices");
+      await queryCache.invalidateQueries("devices");
     },
   });
 
@@ -255,7 +255,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
 
   const { resolvedData, error, isFetching } = usePaginatedQuery<
     Paginated<Device>
-  >(["organizationDevices", pageIndex, pageSize], fetchDevices);
+  >(["devices", pageIndex, pageSize], fetchDevices);
 
   useEffect(() => {
     if (resolvedData && resolvedData.data) {

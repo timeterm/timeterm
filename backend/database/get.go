@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (w *Wrapper) GetOrganization(ctx context.Context, id uuid.UUID) (Organization, error) {
@@ -179,4 +180,19 @@ func (w *Wrapper) GetUserByToken(ctx context.Context, token uuid.UUID) (User, er
 	`, tokenHash)
 
 	return user, err
+}
+
+func (w *Wrapper) AreDevicesInOrganization(ctx context.Context,
+	organizationID uuid.UUID,
+	ids ...uuid.UUID,
+) (bool, error) {
+	var amountInOrganization int
+
+	err := w.db.GetContext(ctx, &amountInOrganization, `
+		SELECT COUNT(*) FROM "device"
+		WHERE "id" = ANY($1)
+		AND "organization_id" = $2
+	`, pq.Array(ids), organizationID)
+
+	return amountInOrganization == len(ids), err
 }

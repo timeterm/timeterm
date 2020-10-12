@@ -19,7 +19,7 @@ import { QueryCache, ReactQueryCacheProvider } from "react-query";
 import { SnackbarQueue } from "@rmwc/snackbar";
 import { queue } from "./snackbarQueue";
 
-const queryCache = new QueryCache();
+export const queryCache = new QueryCache();
 
 const App: React.FC = () => {
   return (
