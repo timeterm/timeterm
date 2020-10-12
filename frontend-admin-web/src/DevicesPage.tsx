@@ -116,7 +116,7 @@ const DevicesPage: React.FC = () => {
           style={{
             flexGrow: 1,
             margin: 16,
-            borderRadius: 8,
+            borderRadius: 4,
             height: "100%",
             overflow: "hidden",
           }}

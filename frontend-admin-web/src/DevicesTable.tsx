@@ -244,10 +244,6 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     selectionHook
   );
 
-  useEffect(() => {
-    setSkipPageReset(false);
-  }, [currentData]);
-
   const fetchDevices = useCallback(async (key, page = 0, pageSize = 50) => {
     return fetchAuthnd(
       `/api/device?offset=${page * pageSize}&maxAmount=${pageSize}`
@@ -276,6 +272,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     if (resolvedData && resolvedData.data) {
       setCurrentData(resolvedData);
       setCurrentPageCount(Math.ceil(resolvedData.total / pageSize));
+      setSkipPageReset(false);
     }
   }, [pageIndex, pageSize, resolvedData]);
 
