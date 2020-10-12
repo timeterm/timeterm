@@ -33,6 +33,7 @@ import {
   useTable,
 } from "react-table";
 import { queryCache } from "./App";
+import { Theme } from "@rmwc/theme";
 
 export enum DeviceStatus {
   Online = "Online",
@@ -253,14 +254,28 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     ).then((res) => res.json());
   }, []);
 
-  const { resolvedData, error, isFetching } = usePaginatedQuery<
+  const { latestData, resolvedData, error, isFetching } = usePaginatedQuery<
     Paginated<Device>
   >(["devices", pageIndex, pageSize], fetchDevices);
+
+  React.useEffect(() => {
+    if (
+      latestData &&
+      latestData.offset + latestData.data.length < latestData.total
+    ) {
+      (async () => {
+        await queryCache.prefetchQuery(
+          ["devices", pageIndex + 1],
+          fetchDevices
+        );
+      })();
+    }
+  }, [latestData, fetchDevices, pageIndex]);
 
   useEffect(() => {
     if (resolvedData && resolvedData.data) {
       setCurrentData(resolvedData);
-      setCurrentPageCount(Math.ceil(resolvedData.maxAmount / pageSize));
+      setCurrentPageCount(Math.ceil(resolvedData.total / pageSize));
     }
   }, [pageIndex, pageSize, resolvedData]);
 
@@ -273,19 +288,22 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
       style={{
         display: "flex",
         flexDirection: "column",
+        flexWrap: "nowrap",
         justifyContent: "space-between",
         height: "100%",
+        overflow: "hidden",
       }}
     >
       <DataTable
         {...getTableProps()}
         style={{
           width: "100%",
-          height: "100%",
           borderRadius: "4px 4px 0 0",
           borderTop: 0,
           borderLeft: 0,
           borderRight: 0,
+          overflowY: "scroll",
+          flex: "1 1 auto",
         }}
       >
         <DataTableContent>
@@ -293,19 +311,22 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
             {headerGroups.map((headerGroup) => (
               <DataTableRow {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (
-                  <DataTableHeadCell
-                    {...column.getHeaderProps()}
-                    style={column.style}
-                  >
-                    {column.render("Header")}
-                  </DataTableHeadCell>
+                  <Theme use={"surface"} wrap>
+                    <DataTableHeadCell
+                      {...column.getHeaderProps()}
+                      style={column.style}
+                    >
+                      {column.render("Header")}
+                    </DataTableHeadCell>
+                  </Theme>
                 ))}
               </DataTableRow>
             ))}
-          </DataTableHead>
-          <DataTableBody {...getTableBodyProps()}>
-            <tr>
-              <td colSpan={10000} style={{ padding: 0 }}>
+            <DataTableRow style={{ padding: 0, margin: 0 }}>
+              <DataTableHeadCell
+                colSpan={10000}
+                style={{ padding: 0, margin: 0, height: 0 }}
+              >
                 {error ? (
                   <div
                     style={{
@@ -324,8 +345,10 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
                     }}
                   />
                 )}
-              </td>
-            </tr>
+              </DataTableHeadCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody {...getTableBodyProps()} style={{ overflow: "auto" }}>
             {page.map((row, i) => {
               prepareRow(row);
               return (
@@ -353,6 +376,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
           justifyContent: "flex-end",
           alignItems: "center",
           margin: 8,
+          flex: "0 0 auto",
         }}
       >
         <span style={{ margin: 16 }}>Items per pagina</span>

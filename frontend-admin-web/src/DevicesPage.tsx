@@ -73,6 +73,7 @@ const DevicesPage: React.FC = () => {
         display: "flex",
         flexDirection: "column",
         width: "100%",
+        height: "100%",
       }}
     >
       <div
@@ -116,6 +117,8 @@ const DevicesPage: React.FC = () => {
             flexGrow: 1,
             margin: 16,
             borderRadius: 8,
+            height: "100%",
+            overflow: "hidden",
           }}
         >
           <DevicesTable setSelectedItems={setSelectedItems} />
