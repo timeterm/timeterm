@@ -8,5 +8,6 @@
         <file>assets/icons/wifi-strength-2.svg</file>
         <file>assets/icons/wifi-strength-3.svg</file>
         <file>assets/icons/wifi-strength-4.svg</file>
+        <file>src/qml/HeaderComponent.qml</file>
     </qresource>
 </RCC>

@@ -17,49 +17,7 @@ ApplicationWindow {
     height: 480
     title: qsTr("Timeterm")
 
-    header: Rectangle {
-        id: header
-        width: parent.width
-        height: parent.height * 0.07
-        color: "#242424"
-
-        RowLayout {
-            anchors.fill: parent
-            spacing: 6
-
-            Label {
-                color: "#e5e5e5"
-                text: "Timeterm"
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            Label {
-                color: "#e5e5e5"
-                text: new Date().toLocaleString(
-                          Qt.locale("nl_NL"),
-                          "dddd d MMMM yyyy h:mm") // eg. Donderdag 17 september 2020 13:08
-                anchors.centerIn: parent
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-            }
-
-            Label {
-                color: "#e5e5e5"
-                text: "Wifi"
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-                transformOrigin: Item.Center
-            }
-        }
-
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            verticalOffset: 8
-        }
-    }
+    HeaderComponent {}
 
     Button {
         y: 200
