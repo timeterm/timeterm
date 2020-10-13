@@ -9,12 +9,95 @@ import {
   ListItemSecondaryText,
   ListItemText,
 } from "@rmwc/list";
-import React from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useHistory, useLocation } from "react-router-dom";
+import Cookies from "universal-cookie";
+import { useQuery } from "react-query";
+import { fetchAuthnd } from "./DevicesPage";
+import { queue } from "./snackbarQueue";
+import "@rmwc/snackbar/styles";
+
+interface LinkListItemProps {
+  to: string;
+  className?: string;
+}
+
+const LinkListItem: React.FC<LinkListItemProps> = (props) => {
+  const location = useLocation();
+
+  return (
+    <ListItem
+      selected={location.pathname === props.to}
+      className={props.className}
+    >
+      <Link
+        to={props.to}
+        style={{
+          color: "inherit",
+          textDecoration: "inherit",
+          display: "flex",
+          height: "100%",
+          width: "100%",
+          alignItems: "center",
+        }}
+      >
+        {props.children}
+      </Link>
+    </ListItem>
+  );
+};
+
+interface AnchorListItemProps
+  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {}
+
+const AnchorListItem: React.FC<AnchorListItemProps> = (props) => {
+  return (
+    <ListItem className={props.className}>
+      <a
+        {...props}
+        style={{
+          color: "inherit",
+          textDecoration: "inherit",
+          display: "flex",
+          height: "100%",
+          width: "100%",
+          alignItems: "center",
+        }}
+      >
+        {props.children}
+      </a>
+    </ListItem>
+  );
+};
+
+interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+}
 
 const AppDrawer: React.FC = () => {
+  const { isLoading, error, data: user } = useQuery<UserResponse>(
+    "userInfo",
+    () => fetchAuthnd("/api/user/me").then((res) => res.json())
+  );
   const history = useHistory();
-  const location = useLocation();
+
+  useEffect(() => {
+    if (error)
+      queue.notify({
+        title: <b>Er is een fout opgetreden</b>,
+        body: "Kon data niet van server ophalen",
+        icon: "error",
+        dismissesOnAction: true,
+        actions: [
+          {
+            title: "Sluiten",
+            icon: "close",
+          },
+        ],
+      });
+  }, [error]);
 
   return (
     <Theme use={["primaryBg", "onPrimary"]} wrap>
@@ -39,37 +122,31 @@ const AppDrawer: React.FC = () => {
           >
             <List style={{ flexGrow: 1 }}>
               <Theme use={["onPrimary"]} wrap>
-                <ListItem
-                  selected={location.pathname === "/devices"}
-                  onClick={() => history.push("/devices")}
-                >
+                <LinkListItem to={"/devices"}>
                   <Theme use={["onPrimary"]} wrap>
                     <ListItemGraphic icon="tablet" />
                   </Theme>
                   Apparaten
-                </ListItem>
+                </LinkListItem>
               </Theme>
               <Theme use={["onPrimary"]} wrap>
-                <ListItem
-                  selected={location.pathname === "/users"}
-                  onClick={() => history.push("/users")}
-                >
+                <LinkListItem to={"/users"}>
                   <Theme use={["onPrimary"]} wrap>
                     <ListItemGraphic icon="group" />
                   </Theme>
                   Gebruikers
-                </ListItem>
+                </LinkListItem>
               </Theme>
               <Theme use={["onPrimary"]} wrap>
-                <ListItem
-                  selected={location.pathname === "/connect"}
-                  onClick={() => history.push("/connect")}
+                <AnchorListItem
+                  href={`timeterm:${btoa(new Cookies().get("ttsess"))}`}
+                  rel={"noopener noreferrer"}
                 >
                   <Theme use={["onPrimary"]} wrap>
                     <ListItemGraphic icon="bluetooth_connected" />
                   </Theme>
                   Apparaat koppelen
-                </ListItem>
+                </AnchorListItem>
               </Theme>
             </List>
 
@@ -80,10 +157,12 @@ const AppDrawer: React.FC = () => {
                     <ListItemGraphic icon="person" />
                   </Theme>
                   <ListItemText>
-                    <ListItemPrimaryText>Admin</ListItemPrimaryText>
+                    <ListItemPrimaryText>
+                      {!isLoading && user?.name}
+                    </ListItemPrimaryText>
                     <Theme use={["onPrimary"]} wrap>
                       <ListItemSecondaryText>
-                        admin@timeterm.nl
+                        {!isLoading && user?.email}
                       </ListItemSecondaryText>
                     </Theme>
                   </ListItemText>
@@ -92,7 +171,14 @@ const AppDrawer: React.FC = () => {
             </List>
             <List>
               <Theme use={["onPrimary"]} wrap>
-                <ListItem>
+                <ListItem
+                  onClick={() => {
+                    new Cookies().remove("ttsess", {
+                      path: "/",
+                    });
+                    history.push("/");
+                  }}
+                >
                   <Theme use={["onPrimary"]} wrap>
                     <ListItemGraphic icon="logout" />
                   </Theme>

@@ -2,14 +2,19 @@ package main
 
 import (
 	"context"
+	"errors"
+	"os"
+	"os/signal"
 
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
+	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	_ "gitlab.com/timeterm/timeterm/backend/helper/natspb"
 )
 
 func main() {
@@ -17,18 +22,52 @@ func main() {
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
-	sugar := logger.Sugar()
 
-	db, err := database.New("postgres://postgres:postgres@localhost/timeterm?sslmode=disable", log,
+	log.Info("starting")
+	db, err := database.New(os.Getenv("DATABASE_URL"), log,
 		database.WithJanitor(true),
 	)
 	if err != nil {
-		sugar.Fatalf("could not open database: %v", err)
+		log.Error(err, "could not open database")
+		os.Exit(1)
 	}
 
-	server, err := api.NewServer(db, log)
+	nc, err := nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil {
-		sugar.Fatalf("could not create API server: %v", err)
+		log.Error(err, "could not connect to NATS")
+		os.Exit(1)
 	}
-	sugar.Fatalf("Error running API server: %v", server.Run(context.Background()))
+
+	server, err := api.NewServer(db, log, nc)
+	if err != nil {
+		log.Error(err, "could not create API server")
+		os.Exit(1)
+	}
+
+	ctx, cancel := contextWithTermination(context.Background())
+	defer cancel()
+
+	err = server.Run(ctx)
+	if !errors.Is(err, context.Canceled) {
+		log.Error(err, "error running API server")
+		os.Exit(1)
+	}
+}
+
+func contextWithTermination(ctx context.Context) (context.Context, func()) {
+	ctx, cancel := context.WithCancel(ctx)
+
+	go func() {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, os.Interrupt)
+		defer signal.Stop(sigs)
+
+		select {
+		case <-sigs:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	return ctx, cancel
 }

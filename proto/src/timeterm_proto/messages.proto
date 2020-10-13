@@ -16,3 +16,7 @@ message RetrieveNewTokenMessage {
     string current_token_hash_alg = 3;
 }
 
+message RebootMessage {
+    string device_id = 1;
+}
+

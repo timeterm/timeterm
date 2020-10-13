@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (w *Wrapper) GetOrganization(ctx context.Context, id uuid.UUID) (Organization, error) {
@@ -32,12 +34,83 @@ func (w *Wrapper) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 	return device, err
 }
 
-func (w *Wrapper) GetDevices(ctx context.Context) ([]Device, error) {
-	var devices []Device
+type GetDevicesOpts struct {
+	OrganizationID uuid.UUID
+	Limit          *uint64
+	Offset         *uint64
+	NameSearch     *string
+}
 
-	err := w.db.GetContext(ctx, &devices, `SELECT * FROM "device"`)
+func min(x, y uint64) uint64 {
+	if x < y {
+		return x
+	}
+	return y
+}
 
-	return devices, err
+func or(x *uint64, y uint64) uint64 {
+	if x != nil {
+		return *x
+	}
+	return y
+}
+
+type Pagination struct {
+	Offset, Limit, Total uint64
+}
+
+type PaginatedDevices struct {
+	Pagination
+	Devices []Device
+}
+
+func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (PaginatedDevices, error) {
+	devs := PaginatedDevices{
+		Pagination: Pagination{
+			Limit:  min(or(opts.Limit, 50), 100),
+			Offset: or(opts.Offset, 0),
+		},
+	}
+
+	conds := sq.And{
+		sq.Eq{"organization_id": opts.OrganizationID},
+	}
+	if opts.NameSearch != nil {
+		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", opts.NameSearch))
+	}
+
+	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
+		return b.
+			From("device").
+			Where(conds).
+			PlaceholderFormat(sq.Dollar)
+	}
+
+	devsSql, args, err := buildQuery(sq.Select(`*`)).
+		Limit(devs.Pagination.Limit).
+		Offset(devs.Pagination.Offset).
+		OrderBy("name ASC").
+		ToSql()
+	if err != nil {
+		return devs, err
+	}
+
+	err = w.db.SelectContext(ctx, &devs.Devices, devsSql, args...)
+	if err != nil {
+		return devs, err
+	}
+
+	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
+	if err != nil {
+		return devs, err
+	}
+
+	err = w.db.GetContext(ctx, &devs.Total, totalSql, args...)
+	if err != nil {
+		return devs, err
+	}
+
+	return devs, nil
 }
 
 func (w *Wrapper) GetUserByOIDCFederation(ctx context.Context, federation OIDCFederation) (User, error) {
@@ -90,4 +163,36 @@ func (w *Wrapper) GetOAuth2State(ctx context.Context, state uuid.UUID) (OAuth2St
 	}
 
 	return oauth2State, tx.Commit()
+}
+
+func (w *Wrapper) GetUserByToken(ctx context.Context, token uuid.UUID) (User, error) {
+	var user User
+
+	tokenHash, err := hashToken(token)
+	if err != nil {
+		return user, err
+	}
+
+	err = w.db.GetContext(ctx, &user, `
+		SELECT u.* FROM "user_token"
+		INNER JOIN "user" u on u.id = user_token.user_id
+		WHERE "user_token"."token_hash" = $1 AND "expires_at" > now()
+	`, tokenHash)
+
+	return user, err
+}
+
+func (w *Wrapper) AreDevicesInOrganization(ctx context.Context,
+	organizationID uuid.UUID,
+	ids ...uuid.UUID,
+) (bool, error) {
+	var amountInOrganization int
+
+	err := w.db.GetContext(ctx, &amountInOrganization, `
+		SELECT COUNT(*) FROM "device"
+		WHERE "id" = ANY($1)
+		AND "organization_id" = $2
+	`, pq.Array(ids), organizationID)
+
+	return amountInOrganization == len(ids), err
 }

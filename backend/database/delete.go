@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (w *Wrapper) DeleteOrganization(ctx context.Context, id uuid.UUID) error {
@@ -18,6 +19,13 @@ func (w *Wrapper) DeleteStudent(ctx context.Context, id uuid.UUID) error {
 
 func (w *Wrapper) DeleteDevice(ctx context.Context, id uuid.UUID) error {
 	_, err := w.db.ExecContext(ctx, `DELETE FROM "device" WHERE "id" = $1`, id)
+	return err
+}
+
+func (w *Wrapper) DeleteDevices(ctx context.Context, ids []uuid.UUID) error {
+	_, err := w.db.ExecContext(ctx, `DELETE FROM "device" WHERE "id" = ANY($1)`,
+		pq.Array(ids),
+	)
 	return err
 }
 

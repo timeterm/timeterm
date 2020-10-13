@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +18,7 @@ type Organization struct {
 type Student struct {
 	ID             uuid.UUID
 	OrganizationID uuid.UUID
+	ZermeloCode    string
 }
 
 type OAuth2State struct {
@@ -53,15 +55,23 @@ type Device struct {
 	OrganizationID uuid.UUID
 	Name           string
 	Status         DeviceStatus
+	LastHeartbeat  sql.NullTime
 }
 
-func (w *Wrapper) CreateOrganization(ctx context.Context, name string, zermeloInstitution string) (Organization, error) {
+func (w *Wrapper) CreateOrganization(ctx context.Context,
+	name string,
+	zermeloInstitution string,
+) (Organization, error) {
 	org := Organization{
 		Name:               name,
 		ZermeloInstitution: zermeloInstitution,
 	}
 
-	row := w.db.QueryRowContext(ctx, `INSERT INTO "organization" ("id", "name", "zermelo_institution") VALUES (DEFAULT, $1, $2) RETURNING "id"`, name, zermeloInstitution)
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "organization" ("id", "name", "zermelo_institution") 
+		VALUES (DEFAULT, $1, $2) 
+		RETURNING "id"
+	`, name, zermeloInstitution)
 
 	return org, row.Scan(&org.ID)
 }
@@ -71,19 +81,31 @@ func (w *Wrapper) CreateStudent(ctx context.Context, organizationID uuid.UUID) (
 		OrganizationID: organizationID,
 	}
 
-	row := w.db.QueryRowContext(ctx, `INSERT INTO "student" ("id", "organization_id") VALUES (DEFAULT, $1) RETURNING "id"`, organizationID)
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "student" ("id", "organization_id") 
+		VALUES (DEFAULT, $1) 
+		RETURNING "id"
+	`, organizationID)
 
 	return std, row.Scan(&std.ID)
 }
 
-func (w *Wrapper) CreateDevice(ctx context.Context, organizationID uuid.UUID, name string, status DeviceStatus) (Device, error) {
+func (w *Wrapper) CreateDevice(ctx context.Context,
+	organizationID uuid.UUID,
+	name string,
+	status DeviceStatus,
+) (Device, error) {
 	dev := Device{
 		OrganizationID: organizationID,
 		Name:           name,
 		Status:         status,
 	}
 
-	row := w.db.QueryRowContext(ctx, `INSERT INTO "device" ("id", "organization_id", "name", "status") VALUES (DEFAULT, $1, $2, $3) RETURNING "id"`, organizationID, name, status)
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "device" ("id", "organization_id", "name", "status") 
+		VALUES (DEFAULT, $1, $2, $3) 
+		RETURNING "id"
+	`, organizationID, name, status)
 
 	return dev, row.Scan(&dev.ID)
 }
@@ -128,17 +150,50 @@ func (w *Wrapper) CreateUser(ctx context.Context, name, email string, organizati
 	return user, row.Scan(&user.ID)
 }
 
-func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
-	token := uuid.New()
-
-	h := sha3.NewShake256()
-	_, err := h.Write(token[:])
-	if err != nil {
-		return token, err
+func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federation OIDCFederation) (User, error) {
+	user := User{
+		Name:  name,
+		Email: email,
 	}
 
-	hash := make([]byte, 64)
-	_, err = h.Read(hash)
+	tx, err := w.db.Beginx()
+	if err != nil {
+		return user, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = tx.GetContext(ctx, &user.OrganizationID, `
+		INSERT INTO "organization" (id, name, zermelo_institution)
+		VALUES (DEFAULT, '', '')
+		RETURNING "id"
+	`)
+	if err != nil {
+		return user, err
+	}
+
+	err = tx.GetContext(ctx, &user.ID, `
+		INSERT INTO "user" (id, name, organization_id, email)
+		VALUES (DEFAULT, $1, $2, $3)
+		RETURNING "id"
+	`, user.Name, user.OrganizationID, user.Email)
+	if err != nil {
+		return user, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO "oidc_federation" (oidc_subject, oidc_issuer, oidc_audience, user_id)
+		VALUES ($1, $2, $3, $4)
+	`, federation.OIDCSubject, federation.OIDCIssuer, federation.OIDCAudience, user.ID)
+	if err != nil {
+		return user, err
+	}
+
+	return user, tx.Commit()
+}
+
+func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	token := uuid.New()
+	tokenHash, err := hashToken(token)
 	if err != nil {
 		return token, err
 	}
@@ -146,7 +201,23 @@ func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID,
 	_, err = w.db.ExecContext(ctx, `
 		INSERT INTO "user_token" ("token_hash", "user_id", "created_at", "expires_at")
 		VALUES ($1, $2, DEFAULT, DEFAULT)
-	`, hash, userID)
+	`, tokenHash, userID)
 
 	return token, err
+}
+
+func hashToken(token uuid.UUID) ([]byte, error) {
+	h := sha3.NewShake256()
+	_, err := h.Write(token[:])
+	if err != nil {
+		return nil, err
+	}
+
+	hash := make([]byte, 64)
+	_, err = h.Read(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	return hash, err
 }

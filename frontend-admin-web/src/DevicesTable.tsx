@@ -1,6 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Icon } from "@rmwc/icon";
-import { Checkbox, CheckboxProps } from "@rmwc/checkbox";
+import { Checkbox } from "@rmwc/checkbox";
 import {
   DataTable,
   DataTableBody,
@@ -12,10 +18,26 @@ import {
 } from "@rmwc/data-table";
 import { Select } from "@rmwc/select";
 import { IconButton } from "@rmwc/icon-button";
+import { useMutation, usePaginatedQuery } from "react-query";
+import { fetchAuthnd } from "./DevicesPage";
+import { LinearProgress } from "@rmwc/linear-progress";
+import "@rmwc/linear-progress/styles";
+import {
+  CellProps,
+  Column,
+  HeaderProps,
+  Hooks,
+  IdType,
+  usePagination,
+  useRowSelect,
+  useTable,
+} from "react-table";
+import { queryCache } from "./App";
+import { Theme } from "@rmwc/theme";
 
 export enum DeviceStatus {
-  Online,
-  Offline,
+  Online = "Online",
+  Offline = "Offline",
 }
 
 interface DeviceStatusIconProps {
@@ -48,191 +70,296 @@ export interface Device {
   id: string;
 }
 
-enum SelectionStatus {
-  None,
-  Some,
-  All,
-}
-
-function oppositeSelectionStatus(s: SelectionStatus): SelectionStatus {
-  return s === SelectionStatus.All ? SelectionStatus.None : SelectionStatus.All;
-}
-
 interface DevicesTableProps {
-  devices: Device[];
   setSelectedItems: (items: Device[]) => void;
 }
 
-interface DeviceTableItem {
-  device: Device;
-  selected: boolean;
+export interface Paginated<T> {
+  offset: number;
+  maxAmount: number;
+  total: number;
+  data: T[];
 }
 
-const DevicesTable: React.FC<DevicesTableProps> = ({
-  devices,
-  setSelectedItems,
+const selectionHook = <T extends {}>(hooks: Hooks<T>) => {
+  hooks.visibleColumns.push((columns) => [
+    {
+      id: "selection",
+      style: {
+        width: 0,
+      },
+      Header: ({ getToggleAllRowsSelectedProps }: HeaderProps<T>) => (
+        <div>
+          <Checkbox {...getToggleAllRowsSelectedProps()} />
+        </div>
+      ),
+      Cell: ({ row }: CellProps<T>) => (
+        <div>
+          <Checkbox {...row.getToggleRowSelectedProps()} />
+        </div>
+      ),
+    },
+    ...columns,
+  ]);
+};
+
+interface EditableCellProps<T extends object> extends CellProps<T> {
+  updateData: (index: number, id: IdType<T>, data: string) => void;
+}
+
+const EditableCell: React.FC<EditableCellProps<Device>> = ({
+  value: initialValue,
+  row: { index },
+  column: { id },
+  updateData,
 }) => {
-  // By default no items are selected.
-  const [allSelected, setAllSelected] = useState(SelectionStatus.None);
+  const [value, setValue] = useState(initialValue);
 
-  // toggleAllSelected updates the selection status when the 'all selected' checkbox is ticked.
-  // If currently no items are selected, all items are selected. If some but not all items are
-  // checked, all items are selected. If all items are selected, the selection is cleared.
-  const toggleAllSelected = () => {
-    // Get the opposite selection status of the current.
-    const newStatus = oppositeSelectionStatus(allSelected);
-
-    // Update the 'all selected' checkbox with the new status.
-    setAllSelected(newStatus);
-
-    // If the new selection status is 'All', then select all items (tick the checkbox).
-    // Otherwise, unselect all items (untick the checkbox).
-    setItems(
-      Object.fromEntries(
-        Object.entries(items).map(([k, item]) => {
-          return [k, { ...item, selected: newStatus === SelectionStatus.All }];
-        })
-      )
-    );
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
   };
 
-  // allSelectedProps contains the props for the 'all selected' checkbox.
-  const allSelectedProps = useMemo<CheckboxProps>(() => {
-    return {
-      indeterminate: allSelected === SelectionStatus.Some,
-      checked: allSelected === SelectionStatus.All,
-    };
-  }, [allSelected]);
+  const onBlur = () => {
+    updateData(index, id, value);
+  };
 
-  // Create a map where the key is the key of the device item and the value is a DeviceItem
-  // which contains the device itself an its selection status. This map is used to determine
-  // whether the device item is selected or not, and to provide information about the current
-  // selection to the parent element (for API calls).
-  const [items, setItems] = useState(
-    devices.reduce((accItems, dev, i) => {
-      return {
-        ...accItems,
-        [i]: {
-          device: dev,
-          selected: false,
-        },
-      };
-    }, {} as { [key: number]: DeviceTableItem })
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      style={{
+        padding: 0,
+        margin: 0,
+        border: 0,
+        width: "100%",
+        color: "inherit",
+        fontSize: "inherit",
+        fontWeight: "inherit",
+        letterSpacing: "inherit",
+        textTransform: "inherit",
+        fontFamily: "inherit",
+        background: "inherit",
+      }}
+    />
+  );
+};
+
+interface DevicePatch {
+  id: string;
+  name?: string;
+}
+
+const updateDevice = (patch: DevicePatch) =>
+  fetchAuthnd(`/api/device/${patch.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
+const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
+  const [currentData, setCurrentData] = useState({
+    total: 0,
+    offset: 0,
+    data: [],
+    maxAmount: 0,
+  } as Paginated<Device>);
+  const [currentPageCount, setCurrentPageCount] = useState(0);
+
+  const [updateDeviceMut] = useMutation(updateDevice, {
+    onSuccess: async () => {
+      await queryCache.invalidateQueries("devices");
+    },
+  });
+
+  const columns = useMemo<Array<Column<Device>>>(
+    () => [
+      {
+        id: "name",
+        Header: "Naam",
+        accessor: (dev) => dev.name,
+        Cell: EditableCell,
+      },
+      {
+        id: "status",
+        Header: "Status",
+        accessor: (dev) => (
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <DeviceStatusIcon status={dev.status} />
+            &nbsp;
+            {deviceStatusString(dev.status)}
+          </div>
+        ),
+      },
+    ],
+    []
   );
 
-  // This effect is used to determine if all devices are selected (or some) to make the
-  // 'all selected' checkbox show the correct state (indeterminate meaning
-  // partial selection and checked meaning all on the current page selected).
-  useEffect(() => {
-    const selectedCheckboxes = Object.values(items).filter(
-      (item) => item.selected
-    );
+  const [skipPageReset, setSkipPageReset] = useState(false);
 
-    const numSelected = selectedCheckboxes.length;
-    const numCheckboxes = Object.keys(items).length;
-
-    if (numSelected === 0) {
-      // Not even a single device is selected, set the status to unchecked (empty selection).
-      setAllSelected(SelectionStatus.None);
-    } else if (numSelected < numCheckboxes) {
-      // Not all devices are selected, set the status to indeterminate (partial selection).
-      setAllSelected(SelectionStatus.Some);
-    } else {
-      // All devices are selected, set the status to checked (full selection).
-      setAllSelected(SelectionStatus.All);
-    }
-
-    // Propagate the selected items to the parent element so they can use the IDs of the selected devices.
-    setSelectedItems(selectedCheckboxes.map((item) => item.device));
-  }, [items, setSelectedItems]);
-
-  // toggleSelectionStatus toggles the selection status of the checkbox with the key i.
-  const toggleSelectionStatus = (i: number) => {
-    setItems({
-      ...items,
-      [i]: {
-        ...items[i],
-        selected: !items[i].selected,
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    prepareRow,
+    page,
+    canPreviousPage,
+    canNextPage,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    setPageSize,
+    selectedFlatRows,
+    state: { pageIndex, pageSize, selectedRowIds },
+  } = useTable<Device>(
+    {
+      columns: columns,
+      data: currentData.data,
+      manualPagination: true,
+      autoResetPage: !skipPageReset,
+      initialState: {
+        pageIndex: 0,
+        pageSize: 50,
       },
-    });
-  };
+      pageCount: currentPageCount,
+      updateData: async (rowIndex, columnId, value) => {
+        if (columnId === "name") {
+          setSkipPageReset(true);
+
+          try {
+            await updateDeviceMut({
+              id: currentData.data[rowIndex].id,
+              name: value,
+            });
+          } catch (e) {}
+        }
+      },
+    },
+    usePagination,
+    useRowSelect,
+    selectionHook
+  );
+
+  const fetchDevices = useCallback(async (key, page = 0, pageSize = 50) => {
+    return fetchAuthnd(
+      `/api/device?offset=${page * pageSize}&maxAmount=${pageSize}`
+    ).then((res) => res.json());
+  }, []);
+
+  const { latestData, resolvedData, error, isFetching } = usePaginatedQuery<
+    Paginated<Device>
+  >(["devices", pageIndex, pageSize], fetchDevices);
+
+  React.useEffect(() => {
+    if (
+      latestData &&
+      latestData.offset + latestData.data.length < latestData.total
+    ) {
+      (async () => {
+        await queryCache.prefetchQuery(
+          ["devices", pageIndex + 1],
+          fetchDevices
+        );
+      })();
+    }
+  }, [latestData, fetchDevices, pageIndex]);
+
+  useEffect(() => {
+    if (resolvedData && resolvedData.data) {
+      setCurrentData(resolvedData);
+      setCurrentPageCount(Math.ceil(resolvedData.total / pageSize));
+      setSkipPageReset(false);
+    }
+  }, [pageIndex, pageSize, resolvedData]);
+
+  useEffect(() => {
+    setSelectedItems(selectedFlatRows.map((row) => row.original));
+  }, [selectedFlatRows, setSelectedItems]);
 
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
+        flexWrap: "nowrap",
         justifyContent: "space-between",
         height: "100%",
+        overflow: "hidden",
       }}
     >
       <DataTable
+        {...getTableProps()}
         style={{
           width: "100%",
-          height: "100%",
           borderRadius: "4px 4px 0 0",
           borderTop: 0,
           borderLeft: 0,
           borderRight: 0,
+          overflowY: "scroll",
+          flex: "1 1 auto",
         }}
       >
         <DataTableContent>
           <DataTableHead>
-            <DataTableRow>
+            {headerGroups.map((headerGroup) => (
+              <DataTableRow {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map((column) => (
+                  <Theme use={"surface"} wrap>
+                    <DataTableHeadCell
+                      {...column.getHeaderProps()}
+                      style={column.style}
+                    >
+                      {column.render("Header")}
+                    </DataTableHeadCell>
+                  </Theme>
+                ))}
+              </DataTableRow>
+            ))}
+            <DataTableRow style={{ padding: 0, margin: 0 }}>
               <DataTableHeadCell
-                hasFormControl
-                style={{ whiteSpace: "nowrap", width: 48 }}
+                colSpan={10000}
+                style={{ padding: 0, margin: 0, height: 0 }}
               >
-                <Checkbox
-                  {...allSelectedProps}
-                  onClick={() => toggleAllSelected()}
-                />
-              </DataTableHeadCell>
-              <DataTableHeadCell>Naam</DataTableHeadCell>
-              <DataTableHeadCell>Status</DataTableHeadCell>
-              <DataTableHeadCell />
-            </DataTableRow>
-          </DataTableHead>
-          <DataTableBody>
-            {devices.map((dev, i) => {
-              return (
-                <DataTableRow selected={items[i].selected} key={i}>
-                  <DataTableCell
-                    hasFormControl
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    <Checkbox
-                      checked={items[i].selected}
-                      tag={dev.id}
-                      onClick={() => toggleSelectionStatus(i)}
-                    />
-                  </DataTableCell>
-
-                  <DataTableCell>{dev.name}</DataTableCell>
-                  <DataTableCell
+                {error ? (
+                  <div
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      width: "100%",
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: 4,
                     }}
                   >
-                    <DeviceStatusIcon status={dev.status} />
-                    &nbsp; {deviceStatusString(dev.status)}
-                  </DataTableCell>
-
-                  <DataTableCell
-                    hasFormControl
-                    style={{ whiteSpace: "nowrap", width: 48 }}
-                  >
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <IconButton icon={"edit"} style={{ marginRight: 16 }} />
-                    </div>
-                  </DataTableCell>
+                    Er is een fout opgetreden bij het ophalen van de data
+                  </div>
+                ) : (
+                  <LinearProgress
+                    style={{
+                      maxHeight: isFetching ? 4 : 0,
+                      transition: "0.5s",
+                    }}
+                  />
+                )}
+              </DataTableHeadCell>
+            </DataTableRow>
+          </DataTableHead>
+          <DataTableBody {...getTableBodyProps()} style={{ overflow: "auto" }}>
+            {page.map((row, i) => {
+              prepareRow(row);
+              return (
+                <DataTableRow
+                  {...row.getRowProps()}
+                  selected={selectedRowIds[i]}
+                >
+                  {row.cells.map((cell) => {
+                    return (
+                      <DataTableCell {...cell.getCellProps()}>
+                        {cell.render("Cell")}
+                      </DataTableCell>
+                    );
+                  })}
                 </DataTableRow>
               );
             })}
@@ -246,6 +373,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           justifyContent: "flex-end",
           alignItems: "center",
           margin: 8,
+          flex: "0 0 auto",
         }}
       >
         <span style={{ margin: 16 }}>Items per pagina</span>
@@ -253,13 +381,35 @@ const DevicesTable: React.FC<DevicesTableProps> = ({
           outlined
           enhanced
           defaultValue={"50"}
-          options={["50", "75", "100", "125"]}
+          options={["50", "75", "100"]}
+          onChange={(e) => {
+            setPageSize(Number((e.target as HTMLInputElement).value));
+          }}
         />
-        <span style={{ marginLeft: 48, marginRight: 48 }}>2 - 2 van de 2</span>
-        <IconButton icon={"first_page"} disabled />
-        <IconButton icon={"chevron_left"} disabled />
-        <IconButton icon={"chevron_right"} disabled />
-        <IconButton icon={"last_page"} disabled />
+        <span style={{ marginLeft: 48, marginRight: 48 }}>
+          {page.length > 0 ? pageIndex * pageSize + 1 : 0} -{" "}
+          {pageIndex * pageSize + page.length} van de {currentData?.total || 0}
+        </span>
+        <IconButton
+          icon={"first_page"}
+          onClick={() => gotoPage(0)}
+          disabled={!canPreviousPage}
+        />
+        <IconButton
+          icon={"chevron_left"}
+          onClick={() => previousPage()}
+          disabled={!canPreviousPage}
+        />
+        <IconButton
+          icon={"chevron_right"}
+          onClick={() => nextPage()}
+          disabled={!canNextPage}
+        />
+        <IconButton
+          icon={"last_page"}
+          onClick={() => gotoPage(pageCount - 1)}
+          disabled={!canNextPage}
+        />
       </div>
     </div>
   );

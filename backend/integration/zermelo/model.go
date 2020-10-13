@@ -55,10 +55,10 @@ const (
 
 type Appointment struct {
 	ID                  int64           `json:"id"`
-	Start               Time     `json:"start"`
-	End                 Time     `json:"end"`
+	Start               Time            `json:"start"`
+	End                 Time            `json:"end"`
 	Canceled            bool            `json:"cancelled"`
-	AppointmentType     AppointmentType `json:"appointmentType`
+	AppointmentType     AppointmentType `json:"appointmentType"`
 	Online              bool            `json:"online"`
 	Optional            bool            `json:"optional"`
 	AppointmentInstance int64           `json:"appointmentInstance"`
