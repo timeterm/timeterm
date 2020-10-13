@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -64,6 +65,8 @@ type PaginatedDevices struct {
 	Devices []Device
 }
 
+var searchReplacer = strings.NewReplacer("%", "\\%", "_", "\\_")
+
 func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (PaginatedDevices, error) {
 	devs := PaginatedDevices{
 		Pagination: Pagination{
@@ -76,7 +79,7 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 		sq.Eq{"organization_id": opts.OrganizationID},
 	}
 	if opts.NameSearch != nil {
-		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", opts.NameSearch))
+		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", searchReplacer.Replace(*opts.NameSearch)))
 	}
 
 	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {

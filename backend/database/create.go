@@ -46,8 +46,8 @@ type User struct {
 type DeviceStatus string
 
 const (
-	DeviceStatusOnline  DeviceStatus = "online"
-	DeviceStatusOffline DeviceStatus = "offline"
+	DeviceStatusNotActivated DeviceStatus = "not_activated"
+	DeviceStatusOK           DeviceStatus = "ok"
 )
 
 type Device struct {

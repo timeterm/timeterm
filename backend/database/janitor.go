@@ -24,6 +24,10 @@ func (w *Wrapper) runJanitor(ctx context.Context) {
 		Delay: time.Minute,
 	}, newDeleteOldUserTokensJob(w, w.logger))
 
+	c.Schedule(&cron.ConstantDelaySchedule{
+		Delay: time.Minute,
+	}, newDeleteOldDeviceTokensJob(w, w.logger))
+
 	go c.Run()
 
 	<-ctx.Done()
@@ -40,16 +44,19 @@ func (w *Wrapper) runJanitor(ctx context.Context) {
 type janitorJob struct {
 	dbw    *Wrapper
 	logger logr.Logger
-	run    func(j janitorJob)
+	run    func(ctx context.Context, j janitorJob)
 }
 
 func (j janitorJob) Run() {
 	if j.run != nil {
-		j.run(j)
+		ctx, cancel := context.WithTimeout(context.Background(), maxJobRunTime)
+		defer cancel()
+
+		j.run(ctx, j)
 	}
 }
 
-func newJanitorJob(dbw *Wrapper, logger logr.Logger, run func(j janitorJob)) janitorJob {
+func newJanitorJob(dbw *Wrapper, logger logr.Logger, run func(ctx context.Context, j janitorJob)) janitorJob {
 	return janitorJob{
 		dbw:    dbw,
 		logger: logger,
@@ -58,10 +65,7 @@ func newJanitorJob(dbw *Wrapper, logger logr.Logger, run func(j janitorJob)) jan
 }
 
 func newDeleteOldUserTokensJob(dbw *Wrapper, logger logr.Logger) cron.Job {
-	return newJanitorJob(dbw, logger, func(j janitorJob) {
-		ctx, cancel := context.WithTimeout(context.Background(), maxJobRunTime)
-		defer cancel()
-
+	return newJanitorJob(dbw, logger, func(ctx context.Context, j janitorJob) {
 		err := j.dbw.DeleteOldUserTokens(ctx)
 		if err != nil {
 			j.logger.Error(err, "could not delete old user tokens")
@@ -70,13 +74,19 @@ func newDeleteOldUserTokensJob(dbw *Wrapper, logger logr.Logger) cron.Job {
 }
 
 func newDeleteOldOAuth2StatesJob(dbw *Wrapper, logger logr.Logger) cron.Job {
-	return newJanitorJob(dbw, logger, func(j janitorJob) {
-		ctx, cancel := context.WithTimeout(context.Background(), maxJobRunTime)
-		defer cancel()
-
+	return newJanitorJob(dbw, logger, func(ctx context.Context, j janitorJob) {
 		err := j.dbw.DeleteOldOAuth2States(ctx)
 		if err != nil {
 			j.logger.Error(err, "could not delete old OAuth2 states")
+		}
+	})
+}
+
+func newDeleteOldDeviceTokensJob(dbw *Wrapper, logger logr.Logger) cron.Job {
+	return newJanitorJob(dbw, logger, func(ctx context.Context, j janitorJob) {
+		err := j.dbw.DeleteOldDeviceTokens(ctx)
+		if err != nil {
+			j.logger.Error(err, "could not delete old device tokens")
 		}
 	})
 }

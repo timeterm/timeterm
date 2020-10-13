@@ -1,6 +1,9 @@
 package api
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/google/uuid"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
@@ -21,18 +24,23 @@ type Student struct {
 	OrganizationID uuid.UUID `json:"organizationId"`
 }
 
-type DeviceStatus string
+type PrimaryDeviceStatus string
+type SecondaryDeviceStatus string
 
 const (
-	DeviceStatusOnline  = "Online"
-	DeviceStatusOffline = "Offline"
+	PrimaryDeviceStatusOnline  = "Online"
+	PrimaryDeviceStatusOffline = "Offline"
+
+	SecondaryDeviceStatusNotActivated = "NotActivated"
+	SecondaryDeviceStatusOK           = "Ok"
 )
 
 type Device struct {
-	ID             uuid.UUID    `json:"id"`
-	OrganizationID uuid.UUID    `json:"organizationId"`
-	Name           string       `json:"name"`
-	Status         DeviceStatus `json:"status"`
+	ID              uuid.UUID             `json:"id"`
+	OrganizationID  uuid.UUID             `json:"organizationId"`
+	Name            string                `json:"name"`
+	PrimaryStatus   PrimaryDeviceStatus   `json:"primaryStatus"`
+	SecondaryStatus SecondaryDeviceStatus `json:"secondaryStatus"`
 }
 
 type User struct {
@@ -86,34 +94,42 @@ func StudentFrom(student database.Student) Student {
 	}
 }
 
-func DeviceStatusFrom(s database.DeviceStatus) DeviceStatus {
+func SecondaryDeviceStatusFrom(s database.DeviceStatus) SecondaryDeviceStatus {
 	switch s {
-	case database.DeviceStatusOnline:
-		return DeviceStatusOnline
-	case database.DeviceStatusOffline:
+	case database.DeviceStatusNotActivated:
+		return SecondaryDeviceStatusNotActivated
+	case database.DeviceStatusOK:
 		fallthrough
 	default:
-		return DeviceStatusOffline
+		return SecondaryDeviceStatusOK
 	}
 }
 
-func DeviceStatusToDB(s DeviceStatus) database.DeviceStatus {
+func DeviceStatusToDB(s SecondaryDeviceStatus) database.DeviceStatus {
 	switch s {
-	case DeviceStatusOnline:
-		return database.DeviceStatusOnline
-	case DeviceStatusOffline:
+	case SecondaryDeviceStatusNotActivated:
+		return database.DeviceStatusNotActivated
+	case SecondaryDeviceStatusOK:
 		fallthrough
 	default:
-		return database.DeviceStatusOffline
+		return database.DeviceStatusOK
 	}
+}
+
+func lastHeartbeatToPrimaryDeviceStatus(t sql.NullTime) PrimaryDeviceStatus {
+	if t.Valid && t.Time.After(time.Now().Add(-1*time.Minute)) {
+		return PrimaryDeviceStatusOnline
+	}
+	return PrimaryDeviceStatusOffline
 }
 
 func DeviceFrom(device database.Device) Device {
 	return Device{
-		ID:             device.ID,
-		OrganizationID: device.OrganizationID,
-		Name:           device.Name,
-		Status:         DeviceStatusFrom(device.Status),
+		ID:              device.ID,
+		OrganizationID:  device.OrganizationID,
+		Name:            device.Name,
+		PrimaryStatus:   lastHeartbeatToPrimaryDeviceStatus(device.LastHeartbeat),
+		SecondaryStatus: SecondaryDeviceStatusFrom(device.Status),
 	}
 }
 
@@ -122,7 +138,7 @@ func DeviceToDB(device Device) database.Device {
 		ID:             device.ID,
 		OrganizationID: device.OrganizationID,
 		Name:           device.Name,
-		Status:         DeviceStatusToDB(device.Status),
+		Status:         DeviceStatusToDB(device.SecondaryStatus),
 	}
 }
 

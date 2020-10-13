@@ -35,37 +35,39 @@ import {
 import { queryCache } from "./App";
 import { Theme } from "@rmwc/theme";
 
-export enum DeviceStatus {
+export enum PrimaryDeviceStatus {
   Online = "Online",
   Offline = "Offline",
 }
 
-interface DeviceStatusIconProps {
-  status: DeviceStatus;
+interface PrimaryDeviceStatusIconProps {
+  status: PrimaryDeviceStatus;
 }
 
-const DeviceStatusIcon: React.FC<DeviceStatusIconProps> = ({ status }) => {
+const PrimaryDeviceStatusIcon: React.FC<PrimaryDeviceStatusIconProps> = ({
+  status,
+}) => {
   return (
     <Icon
-      icon={status === DeviceStatus.Online ? "check_circle" : "warning"}
+      icon={status === PrimaryDeviceStatus.Online ? "check_circle" : "warning"}
       style={{
-        color: status === DeviceStatus.Online ? "#4ecd6a" : "#ffab00",
+        color: status === PrimaryDeviceStatus.Online ? "#4ecd6a" : "#ffab00",
       }}
     />
   );
 };
 
-function deviceStatusString(s: DeviceStatus): string {
+function primaryDeviceStatusString(s: PrimaryDeviceStatus): string {
   switch (s) {
-    case DeviceStatus.Online:
+    case PrimaryDeviceStatus.Online:
       return "Online";
-    case DeviceStatus.Offline:
+    case PrimaryDeviceStatus.Offline:
       return "Offline";
   }
 }
 
 export interface Device {
-  status: DeviceStatus;
+  primaryStatus: PrimaryDeviceStatus;
   name: string;
   id: string;
 }
@@ -188,9 +190,9 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
         Header: "Status",
         accessor: (dev) => (
           <div style={{ display: "flex", alignItems: "center" }}>
-            <DeviceStatusIcon status={dev.status} />
+            <PrimaryDeviceStatusIcon status={dev.primaryStatus} />
             &nbsp;
-            {deviceStatusString(dev.status)}
+            {primaryDeviceStatusString(dev.primaryStatus)}
           </div>
         ),
       },
@@ -230,12 +232,12 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
         if (columnId === "name") {
           setSkipPageReset(true);
 
-          try {
-            await updateDeviceMut({
-              id: currentData.data[rowIndex].id,
-              name: value,
-            });
-          } catch (e) {}
+          updateDeviceMut({
+            id: currentData.data[rowIndex].id,
+            name: value,
+          })
+            .then()
+            .catch();
         }
       },
     },
@@ -244,11 +246,13 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
     selectionHook
   );
 
-  const fetchDevices = useCallback(async (key, page = 0, pageSize = 50) => {
-    return fetchAuthnd(
-      `/api/device?offset=${page * pageSize}&maxAmount=${pageSize}`
-    ).then((res) => res.json());
-  }, []);
+  const fetchDevices = useCallback(
+    async (key, page = 0, pageSize = 50) =>
+      fetchAuthnd(
+        `/api/device?offset=${page * pageSize}&maxAmount=${pageSize}`
+      ).then((res) => res.json()),
+    []
+  );
 
   const { latestData, resolvedData, error, isFetching } = usePaginatedQuery<
     Paginated<Device>
@@ -259,22 +263,24 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
       latestData &&
       latestData.offset + latestData.data.length < latestData.total
     ) {
-      (async () => {
-        await queryCache.prefetchQuery(
-          ["devices", pageIndex + 1],
+      (async () =>
+        queryCache.prefetchQuery(
+          ["devices", pageIndex + 1, pageSize],
           fetchDevices
-        );
-      })();
+        ))();
     }
-  }, [latestData, fetchDevices, pageIndex]);
+  }, [latestData, fetchDevices, pageIndex, pageSize]);
 
   useEffect(() => {
     if (resolvedData && resolvedData.data) {
       setCurrentData(resolvedData);
       setCurrentPageCount(Math.ceil(resolvedData.total / pageSize));
-      setSkipPageReset(false);
     }
   }, [pageIndex, pageSize, resolvedData]);
+
+  useEffect(() => {
+    setSkipPageReset(false);
+  }, [resolvedData]);
 
   useEffect(() => {
     setSelectedItems(selectedFlatRows.map((row) => row.original));

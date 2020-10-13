@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -12,12 +11,10 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats.go"
-	timetermpb "gitlab.com/timeterm/timeterm/proto/go"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
+	"gitlab.com/timeterm/timeterm/backend/broker"
 	"gitlab.com/timeterm/timeterm/backend/database"
-	"gitlab.com/timeterm/timeterm/backend/helper/natspb"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -26,7 +23,7 @@ type Server struct {
 	log      logr.Logger
 	echo     *echo.Echo
 	apiGroup *echo.Group
-	enc      *nats.EncodedConn
+	brw      *broker.Wrapper
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -45,13 +42,8 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, brw *broker.Wrapper) (Server, error) {
 	e, err := newEcho(log)
-	if err != nil {
-		return Server{}, err
-	}
-
-	enc, err := nats.NewEncodedConn(nc, natspb.EncoderType)
 	if err != nil {
 		return Server{}, err
 	}
@@ -61,7 +53,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, er
 		log:      log,
 		echo:     e,
 		apiGroup: e.Group("/api"),
-		enc:      enc,
+		brw:      brw,
 	}
 	server.registerRoutes()
 
@@ -82,6 +74,7 @@ func (s *Server) registerRoutes() {
 
 	g.GET("/device", s.getDevices)
 	g.DELETE("/device", s.deleteDevices)
+	g.POST("/device", s.createDevice)
 	g.POST("/device/restart", s.rebootDevices)
 	g.GET("/device/:id", s.getDevice)
 	g.POST("/device/:id/restart", s.rebootDevice)
@@ -89,12 +82,11 @@ func (s *Server) registerRoutes() {
 	g.DELETE("/device/:id", s.deleteDevice)
 
 	orgGroup := s.apiGroup.Group("/organization")
-	orgGroup.POST("/:organization/student", s.createStudent)
-	orgGroup.POST("/:organization/device", s.createDevice)
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)
 
 	g.GET("/student/:id", s.getStudent)
+	g.POST("/student", s.createStudent)
 }
 
 func (s *Server) getCurrentUser(c echo.Context) error {
@@ -248,9 +240,7 @@ func (s *Server) rebootDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
 
-	err = s.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", id), &timetermpb.RebootMessage{
-		DeviceId: id,
-	})
+	err = s.brw.RebootDevice(uid)
 	if err != nil {
 		s.log.Error(err, "could not publish reboot message")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
@@ -285,9 +275,7 @@ func (s *Server) rebootDevices(c echo.Context) error {
 	}
 
 	for _, deviceID := range params.DeviceIDs {
-		err = s.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", deviceID), &timetermpb.RebootMessage{
-			DeviceId: deviceID.String(),
-		})
+		err = s.brw.RebootDevice(deviceID)
 		if err != nil {
 			s.log.Error(err, "could not publish reboot message")
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
@@ -401,7 +389,8 @@ func (s *Server) patchDevice(c echo.Context) error {
 	}
 
 	newAPIDevice.ID = oldDBDevice.ID
-	newAPIDevice.Status = oldAPIDevice.Status
+	newAPIDevice.PrimaryStatus = oldAPIDevice.PrimaryStatus
+	newAPIDevice.SecondaryStatus = oldAPIDevice.SecondaryStatus
 	newAPIDevice.OrganizationID = oldDBDevice.OrganizationID
 
 	newDBDevice := DeviceToDB(newAPIDevice)
@@ -417,20 +406,20 @@ func (s *Server) patchDevice(c echo.Context) error {
 }
 
 func (s *Server) createDevice(c echo.Context) error {
-	organizationID := c.Param("organization")
-
-	uid, err := uuid.Parse(organizationID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "Not authenticated")
 	}
 
 	var dev Device
-	err = c.Bind(&dev)
+	err := c.Bind(&dev)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
 	}
 
-	dbDevice, err := s.db.CreateDevice(c.Request().Context(), uid, dev.Name, database.DeviceStatusOffline)
+	dbDevice, err := s.db.CreateDevice(c.Request().Context(),
+		user.OrganizationID, dev.Name, database.DeviceStatusNotActivated,
+	)
 	if err != nil {
 		s.log.Error(err, "could not create device")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create device")

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
@@ -13,8 +14,9 @@ import (
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
+	"gitlab.com/timeterm/timeterm/backend/broker"
+	_ "gitlab.com/timeterm/timeterm/backend/broker/natspb"
 	"gitlab.com/timeterm/timeterm/backend/database"
-	_ "gitlab.com/timeterm/timeterm/backend/helper/natspb"
 )
 
 func main() {
@@ -22,6 +24,7 @@ func main() {
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
+	defer log.Info("shutdown complete")
 
 	log.Info("starting")
 	db, err := database.New(os.Getenv("DATABASE_URL"), log,
@@ -31,6 +34,11 @@ func main() {
 		log.Error(err, "could not open database")
 		os.Exit(1)
 	}
+	defer func() {
+		if err = db.Close(); err != nil {
+			log.Error(err, "could not close database")
+		}
+	}()
 
 	nc, err := nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil {
@@ -38,13 +46,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	server, err := api.NewServer(db, log, nc)
+	brw := broker.NewWrapper(nc)
+	server, err := api.NewServer(db, log, brw)
 	if err != nil {
 		log.Error(err, "could not create API server")
 		os.Exit(1)
 	}
 
-	ctx, cancel := contextWithTermination(context.Background())
+	ctx, cancel := contextWithTermination(context.Background(), log)
 	defer cancel()
 
 	err = server.Run(ctx)
@@ -54,7 +63,7 @@ func main() {
 	}
 }
 
-func contextWithTermination(ctx context.Context) (context.Context, func()) {
+func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func() {
@@ -64,6 +73,8 @@ func contextWithTermination(ctx context.Context) (context.Context, func()) {
 
 		select {
 		case <-sigs:
+			log.Info("shutting down")
+
 			cancel()
 		case <-ctx.Done():
 		}
