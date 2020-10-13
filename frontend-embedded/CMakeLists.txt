@@ -62,6 +62,11 @@ if(RASPBERRYPI)
 
     target_compile_definitions(frontend-embedded PRIVATE RASPBERRYPI)
     target_link_libraries(frontend-embedded PRIVATE mfrc522)
-endif()
+endif(RASPBERRYPI)
+
+# Required for nats.c
+if(WIN32)
+    target_link_libraries(frontend-embedded PRIVATE ws2_32)
+endif(WIN32)
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
