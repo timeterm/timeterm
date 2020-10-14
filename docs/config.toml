@@ -1,0 +1,7 @@
+baseURL = "http://docs.timeterm.nl/"
+languageCode = "nl-NL"
+title = "Timeterm documentatie"
+theme = "book"
+
+[params]
+  BookMenuBundle = "/menu"

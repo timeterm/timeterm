@@ -10,3 +10,6 @@
 [submodule "frontend-embedded/3rdparty/nats"]
 	path = frontend-embedded/3rdparty/nats
 	url = https://github.com/nats-io/nats.c
+[submodule "docs/themes/book"]
+	path = docs/themes/book
+	url = https://github.com/alex-shpak/hugo-book
