@@ -602,7 +602,7 @@ func (s *Server) deleteStudents(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not retrieve student information")
 	}
 	if !allInOrg {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Not all devices are in user's organization")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not all students are in user's organization")
 	}
 
 	err = s.db.DeleteStudents(c.Request().Context(), params.StudentDs)
