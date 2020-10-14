@@ -1,11 +1,38 @@
 import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import DevicesTable, { Device } from "./DevicesTable";
 import React, { useState } from "react";
+import { useMutation } from "react-query";
+import { queryCache } from "./App";
+import { fetchAuthnd } from "./DevicesPage";
+import UsersTable, { User } from "./UsersTable";
 
-const UsersPage: React.FC = () => {
-  const [selectedItems, setSelectedItems] = useState([] as Device[]);
+const removeUser = (devices: User[]) =>
+  fetchAuthnd(`/api/user`, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      deviceIds: devices.map((device) => device.id),
+    }),
+  });
+
+const DevicesPage: React.FC = () => {
+  const [selectedItems, setSelectedItems] = useState([] as User[]);
+
+  const [deleteUsers] = useMutation(removeUser, {
+    onSuccess: async () => {
+      await queryCache.invalidateQueries("users");
+    },
+  });
+
+  const onDeleteUsers = async () => {
+    try {
+      await deleteUsers(selectedItems);
+    } catch (error) {}
+  };
 
   return (
     <div
@@ -13,6 +40,7 @@ const UsersPage: React.FC = () => {
         display: "flex",
         flexDirection: "column",
         width: "100%",
+        height: "100%",
       }}
     >
       <div
@@ -32,17 +60,9 @@ const UsersPage: React.FC = () => {
             danger
             raised
             disabled={selectedItems.length === 0}
+            onClick={() => onDeleteUsers()}
           >
             Verwijderen
-          </Button>
-          <Button
-            icon={"power_settings_new"}
-            danger
-            disabled={selectedItems.length === 0}
-            raised
-            style={{ marginLeft: 8 }}
-          >
-            Opnieuw opstarten
           </Button>
         </div>
       </div>
@@ -53,14 +73,16 @@ const UsersPage: React.FC = () => {
           style={{
             flexGrow: 1,
             margin: 16,
-            borderRadius: 8,
+            borderRadius: 4,
+            height: "100%",
+            overflow: "hidden",
           }}
         >
-          <DevicesTable setSelectedItems={setSelectedItems} />
+          <UsersTable setSelectedItems={setSelectedItems} />
         </Elevation>
       </Theme>
     </div>
   );
 };
 
-export default UsersPage;
+export default DevicesPage;
