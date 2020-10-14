@@ -34,6 +34,7 @@ Item {
             color: textColor
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
+            antialiasing: true
             function setDateTime() {
                 dateTime.text = new Date().toLocaleString(
                             Qt.locale("nl_NL"),
@@ -41,27 +42,35 @@ Item {
             }
         }
 
-        //        Label {
-        //            id: wifi
-        //            color: textColor
-        //            anchors.right: parent.right
-        //            anchors.rightMargin: parent.height * 0.5
-        //            anchors.top: parent.top
-        //            anchors.bottom: parent.bottom
-        //            verticalAlignment: "AlignVCenter"
-        //            text: "Wifi"
-        //            fontSizeMode: Text.Fit
-        //            font.pixelSize: textSize
-        //        }
         Image {
             id: wifi
             anchors.right: parent.right
             anchors.rightMargin: parent.height * 0.5
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            source: "../../assets/icons/wifi-strength-1.svg"
-            sourceSize.width: parent.height * 0.75
-            sourceSize.height: parent.width * 0.75
+            sourceSize.width: parent.height * 0.6
+            sourceSize.height: parent.height * 0.6
+            fillMode: Image.PreserveAspectFit
+            antialiasing: true
+            function setWiFiIcon(rssi, connected) {
+                if (connected === undefined)
+                    connected = true
+                if (!connected) {
+                    wifi.source = "../../assets/icons/wifi-strength-off-outline.svg"
+                } else {
+                    if (rssi <= -80) {
+                        wifi.source = "../../assets/icons/wifi-strength-outline.svg"
+                    } else if (rssi <= -60) {
+                        wifi.source = "../../assets/icons/wifi-strength-1.svg"
+                    } else if (rssi <= -40) {
+                        wifi.source = "../../assets/icons/wifi-strength-2.svg"
+                    } else if (rssi <= -20) {
+                        wifi.source = "../../assets/icons/wifi-strength-3.svg"
+                    } else {
+                        wifi.source = "../../assets/icons/wifi-strength-4.svg"
+                    }
+                }
+            }
         }
     }
 
@@ -83,4 +92,7 @@ Item {
         triggeredOnStart: true
         onTriggered: dateTime.setDateTime()
     }
+
+    Component.onCompleted: wifi.setWiFiIcon(
+                               -30) // Only for devellopment without true RSSI values
 }

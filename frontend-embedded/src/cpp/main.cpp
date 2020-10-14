@@ -9,10 +9,20 @@
 #include "messagequeue/natsstatusstringer.h"
 #include "util/teardown.h"
 
+#include <QFontDatabase>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
 #include <timeterm_proto/messages.pb.h>
+
+void installDefaultFont()
+{
+    qint32 fontId = QFontDatabase::addApplicationFont("qrc:/assets/fonts/Roboto/Roboto-Regular.ttf");
+    QStringList fontList = QFontDatabase::applicationFontFamilies(fontId);
+
+    QString family = fontList.at(0);
+    QGuiApplication::setFont(QFont(family));
+}
 
 int runApp(int argc, char *argv[])
 {
@@ -54,6 +64,8 @@ int runApp(int argc, char *argv[])
         },
         Qt::QueuedConnection);
     engine.load(url);
+
+    installDefaultFont();
 
     return tearDownAppOnSignal<int>(QGuiApplication::exec);
 }

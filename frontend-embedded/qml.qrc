@@ -10,5 +10,6 @@
         <file>assets/icons/wifi-strength-4.svg</file>
         <file>src/qml/HeaderComponent.qml</file>
         <file>src/qml/Internals.qml</file>
+        <file>assets/fonts/Roboto/Roboto-Regular.ttf</file>
     </qresource>
 </RCC>
