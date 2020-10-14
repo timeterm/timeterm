@@ -86,6 +86,7 @@ func (s *Server) registerRoutes() {
 	orgGroup.GET("/:id", s.getOrganization)
 
 	g.GET("/student/:id", s.getStudent)
+	g.GET("/student", s.getStudents)
 	g.POST("/student", s.createStudent)
 }
 
@@ -132,6 +133,18 @@ func (s *Server) getStudent(c echo.Context) error {
 
 	apiStudent := StudentFrom(dbStudent)
 	return c.JSON(http.StatusOK, apiStudent)
+}
+
+func (s *Server) getStudents(c echo.Context) error {
+	dbStudents, err := s.db.GetStudents(c.Request().Context())
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not read students from database")
+	}
+
+	apiStudents := StudentsFrom(dbStudents)
+
+	return c.JSON(http.StatusOK, apiStudents)
 }
 
 func (s *Server) getDevice(c echo.Context) error {

@@ -27,6 +27,14 @@ func (w *Wrapper) GetStudent(ctx context.Context, id uuid.UUID) (Student, error)
 	return student, err
 }
 
+func (w *Wrapper) GetStudents(ctx context.Context) ([]Student, error) {
+	var students []Student
+
+	err := w.db.GetContext(ctx, &students, `SELECT * FROM "student"`)
+
+	return students, err
+}
+
 func (w *Wrapper) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 	var device Device
 

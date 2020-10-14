@@ -22,6 +22,7 @@ type ZermeloInfo struct {
 type Student struct {
 	ID             uuid.UUID `json:"id"`
 	OrganizationID uuid.UUID `json:"organizationId"`
+	ZermeloCode    string    `json:"zermelo_code"`
 }
 
 type PrimaryDeviceStatus string
@@ -91,6 +92,7 @@ func StudentFrom(student database.Student) Student {
 	return Student{
 		ID:             student.ID,
 		OrganizationID: student.OrganizationID,
+		ZermeloCode:    student.ZermeloCode,
 	}
 }
 
@@ -150,6 +152,16 @@ func DevicesFrom(dbDevices []database.Device) []Device {
 	}
 
 	return apiDevices
+}
+
+func StudentsFrom(dbStudents []database.Student) []Student {
+	apiStudents := make([]Student, len(dbStudents))
+
+	for i, std := range dbStudents {
+		apiStudents[i] = StudentFrom(std)
+	}
+
+	return apiStudents
 }
 
 func PaginatedDevicesFrom(p database.PaginatedDevices) PaginatedDevices {
