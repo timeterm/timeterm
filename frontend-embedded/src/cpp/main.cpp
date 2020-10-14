@@ -17,7 +17,7 @@
 
 void installDefaultFont()
 {
-    qint32 fontId = QFontDatabase::addApplicationFont("qrc:/assets/fonts/Roboto/Roboto-Regular.ttf");
+    qint32 fontId = QFontDatabase::addApplicationFont(":/assets/fonts/Roboto/Roboto-Regular.ttf");
     QStringList fontList = QFontDatabase::applicationFontFamilies(fontId);
 
     QString family = fontList.at(0);
