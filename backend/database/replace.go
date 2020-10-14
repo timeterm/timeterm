@@ -21,3 +21,12 @@ func (w *Wrapper) ReplaceDevice(ctx context.Context, dev Device) error {
 
 	return err
 }
+
+func (w *Wrapper) ReplaceStudent(ctx context.Context, s Student) error {
+	_, err := w.db.ExecContext(ctx,
+		`UPDATE "student" SET "zermelo_user" = $1, "organization_id" = $2 WHERE "id" = $3`,
+		s.ZermeloUser, s.OrganizationID, s.ID,
+	)
+
+	return err
+}
