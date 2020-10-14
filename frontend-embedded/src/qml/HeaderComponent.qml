@@ -41,17 +41,27 @@ Item {
             }
         }
 
-        Label {
+        //        Label {
+        //            id: wifi
+        //            color: textColor
+        //            anchors.right: parent.right
+        //            anchors.rightMargin: parent.height * 0.5
+        //            anchors.top: parent.top
+        //            anchors.bottom: parent.bottom
+        //            verticalAlignment: "AlignVCenter"
+        //            text: "Wifi"
+        //            fontSizeMode: Text.Fit
+        //            font.pixelSize: textSize
+        //        }
+        Image {
             id: wifi
-            color: textColor
             anchors.right: parent.right
             anchors.rightMargin: parent.height * 0.5
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            verticalAlignment: "AlignVCenter"
-            text: "Wifi"
-            fontSizeMode: Text.Fit
-            font.pixelSize: textSize
+            source: "../../assets/icons/wifi-strength-1.svg"
+            sourceSize.width: parent.height * 0.75
+            sourceSize.height: parent.width * 0.75
         }
     }
 
