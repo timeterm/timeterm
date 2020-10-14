@@ -69,6 +69,7 @@ public:
     void setType(JetStreamConsumerType::Enum consumerType);
 
     Q_INVOKABLE void start();
+    Q_INVOKABLE void stop();
 
 signals:
     void connectionChanged();

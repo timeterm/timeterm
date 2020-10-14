@@ -31,12 +31,21 @@ NatsOptions *NatsConnection::options() const
 void NatsConnection::connect()
 {
     natsOptions *pOpts = nullptr;
+
     auto optsStatus = m_options->build(&pOpts);
     updateStatus(optsStatus);
     if (optsStatus != NatsStatus::Enum::Ok) {
         qCritical() << "Could not create NATS options";
         return;
     }
+
+    optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(pOpts, NatsConnection::connectionLostCB, this));
+    updateStatus(optsStatus);
+    if (optsStatus != NatsStatus::Enum::Ok) {
+        qCritical() << "Could not set conneciton lost callback handler";
+        return;
+    }
+
     QSharedPointer<natsOptions *> opts(
         new natsOptions *(pOpts),
         [](natsOptions **ppOpts) {
@@ -100,6 +109,16 @@ void NatsConnection::updateStatus(NatsStatus::Enum s)
 QSharedPointer<natsConnection *> NatsConnection::getConnection() const
 {
     return m_natsConnection;
+}
+
+void NatsConnection::connectionLostCB(natsConnection *nc, void *closure)
+{
+    if (closure != nullptr)
+        static_cast<NatsConnection*>(closure)->connectionLostCB();
+}
+
+void NatsConnection::connectionLostCB() {
+    emit connectionLost();
 }
 
 } // namespace MessageQueue

@@ -30,11 +30,6 @@ NatsStatus::Enum NatsOptions::build(natsOptions **ppOpts)
     return s;
 }
 
-void natsConnectionLostCb(natsConnection *, void *)
-{
-    qCritical() << "NATS connection lost";
-}
-
 NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
 {
     natsStatus s;
@@ -48,16 +43,7 @@ NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
     s = natsOptions_UseOldRequestStyle(pOpts, true);
     CHECK_NATS_STATUS(s);
 
-    s = natsOptions_SetAllowReconnect(pOpts, true);
-    CHECK_NATS_STATUS(s);
-
-    s = natsOptions_SetReconnectWait(pOpts, 5000);
-    CHECK_NATS_STATUS(s);
-
-    s = natsOptions_SetRetryOnFailedConnect(pOpts, true, nullptr, nullptr);
-    CHECK_NATS_STATUS(s);
-
-    natsOptions_SetDisconnectedCB(pOpts, natsConnectionLostCb, nullptr);
+    s = natsOptions_SetAllowReconnect(pOpts, false);
 
     return NatsStatus::fromC(s);
 }

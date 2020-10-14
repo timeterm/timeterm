@@ -64,10 +64,7 @@ void JetStreamConsumer::start()
                 qCritical("Push consumers are currently not supported");
                 break;
             case JetStreamConsumerType::Pull:
-                if (m_workerThread.isRunning()) {
-                    m_workerThread.quit();
-                    m_workerThread.wait();
-                }
+                stop();
                 auto worker = new JetStreamPullConsumerWorker(conn, stream, consumer);
                 worker->moveToThread(&m_workerThread);
 
@@ -80,6 +77,14 @@ void JetStreamConsumer::start()
             }
         },
         m_type, m_stream, m_consumerId);
+}
+
+void JetStreamConsumer::stop()
+{
+    if (m_workerThread.isRunning()) {
+        m_workerThread.quit();
+        m_workerThread.wait();
+    }
 }
 
 void JetStreamConsumer::handleMessage(natsMsg *msg)

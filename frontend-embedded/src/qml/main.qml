@@ -40,6 +40,16 @@ ApplicationWindow {
         }
     }
 
+    Timer {
+        id: natsConnReconnectWait
+        repeat: false
+        interval: 10000 // wait 10 seconds for reconnection
+        onTriggered: {
+            console.log("Reconnecting after error")
+            natsConn.connect()
+        }
+    }
+
     NatsConnection {
         id: natsConn
         options: NatsOptions {
@@ -52,17 +62,31 @@ ApplicationWindow {
         }
 
         onConnected: {
-            console.log("connected")
+            console.log("Connect to NATS")
 
             disownSub.start()
         }
 
         onErrorOccurred: function (code, msg) {
-            console.log()
+            console.log(`Error occurred in NATS connection: ${msg}`)
+            disownSub.stop()
+
+            if (code == NatsStatus.NoServer || code == NatsStatus.ConnectionClosed) {
+                // Try to reconnect
+                natsConnReconnectWait.restart()
+            }
         }
 
         onLastStatusChanged: {
-            console.log("status changed")
+            console.log("NATS connection status changed")
+        }
+
+        onConnectionLost: {
+            console.log("Connection lost")
+            disownSub.stop()
+
+            // Try to reconnect
+            natsConnReconnectWait.restart()
         }
     }
 

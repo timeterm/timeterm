@@ -31,12 +31,16 @@ signals:
     void connected();
     void setConnectionPrivate(const QSharedPointer<natsConnection *> &conn, QPrivateSignal);
     void lastStatusChanged();
+    void connectionLost();
 
 private slots:
     void setConnection(const QSharedPointer<natsConnection *> &conn);
 
 private:
     void updateStatus(NatsStatus::Enum s);
+
+    static void connectionLostCB(natsConnection *conn, void *closure);
+    void connectionLostCB();
 
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
     NatsOptions *m_options = nullptr;
