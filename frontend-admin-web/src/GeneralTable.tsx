@@ -51,7 +51,7 @@ const selectionHook = <T extends {}>(hooks: Hooks<T>) => {
     {
       id: "selection",
       style: {
-        width: 0,
+        width: "1%",
       },
       Header: ({ getToggleAllRowsSelectedProps }: HeaderProps<T>) => (
         <div>

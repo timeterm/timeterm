@@ -20,6 +20,7 @@ import { SnackbarQueue } from "@rmwc/snackbar";
 import { snackbarQueue } from "./snackbarQueue";
 import { dialogQueue } from "./dialogQueue";
 import { DialogQueue } from "@rmwc/dialog";
+import SettingsPage from "./SettingsPage";
 
 export const queryCache = new QueryCache();
 
@@ -83,6 +84,9 @@ const AppContents: React.FC = () => {
         </Route>
         <Route path="/students">
           <StudentsPage />
+        </Route>
+        <Route path="/settings">
+          <SettingsPage />
         </Route>
       </Switch>
     </>

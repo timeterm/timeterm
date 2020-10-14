@@ -20,7 +20,6 @@ const LoginDonePage: React.FC = (props) => {
   if (status === "ok" && token) {
     const tokenDec = atob(token);
     new Cookies().set("ttsess", tokenDec, {
-      secure: true,
       path: "/",
     });
     history.push("/devices");

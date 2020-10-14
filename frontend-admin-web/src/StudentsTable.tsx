@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Icon } from "@rmwc/icon";
 import { useMutation } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
@@ -9,15 +9,7 @@ import GeneralTable from "./GeneralTable";
 import EditableCell from "./EditableCell";
 import { Button } from "@rmwc/button";
 import { Theme } from "@rmwc/theme";
-import {
-  Dialog,
-  DialogTitle,
-  DialogButton,
-  DialogActions,
-  DialogContent,
-} from "@rmwc/dialog";
 import "@rmwc/dialog/styles";
-import { TextField } from "@rmwc/textfield";
 import "@rmwc/textfield/styles";
 import { dialogQueue } from "./dialogQueue";
 

@@ -17,21 +17,27 @@ import { fetchAuthnd } from "./DevicesPage";
 import { snackbarQueue } from "./snackbarQueue";
 import "@rmwc/snackbar/styles";
 
-interface LinkListItemProps {
+export interface LinkListItemProps {
   to: string;
   className?: string;
+  exact?: boolean;
+  disableMatching?: boolean;
 }
 
-const LinkListItem: React.FC<LinkListItemProps> = (props) => {
+export const LinkListItem: React.FC<LinkListItemProps> = (props) => {
+  const { to, className, exact, disableMatching } = props;
   const location = useLocation();
 
   return (
     <ListItem
-      selected={location.pathname === props.to}
-      className={props.className}
+      selected={
+        !disableMatching &&
+        (exact ? location.pathname === to : location.pathname.startsWith(to))
+      }
+      className={className}
     >
       <Link
-        to={props.to}
+        to={to}
         style={{
           color: "inherit",
           textDecoration: "inherit",
@@ -70,10 +76,11 @@ const AnchorListItem: React.FC<AnchorListItemProps> = (props) => {
   );
 };
 
-interface UserResponse {
+export interface UserResponse {
   id: string;
   name: string;
   email: string;
+  organizationId: string;
 }
 
 const AppDrawer: React.FC = () => {
@@ -121,56 +128,75 @@ const AppDrawer: React.FC = () => {
             }}
           >
             <List style={{ flexGrow: 1 }}>
-              <Theme use={["onPrimary"]} wrap>
+              <Theme use="onPrimary" wrap>
                 <LinkListItem to={"/devices"}>
-                  <Theme use={["onPrimary"]} wrap>
+                  <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="tablet" />
                   </Theme>
                   Apparaten
                 </LinkListItem>
               </Theme>
-              <Theme use={["onPrimary"]} wrap>
-                <LinkListItem to={"/students"}>
-                  <Theme use={["onPrimary"]} wrap>
+              <Theme use="onPrimary" wrap>
+                <LinkListItem to="/students">
+                  <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="group" />
                   </Theme>
                   Leerlingen
                 </LinkListItem>
               </Theme>
-              <Theme use={["onPrimary"]} wrap>
+              <Theme use="onPrimary" wrap>
                 <AnchorListItem
                   href={`timeterm:${btoa(new Cookies().get("ttsess"))}`}
-                  rel={"noopener noreferrer"}
+                  rel="noopener noreferrer"
                 >
-                  <Theme use={["onPrimary"]} wrap>
+                  <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="bluetooth_connected" />
                   </Theme>
                   Apparaat koppelen
                 </AnchorListItem>
               </Theme>
+              <Theme use="onPrimary" wrap>
+                <LinkListItem to="/settings">
+                  <Theme use="onPrimary" wrap>
+                    <ListItemGraphic icon="settings" />
+                  </Theme>
+                  Instellingen
+                </LinkListItem>
+              </Theme>
             </List>
 
             <List twoLine={true} style={{ paddingBottom: 0 }}>
-              <Theme use={["onPrimary"]} wrap>
-                <ListItem>
-                  <Theme use={["onPrimary"]} wrap>
+              <Theme use="onPrimary" wrap>
+                <LinkListItem to={"/settings/account"} disableMatching>
+                  <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="person" />
                   </Theme>
                   <ListItemText>
                     <ListItemPrimaryText>
                       {!isLoading && user?.name}
                     </ListItemPrimaryText>
-                    <Theme use={["onPrimary"]} wrap>
+                    <Theme use="onPrimary" wrap>
                       <ListItemSecondaryText>
                         {!isLoading && user?.email}
                       </ListItemSecondaryText>
                     </Theme>
                   </ListItemText>
-                </ListItem>
+                </LinkListItem>
               </Theme>
             </List>
             <List>
-              <Theme use={["onPrimary"]} wrap>
+              <Theme use="onPrimary" wrap>
+                <AnchorListItem
+                  href="mailto:support@timeterm.nl"
+                  rel="noopener noreferrer"
+                >
+                  <Theme use="onPrimary" wrap>
+                    <ListItemGraphic icon="help_outline" />
+                  </Theme>
+                  Support
+                </AnchorListItem>
+              </Theme>
+              <Theme use="onPrimary" wrap>
                 <ListItem
                   onClick={() => {
                     new Cookies().remove("ttsess", {
@@ -179,7 +205,7 @@ const AppDrawer: React.FC = () => {
                     history.push("/");
                   }}
                 >
-                  <Theme use={["onPrimary"]} wrap>
+                  <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="logout" />
                   </Theme>
                   Uitloggen
