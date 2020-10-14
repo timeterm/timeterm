@@ -10,19 +10,23 @@ import (
 )
 
 type Organization struct {
-	ID      uuid.UUID   `json:"id"`
-	Name    string      `json:"name"`
-	Zermelo ZermeloInfo `json:"zermelo"`
+	ID      uuid.UUID               `json:"id"`
+	Name    string                  `json:"name"`
+	Zermelo OrganizationZermeloInfo `json:"zermelo"`
 }
 
-type ZermeloInfo struct {
+type OrganizationZermeloInfo struct {
 	Institution string `json:"institution"`
 }
 
 type Student struct {
-	ID             uuid.UUID `json:"id"`
-	OrganizationID uuid.UUID `json:"organizationId"`
-	ZermeloCode    string    `json:"zermelo_code"`
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organizationId"`
+	Zermelo        StudentZermeloInfo `json:"zermelo"`
+}
+
+type StudentZermeloInfo struct {
+	User string `json:"user"`
 }
 
 type PrimaryDeviceStatus string
@@ -70,11 +74,16 @@ type PaginatedDevices struct {
 	Data []Device `json:"data"`
 }
 
+type PaginatedStudents struct {
+	Pagination
+	Data []Student `json:"data"`
+}
+
 func OrganizationFrom(org database.Organization) Organization {
 	return Organization{
 		ID:   org.ID,
 		Name: org.Name,
-		Zermelo: ZermeloInfo{
+		Zermelo: OrganizationZermeloInfo{
 			Institution: org.ZermeloInstitution,
 		},
 	}
@@ -92,7 +101,9 @@ func StudentFrom(student database.Student) Student {
 	return Student{
 		ID:             student.ID,
 		OrganizationID: student.OrganizationID,
-		ZermeloCode:    student.ZermeloCode,
+		Zermelo: StudentZermeloInfo{
+			User: student.ZermeloUser,
+		},
 	}
 }
 
@@ -171,11 +182,26 @@ func PaginatedDevicesFrom(p database.PaginatedDevices) PaginatedDevices {
 	}
 }
 
+func PaginatedStudentsFrom(p database.PaginatedStudents) PaginatedStudents {
+	return PaginatedStudents{
+		Pagination: PaginationFrom(p.Pagination),
+		Data:       StudentsFrom(p.Students),
+	}
+}
+
 func UserFrom(user database.User) User {
 	return User{
 		ID:             user.ID,
 		OrganizationID: user.OrganizationID,
 		Name:           user.Name,
 		Email:          user.Email,
+	}
+}
+
+func StudentToDB(s Student) database.Student {
+	return database.Student{
+		ID:             s.ID,
+		OrganizationID: s.OrganizationID,
+		ZermeloUser:    s.Zermelo.User,
 	}
 }

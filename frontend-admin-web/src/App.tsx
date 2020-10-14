@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import DevicesPage from "./DevicesPage";
 import AppDrawer from "./AppDrawer";
-import UsersPage from "./UsersPage";
+import StudentsPage from "./StudentsPage";
 import LoginPage from "./LoginPage";
 import { useLocation } from "react-router-dom";
 import LoginDonePage from "./LoginDonePage";
@@ -78,8 +78,8 @@ const AppContents: React.FC = () => {
         <Route path="/devices">
           <DevicesPage />
         </Route>
-        <Route path="/users">
-          <UsersPage />
+        <Route path="/students">
+          <StudentsPage />
         </Route>
       </Switch>
     </>

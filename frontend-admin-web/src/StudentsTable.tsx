@@ -8,10 +8,14 @@ import { queryCache } from "./App";
 import GeneralTable from "./GeneralTable";
 import EditableCell from "./EditableCell";
 
-export interface User {
+export interface Student {
   id: string;
-  zermeloUser: string;
+  zermelo: StudentZermeloInfo;
   hasCardCode: boolean;
+}
+
+export interface StudentZermeloInfo {
+  user: string;
 }
 
 interface PrimaryDeviceStatusIconProps {
@@ -31,46 +35,46 @@ const UserHasCardCodeIcon: React.FC<PrimaryDeviceStatusIconProps> = ({
   );
 };
 
-interface UsersTableProps {
-  setSelectedItems: (items: User[]) => void;
+interface StudentsTableProps {
+  setSelectedItems: (items: Student[]) => void;
 }
 
-interface UserPatch {
+interface StudentPatch {
   id: string;
-  zermeloUser: string;
+  zermelo: StudentZermeloInfo;
 }
 
-const updateUser = (patch: UserPatch) =>
-  fetchAuthnd(`/api/user/${patch.id}`, {
+const updateStudent = (patch: StudentPatch) =>
+  fetchAuthnd(`/api/student/${patch.id}`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
 
 const boolToYesNoStringDutch = (b: boolean) => (b ? "Ja" : "Nee");
 
-const UsersTable: React.FC<UsersTableProps> = ({ setSelectedItems }) => {
-  const [updateUserMut] = useMutation(updateUser, {
+const StudentsTable: React.FC<StudentsTableProps> = ({ setSelectedItems }) => {
+  const [updateStudentMut] = useMutation(updateStudent, {
     onSuccess: async () => {
-      await queryCache.invalidateQueries("users");
+      await queryCache.invalidateQueries("students");
     },
   });
 
-  const columns = useMemo<Array<Column<User>>>(
+  const columns = useMemo<Array<Column<Student>>>(
     () => [
       {
         id: "zermeloUser",
         Header: "Zermelo-gebruiker",
-        accessor: (user) => user.zermeloUser,
+        accessor: (student) => student.zermelo.user,
         Cell: EditableCell,
       },
       {
         id: "hasCardCode",
         Header: "Heeft pascode",
-        accessor: (user) => (
+        accessor: (student) => (
           <div style={{ display: "flex", alignItems: "center" }}>
-            <UserHasCardCodeIcon hasCardCode={user.hasCardCode} />
+            <UserHasCardCodeIcon hasCardCode={student.hasCardCode} />
             &nbsp;
-            {boolToYesNoStringDutch(user.hasCardCode)}
+            {boolToYesNoStringDutch(student.hasCardCode)}
           </div>
         ),
       },
@@ -79,17 +83,19 @@ const UsersTable: React.FC<UsersTableProps> = ({ setSelectedItems }) => {
   );
 
   const updateData = async (
-    columnId: IdType<User>,
-    item: User,
+    columnId: IdType<Student>,
+    item: Student,
     value: string,
     setSkipPageReset: (skipPageReset: boolean) => void
   ) => {
     if (columnId === "zermeloUser") {
       setSkipPageReset(true);
 
-      updateUserMut({
+      updateStudentMut({
         id: item.id,
-        zermeloUser: value,
+        zermelo: {
+          user: value,
+        },
       })
         .then()
         .catch();
@@ -98,7 +104,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ setSelectedItems }) => {
 
   const fetchData = (page: number, pageSize: number) => {
     return fetchAuthnd(
-      `/api/user?offset=${page * pageSize}&maxAmount=${pageSize}`
+      `/api/student?offset=${page * pageSize}&maxAmount=${pageSize}`
     ).then((res) => res.json());
   };
 
@@ -107,10 +113,10 @@ const UsersTable: React.FC<UsersTableProps> = ({ setSelectedItems }) => {
       setSelectedItems={setSelectedItems}
       columns={columns}
       fetchData={fetchData}
-      queryKey={"users"}
+      queryKey={"students"}
       updateData={updateData}
     />
   );
 };
 
-export default UsersTable;
+export default StudentsTable;

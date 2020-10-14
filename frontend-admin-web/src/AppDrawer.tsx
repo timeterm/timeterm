@@ -130,11 +130,11 @@ const AppDrawer: React.FC = () => {
                 </LinkListItem>
               </Theme>
               <Theme use={["onPrimary"]} wrap>
-                <LinkListItem to={"/users"}>
+                <LinkListItem to={"/students"}>
                   <Theme use={["onPrimary"]} wrap>
                     <ListItemGraphic icon="group" />
                   </Theme>
-                  Gebruikers
+                  Leerlingen
                 </LinkListItem>
               </Theme>
               <Theme use={["onPrimary"]} wrap>

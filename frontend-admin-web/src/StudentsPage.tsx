@@ -5,32 +5,32 @@ import React, { useState } from "react";
 import { useMutation } from "react-query";
 import { queryCache } from "./App";
 import { fetchAuthnd } from "./DevicesPage";
-import UsersTable, { User } from "./UsersTable";
+import StudentsTable, { Student } from "./StudentsTable";
 
-const removeUser = (devices: User[]) =>
-  fetchAuthnd(`/api/user`, {
+const removeStudent = (students: Student[]) =>
+  fetchAuthnd(`/api/student`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      deviceIds: devices.map((device) => device.id),
+      studentIds: students.map((student) => student.id),
     }),
   });
 
 const DevicesPage: React.FC = () => {
-  const [selectedItems, setSelectedItems] = useState([] as User[]);
+  const [selectedItems, setSelectedItems] = useState([] as Student[]);
 
-  const [deleteUsers] = useMutation(removeUser, {
+  const [deleteStudents] = useMutation(removeStudent, {
     onSuccess: async () => {
-      await queryCache.invalidateQueries("users");
+      await queryCache.invalidateQueries("students");
     },
   });
 
-  const onDeleteUsers = async () => {
+  const onDeleteStudents = async () => {
     try {
-      await deleteUsers(selectedItems);
+      await deleteStudents(selectedItems);
     } catch (error) {}
   };
 
@@ -53,14 +53,14 @@ const DevicesPage: React.FC = () => {
           justifyContent: "space-between",
         }}
       >
-        <h1 style={{ marginTop: 0 }}>Gebruikers</h1>
+        <h1 style={{ marginTop: 0 }}>Leerlingen</h1>
         <div>
           <Button
             icon={"delete"}
             danger
             raised
             disabled={selectedItems.length === 0}
-            onClick={() => onDeleteUsers()}
+            onClick={() => onDeleteStudents()}
           >
             Verwijderen
           </Button>
@@ -78,7 +78,7 @@ const DevicesPage: React.FC = () => {
             overflow: "hidden",
           }}
         >
-          <UsersTable setSelectedItems={setSelectedItems} />
+          <StudentsTable setSelectedItems={setSelectedItems} />
         </Elevation>
       </Theme>
     </div>

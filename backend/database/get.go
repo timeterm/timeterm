@@ -27,27 +27,12 @@ func (w *Wrapper) GetStudent(ctx context.Context, id uuid.UUID) (Student, error)
 	return student, err
 }
 
-func (w *Wrapper) GetStudents(ctx context.Context) ([]Student, error) {
-	var students []Student
-
-	err := w.db.GetContext(ctx, &students, `SELECT * FROM "student"`)
-
-	return students, err
-}
-
 func (w *Wrapper) GetDevice(ctx context.Context, id uuid.UUID) (Device, error) {
 	var device Device
 
 	err := w.db.GetContext(ctx, &device, `SELECT * FROM "device" WHERE "id" = $1`, id)
 
 	return device, err
-}
-
-type GetDevicesOpts struct {
-	OrganizationID uuid.UUID
-	Limit          *uint64
-	Offset         *uint64
-	NameSearch     *string
 }
 
 func min(x, y uint64) uint64 {
@@ -71,6 +56,13 @@ type Pagination struct {
 type PaginatedDevices struct {
 	Pagination
 	Devices []Device
+}
+
+type GetDevicesOpts struct {
+	OrganizationID uuid.UUID
+	Limit          *uint64
+	Offset         *uint64
+	NameSearch     *string
 }
 
 var searchReplacer = strings.NewReplacer("%", "\\%", "_", "\\_")
@@ -122,6 +114,63 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 	}
 
 	return devs, nil
+}
+
+type GetStudentsOpts struct {
+	OrganizationID uuid.UUID
+	Limit          *uint64
+	Offset         *uint64
+}
+
+type PaginatedStudents struct {
+	Pagination
+	Students []Student
+}
+
+func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (PaginatedStudents, error) {
+	students := PaginatedStudents{
+		Pagination: Pagination{
+			Limit:  min(or(opts.Limit, 50), 100),
+			Offset: or(opts.Offset, 0),
+		},
+	}
+
+	conds := sq.And{
+		sq.Eq{"organization_id": opts.OrganizationID},
+	}
+
+	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
+		return b.
+			From("student").
+			Where(conds).
+			PlaceholderFormat(sq.Dollar)
+	}
+
+	devsSql, args, err := buildQuery(sq.Select(`*`)).
+		Limit(students.Pagination.Limit).
+		Offset(students.Pagination.Offset).
+		OrderBy("zermelo_user ASC").
+		ToSql()
+	if err != nil {
+		return students, err
+	}
+
+	err = w.db.SelectContext(ctx, &students.Students, devsSql, args...)
+	if err != nil {
+		return students, err
+	}
+
+	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
+	if err != nil {
+		return students, err
+	}
+
+	err = w.db.GetContext(ctx, &students.Total, totalSql, args...)
+	if err != nil {
+		return students, err
+	}
+
+	return students, nil
 }
 
 func (w *Wrapper) GetUserByOIDCFederation(ctx context.Context, federation OIDCFederation) (User, error) {
@@ -201,6 +250,21 @@ func (w *Wrapper) AreDevicesInOrganization(ctx context.Context,
 
 	err := w.db.GetContext(ctx, &amountInOrganization, `
 		SELECT COUNT(*) FROM "device"
+		WHERE "id" = ANY($1)
+		AND "organization_id" = $2
+	`, pq.Array(ids), organizationID)
+
+	return amountInOrganization == len(ids), err
+}
+
+func (w *Wrapper) AreStudentsInOrganization(ctx context.Context,
+	organizationID uuid.UUID,
+	ids ...uuid.UUID,
+) (bool, error) {
+	var amountInOrganization int
+
+	err := w.db.GetContext(ctx, &amountInOrganization, `
+		SELECT COUNT(*) FROM "student"
 		WHERE "id" = ANY($1)
 		AND "organization_id" = $2
 	`, pq.Array(ids), organizationID)

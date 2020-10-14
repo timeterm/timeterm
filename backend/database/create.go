@@ -18,7 +18,7 @@ type Organization struct {
 type Student struct {
 	ID             uuid.UUID
 	OrganizationID uuid.UUID
-	ZermeloCode    string
+	ZermeloUser    string
 }
 
 type OAuth2State struct {

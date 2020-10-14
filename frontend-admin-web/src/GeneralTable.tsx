@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { usePaginatedQuery } from "react-query";
 import { queryCache } from "./App";
 import {
@@ -134,6 +134,7 @@ const GeneralTable = <T extends object>({
   React.useEffect(() => {
     if (
       latestData &&
+      latestData.data &&
       latestData.offset + latestData.data.length < latestData.total
     ) {
       (async () =>
