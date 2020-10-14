@@ -8,49 +8,61 @@ Item {
     width: parent.width
     height: parent.height * 0.07
 
+    property int textSize: height * 0.5
+    property var textColor: "#e5e5e5"
+
     Rectangle {
         anchors.fill: parent
         color: "#242424"
 
-        RowLayout {
-            anchors.fill: parent
-            spacing: 6
+        Label {
+            id: title
+            anchors.left: parent.left
+            anchors.leftMargin: parent.height * 0.5
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
+            color: textColor
+            text: "Timeterm"
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
+        }
 
-            Label {
-                color: "#e5e5e5"
-                text: "Timeterm"
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            Label {
-                id: dateTime
-                color: "#e5e5e5"
-                anchors.centerIn: parent
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-                function setDateTime() {
-                    dateTime.text = new Date().toLocaleString(
-                                Qt.locale("nl_NL"),
-                                "d MMMM yyyy    h:mm:ss") // eg. Donderdag 17 september 2020 13:08
-                }
-            }
-
-            Label {
-                color: "#e5e5e5"
-                text: "Wifi"
-                fontSizeMode: Text.Fit
-                font.pixelSize: 20
-                transformOrigin: Item.Center
+        Label {
+            id: dateTime
+            anchors.centerIn: parent
+            color: textColor
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
+            function setDateTime() {
+                dateTime.text = new Date().toLocaleString(
+                            Qt.locale("nl_NL"),
+                            "d MMMM yyyy    h:mm:ss") // eg. 17 september 2020  13:08:22
             }
         }
 
-        layer.enabled: true
-        layer.effect: DropShadow {
-            transparentBorder: true
-            verticalOffset: 8
+        Label {
+            id: wifi
+            color: textColor
+            anchors.right: parent.right
+            anchors.rightMargin: parent.height * 0.5
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
+            text: "Wifi"
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
         }
+    }
+
+    layer.enabled: true
+    layer.effect: DropShadow {
+        color: "#40000000"
+        horizontalOffset: 0
+        verticalOffset: 3
+        radius: 8
+        samples: 17
+        spread: 0
     }
 
     Timer {
