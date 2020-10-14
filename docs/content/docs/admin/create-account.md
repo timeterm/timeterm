@@ -8,12 +8,6 @@ weight: 1
 # bookComments: true
 ---
 
-<style>
-img {
-  box-shadow: 2px 2px 2px black;
-}
-</style>
-
 1. Ga naar [admin.timeterm.nl](https://admin.timeterm.nl) en log hier in met je Microsoft-account
    ![Inloggen met Microsoft](/login-microsoft.png)
    
