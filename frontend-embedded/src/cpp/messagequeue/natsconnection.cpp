@@ -42,7 +42,7 @@ void NatsConnection::connect()
     optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(pOpts, NatsConnection::connectionLostCB, this));
     updateStatus(optsStatus);
     if (optsStatus != NatsStatus::Enum::Ok) {
-        qCritical() << "Could not set conneciton lost callback handler";
+        qCritical() << "Could not set connection lost callback handler";
         return;
     }
 
