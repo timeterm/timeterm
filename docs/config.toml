@@ -3,5 +3,9 @@ languageCode = "nl-NL"
 title = "Timeterm documentatie"
 theme = "book"
 
+DefaultContentLanguage = "nl"
+copyright = "Timeterm"
+
 [params]
+  BookTheme = "auto"
   BookMenuBundle = "/menu"
