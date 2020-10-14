@@ -6,6 +6,7 @@ import { useMutation } from "react-query";
 import { queryCache } from "./App";
 import { fetchAuthnd } from "./DevicesPage";
 import StudentsTable, { Student } from "./StudentsTable";
+import { dialogQueue } from "./dialogQueue";
 
 const removeStudent = (students: Student[]) =>
   fetchAuthnd(`/api/student`, {
@@ -55,11 +56,15 @@ const DevicesPage: React.FC = () => {
       >
         <h1 style={{ marginTop: 0 }}>Leerlingen</h1>
         <div>
+          <Button icon={"publish"} raised>
+            Importeren
+          </Button>
           <Button
             icon={"delete"}
             danger
             raised
             disabled={selectedItems.length === 0}
+            style={{ marginLeft: 8 }}
             onClick={() => onDeleteStudents()}
           >
             Verwijderen

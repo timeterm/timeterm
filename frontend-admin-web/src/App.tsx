@@ -17,7 +17,9 @@ import LoginDonePage from "./LoginDonePage";
 import Cookies from "universal-cookie";
 import { QueryCache, ReactQueryCacheProvider } from "react-query";
 import { SnackbarQueue } from "@rmwc/snackbar";
-import { queue } from "./snackbarQueue";
+import { snackbarQueue } from "./snackbarQueue";
+import { dialogQueue } from "./dialogQueue";
+import { DialogQueue } from "@rmwc/dialog";
 
 export const queryCache = new QueryCache();
 
@@ -39,7 +41,8 @@ const App: React.FC = () => {
           <div className="App">
             <AppContents />
 
-            <SnackbarQueue messages={queue.messages} />
+            <SnackbarQueue messages={snackbarQueue.messages} />
+            <DialogQueue dialogs={dialogQueue.dialogs} />
           </div>
         </ThemeProvider>
       </Router>

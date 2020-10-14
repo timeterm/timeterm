@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Icon } from "@rmwc/icon";
 import { useMutation } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
@@ -7,11 +7,24 @@ import { Column, IdType } from "react-table";
 import { queryCache } from "./App";
 import GeneralTable from "./GeneralTable";
 import EditableCell from "./EditableCell";
+import { Button } from "@rmwc/button";
+import { Theme } from "@rmwc/theme";
+import {
+  Dialog,
+  DialogTitle,
+  DialogButton,
+  DialogActions,
+  DialogContent,
+} from "@rmwc/dialog";
+import "@rmwc/dialog/styles";
+import { TextField } from "@rmwc/textfield";
+import "@rmwc/textfield/styles";
+import { dialogQueue } from "./dialogQueue";
 
 export interface Student {
   id: string;
   zermelo: StudentZermeloInfo;
-  hasCardCode: boolean;
+  hasCardId: boolean;
 }
 
 export interface StudentZermeloInfo {
@@ -41,7 +54,8 @@ interface StudentsTableProps {
 
 interface StudentPatch {
   id: string;
-  zermelo: StudentZermeloInfo;
+  zermelo?: StudentZermeloInfo;
+  cardId?: string;
 }
 
 const updateStudent = (patch: StudentPatch) =>
@@ -72,14 +86,51 @@ const StudentsTable: React.FC<StudentsTableProps> = ({ setSelectedItems }) => {
         Header: "Heeft pascode",
         accessor: (student) => (
           <div style={{ display: "flex", alignItems: "center" }}>
-            <UserHasCardCodeIcon hasCardCode={student.hasCardCode} />
+            <UserHasCardCodeIcon hasCardCode={student.hasCardId} />
             &nbsp;
-            {boolToYesNoStringDutch(student.hasCardCode)}
+            {boolToYesNoStringDutch(student.hasCardId)}
+            &nbsp;&nbsp;&nbsp;
+            <Theme use={"onSurface"} wrap>
+              <Button
+                onClick={() => {
+                  dialogQueue
+                    .prompt({
+                      title: "Pascode toewijzen",
+                      body: (
+                        <>
+                          Deze zal toegewezen worden aan <br />
+                          de leerling met als Zermelo-gebruiker
+                          <br />
+                          <code style={{ fontWeight: "bold" }}>
+                            {student.zermelo.user}
+                          </code>
+                        </>
+                      ),
+                      acceptLabel: "Toewijzen",
+                      cancelLabel: "Annuleren",
+                      inputProps: {
+                        outlined: true,
+                      },
+                    })
+                    .then((res) => {
+                      return (
+                        res &&
+                        updateStudentMut({
+                          id: student.id,
+                          cardId: res,
+                        })
+                      );
+                    });
+                }}
+              >
+                Toewijzen
+              </Button>
+            </Theme>
           </div>
         ),
       },
     ],
-    []
+    [updateStudentMut]
   );
 
   const updateData = async (
@@ -109,13 +160,15 @@ const StudentsTable: React.FC<StudentsTableProps> = ({ setSelectedItems }) => {
   };
 
   return (
-    <GeneralTable
-      setSelectedItems={setSelectedItems}
-      columns={columns}
-      fetchData={fetchData}
-      queryKey={"students"}
-      updateData={updateData}
-    />
+    <>
+      <GeneralTable
+        setSelectedItems={setSelectedItems}
+        columns={columns}
+        fetchData={fetchData}
+        queryKey={"students"}
+        updateData={updateData}
+      />
+    </>
   );
 };
 

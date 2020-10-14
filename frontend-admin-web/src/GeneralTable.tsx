@@ -188,14 +188,12 @@ const GeneralTable = <T extends object>({
             {headerGroups.map((headerGroup) => (
               <DataTableRow {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (
-                  <Theme use={"surface"} wrap>
-                    <DataTableHeadCell
-                      {...column.getHeaderProps()}
-                      style={column.style}
-                    >
-                      {column.render("Header")}
-                    </DataTableHeadCell>
-                  </Theme>
+                  <DataTableHeadCell
+                    {...column.getHeaderProps()}
+                    style={column.style}
+                  >
+                    {column.render("Header")}
+                  </DataTableHeadCell>
                 ))}
               </DataTableRow>
             ))}

@@ -14,7 +14,7 @@ import { Link, useHistory, useLocation } from "react-router-dom";
 import Cookies from "universal-cookie";
 import { useQuery } from "react-query";
 import { fetchAuthnd } from "./DevicesPage";
-import { queue } from "./snackbarQueue";
+import { snackbarQueue } from "./snackbarQueue";
 import "@rmwc/snackbar/styles";
 
 interface LinkListItemProps {
@@ -85,7 +85,7 @@ const AppDrawer: React.FC = () => {
 
   useEffect(() => {
     if (error)
-      queue.notify({
+      snackbarQueue.notify({
         title: <b>Er is een fout opgetreden</b>,
         body: "Kon data niet van server ophalen",
         icon: "error",
