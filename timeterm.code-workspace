@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "mfrc522"
+		},
+		{
+			"path": "docs"
 		}
 	],
 	"settings": {}
