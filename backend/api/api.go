@@ -523,8 +523,8 @@ func (s *Server) createDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create device")
 	}
 
-	apiDevice := DeviceFrom(dbDevice)
-	return c.JSON(http.StatusOK, apiDevice)
+	rsp := CreateDeviceResponseFrom(dbDevice, token)
+	return c.JSON(http.StatusOK, rsp)
 }
 
 func (s *Server) patchOrganization(c echo.Context) error {

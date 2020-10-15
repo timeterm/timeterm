@@ -68,8 +68,8 @@ func (w *Wrapper) CreateOrganization(ctx context.Context,
 	}
 
 	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "organization" ("id", "name", "zermelo_institution") 
-		VALUES (DEFAULT, $1, $2) 
+		INSERT INTO "organization" ("name", "zermelo_institution") 
+		VALUES ($1, $2) 
 		RETURNING "id"
 	`, name, zermeloInstitution)
 
@@ -82,8 +82,8 @@ func (w *Wrapper) CreateStudent(ctx context.Context, organizationID uuid.UUID) (
 	}
 
 	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "student" ("id", "organization_id") 
-		VALUES (DEFAULT, $1) 
+		INSERT INTO "student" ("organization_id") 
+		VALUES ($1) 
 		RETURNING "id"
 	`, organizationID)
 
@@ -114,8 +114,8 @@ func (w *Wrapper) CreateDevice(ctx context.Context,
 	defer func() { _ = tx.Rollback() }()
 
 	err = tx.GetContext(ctx, &dev.ID, `
-		INSERT INTO "device" (id, organization_id, name, status)
-		VALUES (DEFAULT, $1, $2, $3)
+		INSERT INTO "device" (organization_id, name, status)
+		VALUES ($1, $2, $3)
 		RETURNING "id"
 	`, dev.OrganizationID, dev.Name, dev.Status)
 	if err != nil {
@@ -140,8 +140,8 @@ func (w *Wrapper) CreateOAuth2State(ctx context.Context, issuer, redirectURL str
 	}
 
 	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "oauth2_state" ("state", "issuer", "redirect_url")
-		VALUES (DEFAULT, $1, $2)
+		INSERT INTO "oauth2_state" ("issuer", "redirect_url")
+		VALUES ($1, $2)
 		RETURNING "state"
 	`, issuer, redirectURL)
 
@@ -165,8 +165,8 @@ func (w *Wrapper) CreateUser(ctx context.Context, name, email string, organizati
 	}
 
 	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "user" (id, name, email, organization_id) 
-		VALUES (DEFAULT, $1, $2, $3)
+		INSERT INTO "user" (name, email, organization_id) 
+		VALUES ($1, $2, $3)
 		RETURNING "id"
 	`, name, email, organizationID)
 
@@ -186,8 +186,8 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 	defer func() { _ = tx.Rollback() }()
 
 	err = tx.GetContext(ctx, &user.OrganizationID, `
-		INSERT INTO "organization" (id, name, zermelo_institution)
-		VALUES (DEFAULT, '', '')
+		INSERT INTO "organization" (name, zermelo_institution)
+		VALUES ('', '')
 		RETURNING "id"
 	`)
 	if err != nil {
@@ -213,8 +213,8 @@ func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID,
 	}
 
 	_, err = w.db.ExecContext(ctx, `
-		INSERT INTO "user_token" ("token_hash", "user_id", "created_at", "expires_at")
-		VALUES ($1, $2, DEFAULT, DEFAULT)
+		INSERT INTO "user_token" ("token_hash", "user_id")
+		VALUES ($1, $2)
 	`, tokenHash, userID)
 
 	return token, err

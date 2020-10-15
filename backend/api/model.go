@@ -79,6 +79,11 @@ type PaginatedStudents struct {
 	Data []Student `json:"data"`
 }
 
+type CreateDeviceResponse struct {
+	Device Device    `json:"device"`
+	Token  uuid.UUID `json:"token"`
+}
+
 func OrganizationFrom(org database.Organization) Organization {
 	return Organization{
 		ID:   org.ID,
@@ -143,6 +148,13 @@ func DeviceFrom(device database.Device) Device {
 		Name:            device.Name,
 		PrimaryStatus:   lastHeartbeatToPrimaryDeviceStatus(device.LastHeartbeat),
 		SecondaryStatus: SecondaryDeviceStatusFrom(device.Status),
+	}
+}
+
+func CreateDeviceResponseFrom(device database.Device, token uuid.UUID) CreateDeviceResponse {
+	return CreateDeviceResponse{
+		Device: DeviceFrom(device),
+		Token:  token,
 	}
 }
 
