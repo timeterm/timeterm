@@ -1,5 +1,5 @@
 ---
-title: "WiFi-configuratie"
+title: "Wificonfiguratie"
 weight: 1
 # bookFlatSection: false
 # bookToc: true

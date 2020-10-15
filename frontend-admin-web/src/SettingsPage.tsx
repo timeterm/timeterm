@@ -163,7 +163,7 @@ const SettingsPage: React.FC = () => {
 
                     <LinkListItem to="/settings/organization/wifi">
                       <ListItemGraphic icon="wifi" />
-                      WiFi
+                      Wi-Fi
                     </LinkListItem>
 
                     <CollapsibleList
@@ -245,7 +245,7 @@ const SettingsPage: React.FC = () => {
                       flexDirection: "column",
                     }}
                   >
-                    <Typography use="headline5">WiFi-instellingen</Typography>
+                    <Typography use="headline5">Wifi-instellingen</Typography>
 
                     <TextField
                       style={{
