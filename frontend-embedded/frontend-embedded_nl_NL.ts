@@ -10,10 +10,36 @@
     </message>
 </context>
 <context>
+    <name>DayView</name>
+    <message>
+        <location filename="src/qml/DayView.qml" line="12"/>
+        <source>Prachtige tekst hierzo</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>WeekView</name>
+    <message>
+        <location filename="src/qml/WeekView.qml" line="12"/>
+        <source>Nog meer prachtige tekst hierzo</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>main</name>
     <message>
         <location filename="src/qml/main.qml" line="15"/>
         <source>Timeterm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/qml/main.qml" line="24"/>
+        <source>Dagweergave</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/qml/main.qml" line="27"/>
+        <source>Weegweergave</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

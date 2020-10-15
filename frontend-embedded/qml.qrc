@@ -11,5 +11,7 @@
         <file>src/qml/HeaderComponent.qml</file>
         <file>src/qml/Internals.qml</file>
         <file>assets/fonts/Roboto/Roboto-Regular.ttf</file>
+        <file>src/qml/DayView.qml</file>
+        <file>src/qml/WeekView.qml</file>
     </qresource>
 </RCC>

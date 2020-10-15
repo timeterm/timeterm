@@ -14,13 +14,64 @@ ApplicationWindow {
     height: 480
     title: qsTr("Timeterm")
 
-    HeaderComponent {}
+    header: HeaderComponent {}
 
-    Button {
-        y: 200
-        text: "blabla"
+    TabBar {
+        id: menuBar
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: parent.width * 0.125
+
+        background: Rectangle {
+            color: "#e5e5e5"
+        }
+
+        TabButton {
+            id: dayViewButton
+            width: menuBar.width * 0.75
+            height: width
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: menuBar.width * 0.125
+            anchors.bottom: undefined
+            text: qsTr("Dagweergave")
+        }
+        TabButton {
+            id: weekViewButton
+            width: menuBar.width * 0.75
+            height: width
+            anchors.top: dayViewButton.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: menuBar.width * 0.125
+            anchors.bottom: undefined
+            text: qsTr("Weekweergave")
+        }
     }
 
+    StackLayout {
+        currentIndex: menuBar.currentIndex
+
+        anchors.left: menuBar.right
+        anchors.right: parent.right
+        height: parent.height
+
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            DayView {}
+        }
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            WeekView {}
+        }
+    }
+
+    //    Button {
+    //        y: 200
+    //        text: "blabla"
+    //    }
     Internals {
         id: internals
 

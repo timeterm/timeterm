@@ -5,8 +5,8 @@ import QtGraphicalEffects 1.0
 
 Item {
     id: header
-    width: parent.width
-    height: parent.height * 0.07
+    width: parent.parent.width
+    height: parent.parent.height * 0.07
 
     property int textSize: height * 0.5
     property var textColor: "#e5e5e5"
