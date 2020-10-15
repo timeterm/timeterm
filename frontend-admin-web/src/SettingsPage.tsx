@@ -23,7 +23,7 @@ import { Select } from "@rmwc/select";
 import { Switch } from "@rmwc/switch";
 import "@rmwc/switch/styles";
 import UserSettings from "./settings/UserSettings";
-import OrganizationSettings from "./settings/OrganiationSettings";
+import OrganizationSettings from "./settings/OrganizationSettings";
 
 export interface Savable {
   save: () => void;
