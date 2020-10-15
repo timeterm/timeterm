@@ -7,7 +7,7 @@ import { Savable } from "../SettingsPage";
 import useSetting, { SettingPageProps } from "./useSetting";
 
 interface UserPatch {
-  id: string;
+  id?: string;
   name?: string;
 }
 
@@ -52,7 +52,7 @@ const UserSettings = forwardRef(
           }}
           label={"Naam"}
           outlined
-          value={patch.name || ""}
+          value={patch?.name || ""}
           onChange={(evt) => {
             setPatch({
               ...patch,

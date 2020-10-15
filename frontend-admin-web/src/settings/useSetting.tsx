@@ -28,7 +28,7 @@ const useSetting = <T, P>({
   queryKey,
   pageProps,
 }: UseSettingProps<T, P>) => {
-  const [patch, setPatch] = useState({} as P);
+  const [patch, setPatch] = useState(undefined as P | undefined);
 
   const { isLoading, error, data: original } = useQuery<T>(
     queryKey,
@@ -55,7 +55,7 @@ const useSetting = <T, P>({
   }, [isLoading, pageProps]);
 
   useEffect(() => {
-    pageProps.setIsModified(!!original && isModified(original, patch));
+    if (original && patch) pageProps.setIsModified(isModified(original, patch));
   }, [isModified, original, pageProps, patch]);
 
   useEffect(() => {

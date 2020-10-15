@@ -6,7 +6,7 @@ import { Savable } from "../SettingsPage";
 import useSetting, { SettingPageProps } from "./useSetting";
 
 interface OrganizationPatch {
-  id: string;
+  id?: string;
   name?: string;
 }
 
@@ -65,7 +65,7 @@ const OrganizationSettings = forwardRef(
           }}
           label={"Naam"}
           outlined
-          value={patch.name || ""}
+          value={patch?.name || ""}
           onChange={(evt) => {
             setPatch({
               ...patch,
