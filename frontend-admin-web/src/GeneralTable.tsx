@@ -20,7 +20,6 @@ import {
   DataTableHeadCell,
   DataTableRow,
 } from "@rmwc/data-table";
-import { Theme } from "@rmwc/theme";
 import { LinearProgress } from "@rmwc/linear-progress";
 import { Select } from "@rmwc/select";
 import { IconButton } from "@rmwc/icon-button";

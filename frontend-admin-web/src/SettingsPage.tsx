@@ -1,10 +1,7 @@
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "react-query";
-import { fetchAuthnd } from "./DevicesPage";
-import { snackbarQueue } from "./snackbarQueue";
-import { UserResponse, LinkListItem } from "./AppDrawer";
+import React, { useRef, useState } from "react";
+import { LinkListItem } from "./AppDrawer";
 import { Button } from "@rmwc/button";
 import { TextField } from "@rmwc/textfield";
 import { LinearProgress } from "@rmwc/linear-progress";

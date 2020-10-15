@@ -6,7 +6,6 @@ import { useMutation } from "react-query";
 import { queryCache } from "./App";
 import { fetchAuthnd } from "./DevicesPage";
 import StudentsTable, { Student } from "./StudentsTable";
-import { dialogQueue } from "./dialogQueue";
 
 const removeStudent = (students: Student[]) =>
   fetchAuthnd(`/api/student`, {
