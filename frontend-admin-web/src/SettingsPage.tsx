@@ -1,8 +1,8 @@
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
-import DevicesPage, { fetchAuthnd } from "./DevicesPage";
+import { fetchAuthnd } from "./DevicesPage";
 import { snackbarQueue } from "./snackbarQueue";
 import { UserResponse, LinkListItem } from "./AppDrawer";
 import { Button } from "@rmwc/button";
@@ -12,72 +12,27 @@ import { Typography } from "@rmwc/typography";
 import {
   CollapsibleList,
   List,
-  ListItem,
   ListItemGraphic,
   SimpleListItem,
 } from "@rmwc/list";
 import { Icon } from "@rmwc/icon";
 import { ReactComponent as ZermeloIcon } from "./zermelo-clean.svg";
-import { Drawer, DrawerContent, DrawerHeader } from "@rmwc/drawer";
-import { Redirect, Route, Switch as RouterSwitch } from "react-router-dom";
+import { Drawer, DrawerContent } from "@rmwc/drawer";
+import { Route, Switch as RouterSwitch } from "react-router-dom";
 import { Select } from "@rmwc/select";
 import { Switch } from "@rmwc/switch";
 import "@rmwc/switch/styles";
-import LoginDonePage from "./LoginDonePage";
-import LoginPage from "./LoginPage";
-import StudentsPage from "./StudentsPage";
+import UserSettings from "./settings/UserSettings";
+import OrganizationSettings from "./settings/OrganiationSettings";
 
-interface OrganizationResponse {
-  id: string;
-  name: string;
+export interface Savable {
+  save: () => void;
 }
 
 const SettingsPage: React.FC = () => {
-  const [organizationName, setOrganizationName] = useState("");
-
-  const { isLoading, error, data: organization } = useQuery<
-    OrganizationResponse
-  >(
-    "organizationInfo",
-    () =>
-      fetchAuthnd("/api/user/me")
-        .then((res) => res.json())
-        .then((user: UserResponse) =>
-          fetchAuthnd(`/api/organization/${user.organizationId}`).then((res) =>
-            res.json()
-          )
-        ),
-    {
-      refetchInterval: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  useEffect(() => {
-    if (organization) setOrganizationName(organization?.name);
-  }, [organization]);
-
-  const areContentsModified = useMemo(() => {
-    return organization && organizationName !== organization?.name;
-  }, [organization, organizationName]);
-
-  useEffect(() => {
-    if (error)
-      snackbarQueue.notify({
-        title: <b>Er is een fout opgetreden</b>,
-        body: "Kon data niet van server ophalen",
-        icon: "error",
-        dismissesOnAction: true,
-        actions: [
-          {
-            title: "Sluiten",
-            icon: "close",
-          },
-        ],
-      });
-  }, [error]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [areContentsModified, setAreContentsModified] = useState(false);
+  const settingsRef = useRef<Savable>();
 
   return (
     <div
@@ -107,6 +62,7 @@ const SettingsPage: React.FC = () => {
               backgroundColor: areContentsModified ? "#4CAF50" : undefined,
             }}
             disabled={!areContentsModified}
+            onClick={settingsRef.current?.save}
           >
             Opslaan
           </Button>
@@ -202,39 +158,18 @@ const SettingsPage: React.FC = () => {
                 </Route>
 
                 <Route exact path="/settings/account">
-                  <Typography use="headline5">Mijn account</Typography>
-
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                      width: "25em",
-                    }}
-                    label={"Naam"}
-                    outlined
+                  <UserSettings
+                    ref={settingsRef}
+                    setIsLoading={setIsLoading}
+                    setIsModified={setAreContentsModified}
                   />
                 </Route>
 
                 <Route exact path="/settings/organization/information">
-                  <Typography use="headline5">Informatie</Typography>
-
-                  <span style={{ marginTop: 8 }}>
-                    Je bent op het moment onderdeel van de organisatie (school)
-                    &quot;
-                    {organization?.name}&quot;
-                  </span>
-
-                  <TextField
-                    label={"Naam"}
-                    value={organizationName}
-                    style={{
-                      marginTop: 16,
-                    }}
-                    outlined
-                    onChange={(evt) => {
-                      setOrganizationName(
-                        (evt.target as HTMLInputElement).value
-                      );
-                    }}
+                  <OrganizationSettings
+                    setIsModified={setAreContentsModified}
+                    setIsLoading={setIsLoading}
+                    ref={settingsRef}
                   />
                 </Route>
 
