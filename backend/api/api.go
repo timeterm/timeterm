@@ -515,7 +515,7 @@ func (s *Server) createDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
 	}
 
-	dbDevice, err := s.db.CreateDevice(c.Request().Context(),
+	dbDevice, token, err := s.db.CreateDevice(c.Request().Context(),
 		user.OrganizationID, dev.Name, database.DeviceStatusNotActivated,
 	)
 	if err != nil {

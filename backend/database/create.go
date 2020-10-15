@@ -94,20 +94,43 @@ func (w *Wrapper) CreateDevice(ctx context.Context,
 	organizationID uuid.UUID,
 	name string,
 	status DeviceStatus,
-) (Device, error) {
+) (Device, uuid.UUID, error) {
 	dev := Device{
 		OrganizationID: organizationID,
 		Name:           name,
 		Status:         status,
 	}
 
-	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "device" ("id", "organization_id", "name", "status") 
-		VALUES (DEFAULT, $1, $2, $3) 
-		RETURNING "id"
-	`, organizationID, name, status)
+	token := uuid.New()
+	tokenHash, err := hashToken(token)
+	if err != nil {
+		return dev, token, err
+	}
 
-	return dev, row.Scan(&dev.ID)
+	tx, err := w.db.Beginx()
+	if err != nil {
+		return dev, token, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	err = tx.GetContext(ctx, &dev.ID, `
+		INSERT INTO "device" (id, organization_id, name, status)
+		VALUES (DEFAULT, $1, $2, $3)
+		RETURNING "id"
+	`, dev.OrganizationID, dev.Name, dev.Status)
+	if err != nil {
+		return dev, token, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO "device_token" ("token_hash", "device_id")
+		VALUES ($1, $2)
+	`, tokenHash, dev.ID)
+	if err != nil {
+		return dev, token, err
+	}
+
+	return dev, token, tx.Commit()
 }
 
 func (w *Wrapper) CreateOAuth2State(ctx context.Context, issuer, redirectURL string) (OAuth2State, error) {
@@ -167,15 +190,6 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 		VALUES (DEFAULT, '', '')
 		RETURNING "id"
 	`)
-	if err != nil {
-		return user, err
-	}
-
-	err = tx.GetContext(ctx, &user.ID, `
-		INSERT INTO "user" (id, name, organization_id, email)
-		VALUES (DEFAULT, $1, $2, $3)
-		RETURNING "id"
-	`, user.Name, user.OrganizationID, user.Email)
 	if err != nil {
 		return user, err
 	}
