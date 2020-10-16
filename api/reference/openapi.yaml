@@ -253,6 +253,47 @@ paths:
                 $ref: "#/components/schemas/Student"
         default:
           $ref: "#/components/responses/ProblemResponse"
+    get:
+      operationId: getStudents
+      summary: List students
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            format: uint64
+        - name: maxAmount
+          in: query
+          schema:
+            type: integer
+            format: uint64
+        - name: searchName
+          in: query
+          schema:
+            type: string 
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedStudents"
+    delete:
+      operationId: deleteStudents
+      summary: Delete students
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: No content
 
   /student/{id}:
     get:
@@ -491,6 +532,15 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Device"
+
+    PaginatedStudents:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/Student"
 
     Problem:
       description: An RFC7807 Problem Details Object.
