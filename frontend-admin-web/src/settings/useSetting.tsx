@@ -24,6 +24,7 @@ export interface UseSettingProps<T, P extends object> {
   queryKey: string;
   pageProps: SettingPageProps;
   settingsKey: string;
+  saveInvalidatesQueries?: string[];
 }
 
 const useSetting = <T, P extends object>({
@@ -35,6 +36,7 @@ const useSetting = <T, P extends object>({
   queryKey,
   pageProps,
   settingsKey,
+  saveInvalidatesQueries,
 }: UseSettingProps<T, P>) => {
   const patch = pageProps.settingsStore.store[settingsKey] as P | undefined;
   const setPatch = (patch: P | undefined) =>
@@ -60,7 +62,10 @@ const useSetting = <T, P extends object>({
 
   const [saveMut] = useMutation(save, {
     onSuccess: async () => {
-      await queryCache.invalidateQueries(queryKey);
+      await queryCache.invalidateQueries([
+        ...(saveInvalidatesQueries || []),
+        queryKey,
+      ]);
     },
   });
 

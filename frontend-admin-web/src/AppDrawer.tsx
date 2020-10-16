@@ -84,9 +84,8 @@ export interface UserResponse {
 }
 
 const AppDrawer: React.FC = () => {
-  const { isLoading, error, data: user } = useQuery<UserResponse>(
-    "userInfo",
-    () => fetchAuthnd("/api/user/me").then((res) => res.json())
+  const { isLoading, error, data: user } = useQuery<UserResponse>("user", () =>
+    fetchAuthnd("/api/user/me").then((res) => res.json())
   );
   const history = useHistory();
 
