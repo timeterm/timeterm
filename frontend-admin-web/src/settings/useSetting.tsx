@@ -1,4 +1,4 @@
-import React, { Ref, useEffect, useImperativeHandle, useState } from "react";
+import React, { Ref, useEffect, useImperativeHandle } from "react";
 import { Savable } from "../SettingsPage";
 import { useMutation, useQuery } from "react-query";
 import { queryCache } from "../App";
@@ -11,8 +11,8 @@ export interface SettingPageProps {
 }
 
 export interface SettingsStore {
-  settingsStore: { [key: string]: object | undefined };
-  setSettingsStore: (store: { [key: string]: object | undefined }) => void;
+  store: { [key: string]: object | undefined };
+  update: (store: { [key: string]: object | undefined }) => void;
 }
 
 export interface UseSettingProps<T, P extends object> {
@@ -36,14 +36,11 @@ const useSetting = <T, P extends object>({
   pageProps,
   settingsKey,
 }: UseSettingProps<T, P>) => {
-  const [patch, setPatch] = [
-    pageProps.settingsStore.settingsStore[settingsKey] as P | undefined,
-    (patch: P | undefined) =>
-      pageProps.settingsStore.setSettingsStore({
-        ...pageProps.settingsStore,
-        settingsKey: patch,
-      }),
-  ];
+  const patch = pageProps.settingsStore.store[settingsKey] as P | undefined;
+  const setPatch = (patch: P | undefined) =>
+    pageProps.settingsStore.update({
+      [settingsKey]: patch,
+    });
 
   const { isLoading, error, data: original } = useQuery<T>(
     queryKey,
@@ -54,7 +51,9 @@ const useSetting = <T, P extends object>({
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       onSuccess(original) {
-        if (original) setPatch(initPatch(original));
+        if (original && !patch) {
+          setPatch(initPatch(original));
+        }
       },
     }
   );

@@ -26,14 +26,20 @@ export interface Savable {
   save: () => void;
 }
 
+interface SettingsStore {
+  [key: string]: object | undefined;
+}
+
 const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [areContentsModified, setAreContentsModified] = useState(false);
   const settingsRef = useRef<Savable>();
-  const [settingsStore, setSettingsStore] = useState(
-    {} as { [key: string]: object | undefined }
-  );
-  const store = { settingsStore, setSettingsStore };
+  const [settingsStore, setSettingsStore] = useState({} as SettingsStore);
+  const store = {
+    store: settingsStore,
+    update: (store: SettingsStore) =>
+      setSettingsStore({ ...settingsStore, ...store }),
+  };
 
   return (
     <div
