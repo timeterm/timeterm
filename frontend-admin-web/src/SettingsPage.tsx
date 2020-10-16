@@ -33,7 +33,7 @@ interface SettingsStore {
 const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [areContentsModified, setAreContentsModified] = useState(false);
-  const settingsRef = useRef<Savable>();
+  const settingsRef = useRef<Savable>(null);
   const [settingsStore, setSettingsStore] = useState({} as SettingsStore);
   const store = {
     store: settingsStore,

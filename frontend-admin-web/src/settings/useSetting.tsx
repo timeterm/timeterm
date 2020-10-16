@@ -49,7 +49,7 @@ const useSetting = <T, P extends object>({
     () => fetch(),
     {
       refetchInterval: false,
-      refetchOnMount: false,
+      refetchOnMount: true,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       onSuccess(original) {

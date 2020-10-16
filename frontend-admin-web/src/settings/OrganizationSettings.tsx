@@ -1,6 +1,6 @@
 import { Typography } from "@rmwc/typography";
 import { TextField } from "@rmwc/textfield";
-import React, { forwardRef, Ref } from "react";
+import React, { forwardRef, MutableRefObject, Ref } from "react";
 import { fetchAuthnd } from "../DevicesPage";
 import { Savable } from "../SettingsPage";
 import useSetting, { SettingPageProps } from "./useSetting";
@@ -27,8 +27,8 @@ const updateOrganization = (patch: OrganizationPatch) =>
 
 interface OrganizationSettingProps extends SettingPageProps {}
 
-const OrganizationSettings = forwardRef(
-  (props: OrganizationSettingProps, ref: Ref<Savable | undefined>) => {
+const OrganizationSettings = forwardRef<Savable, OrganizationSettingProps>(
+  (props, ref) => {
     const { patch, setPatch } = useSetting<
       OrganizationResponse,
       OrganizationPatch
