@@ -22,6 +22,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         width: parent.width * 0.125
+        leftPadding: width * 0.125
 
         background: Rectangle {
             color: "#e5e5e5"
