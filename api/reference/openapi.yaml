@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Timeterm
-  version: '1.0'
+  version: "1.0"
   contact:
     name: Timeterm
     email: support@timeterm.nl
@@ -11,9 +11,140 @@ security:
   - ApiKeyAuth: []
 
 servers:
-  - url: 'https://api.timeterm.nl/v1/'
+  - url: "https://api.timeterm.nl/v1/"
 
 paths:
+  /user/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get the current user
+      responses:
+        "200":
+          description: A User object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /device:
+    post:
+      operationId: createDevice
+      summary: Create a new device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Device"
+      responses:
+        "200":
+          description: Device created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateDeviceResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+    get:
+      operationId: getDevices
+      summary: List devices
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            format: uint64
+        - name: maxAmount
+          in: query
+          schema:
+            type: integer
+            format: uint64
+        - name: searchName
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedDevices"
+    delete:
+      operationId: deleteDevices
+      summary: Delete devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                deviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: No content
+
+  /device/restart:
+    post:
+      operationId: rebootDevices
+      summary: Reboot a list of devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                deviceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "200":
+          description: No content
+
+  /device/{id}:
+    get:
+      operationId: getDevice
+      summary: Get a device
+      responses:
+        "200":
+          description: Device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+    patch:
+      operationId: updateDevice
+      summary: Update a device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Device"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+    delete:
+      operationId: deleteDevice
+      summary: Delete a device
+      responses:
+        "204":
+          description: No content
+
+  /device/{id}/reboot:
+    post:
+      operationId: rebootDevice
+      summary: Reboot a device
+      responses:
+        "200":
+          description: OK
+
   /zermelo/appointment:
     get:
       operationId: getAppointments
@@ -37,15 +168,15 @@ paths:
             type: string
             format: date-time
       responses:
-        '200':
+        "200":
           description: A list of appointments
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Appointments"
         default:
-          $ref:  "#/components/responses/ProblemResponse"
-  
+          $ref: "#/components/responses/ProblemResponse"
+
   /student/self:
     get:
       operationId: getStudentSelf
@@ -57,21 +188,21 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Student information
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Student"
         default:
-          $ref:  "#/components/responses/ProblemResponse"
+          $ref: "#/components/responses/ProblemResponse"
 
   /organization/{organizationId}:
     get:
       operationId: getOrganization
       summary: Get an organization
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -87,7 +218,7 @@ paths:
             schema:
               $ref: "#/components/schemas/Organization"
       responses:
-        '200':
+        "200":
           description: Organization updated
           content:
             application/json:
@@ -114,14 +245,42 @@ paths:
                       description: Zermelo user
                       example: "15029"
       responses:
-        '200':
+        "200":
           description: Student created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Student"
         default:
-          $ref:  "#/components/responses/ProblemResponse"
+          $ref: "#/components/responses/ProblemResponse"
+
+  /student/{id}:
+    get:
+      operationId: getStudent
+      summary: Get a student
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    patch:
+      operationId: updateStudent
+      summary: Update a student
+      description: Update an student. Request body is interpreted as JSON Merge Patch [[RFC 7396](https://tools.ietf.org/html/rfc7396)].
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Student"
+      responses:
+        "200":
+          description: Student updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
 
   /zermelo/connect:
     post:
@@ -142,58 +301,24 @@ paths:
                   type: string
                   example: 9902snvkzlxdf0923hkzxhv980
       responses:
-        '200':
+        "200":
           description: Connected
-
-  /device:
-    post:
-      operationId: createDevice
-      summary: Create a new device
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Device"
-      responses:
-        '200':
-          description: Device created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeviceAuth"
-        default:
-          $ref:  "#/components/responses/ProblemResponse"
-    get:
-      operationId: listDevices
-      summary: List the devices
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeviceList"
-        default:
-          $ref: "#/components/responses/ProblemResponse"
-
-  /device/{id}:
-    get:
-      operationId: getDevice
-      summary: Get a device
-      responses:
-        '200':
-          description: Device
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Device"
-        default:
-          $ref:  "#/components/responses/ProblemResponse"
-
 components:
   schemas:
+    User:
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+
     Appointments:
-      type: object
       properties:
         data:
           type: array
@@ -206,7 +331,6 @@ components:
               type: string
 
     Appointment:
-      type: object
       properties:
         id:
           type: integer
@@ -322,18 +446,21 @@ components:
         organizationId:
           type: string
           format: uuid
-        status:
-          $ref: "#/components/schemas/DeviceStatus"
-        activatedAt:
-          type: string
-          format: date-time
-    
-    DeviceStatus:
+        primaryStatus:
+          $ref: "#/components/schemas/PrimaryDeviceStatus"
+        secondaryStatus:
+          $ref: "#/components/schemas/SecondaryDeviceStatus"
+
+    PrimaryDeviceStatus:
       type: string
       enum:
-      - Online
-      - Offline
-      - NotActivated
+        - Online
+        - Offline
+
+    SecondaryDeviceStatus:
+      type: string
+      enum:
+        - NotActivated
 
     DeviceAuth:
       properties:
@@ -343,22 +470,29 @@ components:
           properties:
             self:
               type: string
-    
-    DeviceList:
+
+    Pagination:
       properties:
+        offset:
+          type: integer
+          format: uint64
+        maxAmount:
+          type: integer
+          format: uint64
         total:
           type: integer
-        links:
-          properties:
-            nextPage:
-              type: string
-        devices:
-          type: array
-          items:
-            $ref: "#/components/schemas/Device"
+          format: uint64
+
+    PaginatedDevices:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/Device"
 
     Problem:
-      type: object
       description: An RFC7807 Problem Details Object.
       properties:
         type:
@@ -377,11 +511,18 @@ components:
           type: string
           description: A URI reference that identifies the specific occurrence of the problem. It may or may not yield further information if dereferenced.
 
+    CreateDeviceResponse:
+      properties:
+        device:
+          $ref: "#/components/schemas/Device"
+        token:
+          type: string
+
   responses:
     ProblemResponse:
       description: An RFC 7807 Problem Details Object response.
       content:
-        'application/json':
+        "application/json":
           schema:
             $ref: "#/components/schemas/Problem"
 
