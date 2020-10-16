@@ -66,6 +66,7 @@ func (s *Server) registerRoutes() {
 	g.Use(authn.Middleware(s.db, s.log))
 
 	g.GET("/user/me", s.getCurrentUser)
+	g.PATCH("/user/:id", s.patchUser)
 
 	g.GET("/device", s.getDevices)
 	g.DELETE("/device", s.deleteDevices)
