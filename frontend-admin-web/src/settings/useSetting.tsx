@@ -7,9 +7,15 @@ import { snackbarQueue } from "../snackbarQueue";
 export interface SettingPageProps {
   setIsModified: (isModified: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
+  settingsStore: SettingsStore;
 }
 
-export interface UseSettingProps<T, P> {
+export interface SettingsStore {
+  settingsStore: { [key: string]: object | undefined };
+  setSettingsStore: (store: { [key: string]: object | undefined }) => void;
+}
+
+export interface UseSettingProps<T, P extends object> {
   ref: Ref<Savable | undefined>;
   fetch: () => Promise<T>;
   save: (patch: P) => Promise<Response>;
@@ -17,9 +23,10 @@ export interface UseSettingProps<T, P> {
   isModified: (original: T, patch: P) => boolean;
   queryKey: string;
   pageProps: SettingPageProps;
+  settingsKey: string;
 }
 
-const useSetting = <T, P>({
+const useSetting = <T, P extends object>({
   ref,
   fetch,
   save,
@@ -27,8 +34,16 @@ const useSetting = <T, P>({
   isModified,
   queryKey,
   pageProps,
+  settingsKey,
 }: UseSettingProps<T, P>) => {
-  const [patch, setPatch] = useState(undefined as P | undefined);
+  const [patch, setPatch] = [
+    pageProps.settingsStore.settingsStore[settingsKey] as P | undefined,
+    (patch: P | undefined) =>
+      pageProps.settingsStore.setSettingsStore({
+        ...pageProps.settingsStore,
+        settingsKey: patch,
+      }),
+  ];
 
   const { isLoading, error, data: original } = useQuery<T>(
     queryKey,

@@ -39,6 +39,7 @@ const UserSettings = forwardRef(
       },
       queryKey: "user",
       save: updateUser,
+      settingsKey: "user",
     });
 
     return (

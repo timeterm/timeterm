@@ -30,6 +30,10 @@ const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [areContentsModified, setAreContentsModified] = useState(false);
   const settingsRef = useRef<Savable>();
+  const [settingsStore, setSettingsStore] = useState(
+    {} as { [key: string]: object | undefined }
+  );
+  const store = { settingsStore, setSettingsStore };
 
   return (
     <div
@@ -159,6 +163,7 @@ const SettingsPage: React.FC = () => {
                     ref={settingsRef}
                     setIsLoading={setIsLoading}
                     setIsModified={setAreContentsModified}
+                    settingsStore={store}
                   />
                 </Route>
 
@@ -167,6 +172,7 @@ const SettingsPage: React.FC = () => {
                     setIsModified={setAreContentsModified}
                     setIsLoading={setIsLoading}
                     ref={settingsRef}
+                    settingsStore={store}
                   />
                 </Route>
 
