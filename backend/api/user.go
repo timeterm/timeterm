@@ -72,5 +72,5 @@ func (s *Server) patchUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the user in the database")
 	}
 
-	return c.JSON(http.StatusOK, NewDBUser)
+	return c.JSON(http.StatusOK, NewAPIUser)
 }
