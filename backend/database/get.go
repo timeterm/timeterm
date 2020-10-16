@@ -173,6 +173,14 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 	return students, nil
 }
 
+func (w *Wrapper) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+	var user User
+
+	err := w.db.GetContext(ctx, &user, `SELECT * FROM "user" WHERE "id" = $1`, id)
+
+	return user, err
+}
+
 func (w *Wrapper) GetUserByOIDCFederation(ctx context.Context, federation OIDCFederation) (User, error) {
 	var user User
 
