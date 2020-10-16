@@ -50,8 +50,9 @@ const OrganizationSettings = forwardRef(
       initPatch(original: OrganizationResponse): OrganizationPatch {
         return { id: original.id, name: original.name };
       },
-      queryKey: "user",
+      queryKey: "organization",
       save: updateOrganization,
+      settingsKey: "organization",
     });
 
     return (

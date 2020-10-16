@@ -1,4 +1,4 @@
-import React, { Ref, useEffect, useImperativeHandle, useState } from "react";
+import React, { Ref, useEffect, useImperativeHandle } from "react";
 import { Savable } from "../SettingsPage";
 import { useMutation, useQuery } from "react-query";
 import { queryCache } from "../App";
@@ -7,9 +7,15 @@ import { snackbarQueue } from "../snackbarQueue";
 export interface SettingPageProps {
   setIsModified: (isModified: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
+  settingsStore: SettingsStore;
 }
 
-export interface UseSettingProps<T, P> {
+export interface SettingsStore {
+  store: { [key: string]: object | undefined };
+  update: (store: { [key: string]: object | undefined }) => void;
+}
+
+export interface UseSettingProps<T, P extends object> {
   ref: Ref<Savable | undefined>;
   fetch: () => Promise<T>;
   save: (patch: P) => Promise<Response>;
@@ -17,9 +23,10 @@ export interface UseSettingProps<T, P> {
   isModified: (original: T, patch: P) => boolean;
   queryKey: string;
   pageProps: SettingPageProps;
+  settingsKey: string;
 }
 
-const useSetting = <T, P>({
+const useSetting = <T, P extends object>({
   ref,
   fetch,
   save,
@@ -27,8 +34,13 @@ const useSetting = <T, P>({
   isModified,
   queryKey,
   pageProps,
+  settingsKey,
 }: UseSettingProps<T, P>) => {
-  const [patch, setPatch] = useState(undefined as P | undefined);
+  const patch = pageProps.settingsStore.store[settingsKey] as P | undefined;
+  const setPatch = (patch: P | undefined) =>
+    pageProps.settingsStore.update({
+      [settingsKey]: patch,
+    });
 
   const { isLoading, error, data: original } = useQuery<T>(
     queryKey,
@@ -39,7 +51,9 @@ const useSetting = <T, P>({
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       onSuccess(original) {
-        if (original) setPatch(initPatch(original));
+        if (original && !patch) {
+          setPatch(initPatch(original));
+        }
       },
     }
   );
