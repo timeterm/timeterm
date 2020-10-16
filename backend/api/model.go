@@ -210,6 +210,15 @@ func UserFrom(user database.User) User {
 	}
 }
 
+func UserToDB(user User) database.User {
+	return database.User{
+		ID:             user.ID,
+		OrganizationID: user.OrganizationID,
+		Email:          user.Email,
+		Name:           user.Name,
+	}
+}
+
 func StudentToDB(s Student) database.Student {
 	return database.Student{
 		ID:             s.ID,

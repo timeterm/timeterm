@@ -62,4 +62,15 @@ func (s *Server) patchUser(c echo.Context) error {
 		s.log.Error(err, "could not unmarshal patched user")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not unmarshal patched user")
 	}
+
+	newAPIUser.ID = oldAPIUser.ID
+	NewDBUser := UserToDB(newAPIUser)
+
+	err = s.db.ReplaceUser(c.Request().Context(), NewDBUser)
+	if err != nil {
+		s.log.Error(err, "could not update the user in the database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the user in the database")
+	}
+
+	return c.JSON(http.StatusOK, NewDBUser)
 }
