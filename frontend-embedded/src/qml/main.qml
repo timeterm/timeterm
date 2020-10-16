@@ -14,15 +14,18 @@ ApplicationWindow {
     height: 480
     title: qsTr("Timeterm")
 
-    header: HeaderComponent {}
+    header: HeaderComponent {
+        z: 2
+    }
 
     TabBar {
         id: menuBar
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: parent.width * 0.125
         leftPadding: width * 0.125
+        width: parent.width * 0.125
+        z: 1
 
         background: Rectangle {
             color: "#e5e5e5"
@@ -32,21 +35,138 @@ ApplicationWindow {
             id: dayViewButton
             width: menuBar.width * 0.75
             height: width
+            anchors.left: parent.left
             anchors.top: parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
             anchors.topMargin: menuBar.width * 0.125
-            anchors.bottom: undefined
+
+            background: Rectangle {
+                id: firstRect
+                color: "#E5E5E5"
+                radius: 10
+
+                visible: false
+            }
+
+            DropShadow {
+                anchors.fill: firstRect
+                transparentBorder: true
+                horizontalOffset: 15
+                verticalOffset: 15
+                radius: 30
+                samples: 61
+                color: "#BEBEC0"
+                source: firstRect
+                visible: !dayViewButton.checked
+            }
+
+            DropShadow {
+                anchors.fill: firstRect
+                transparentBorder: true
+                horizontalOffset: -15
+                verticalOffset: -15
+                radius: 30
+                samples: 61
+                color: "#FFFFFF"
+                source: firstRect
+                visible: !dayViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: firstRect
+                horizontalOffset: 15
+                verticalOffset: 15
+                radius: 30
+                samples: 61
+                color: "#BEBEC0"
+                source: firstRect
+                visible: dayViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: firstRect
+                horizontalOffset: -15
+                verticalOffset: -15
+                radius: 30
+                samples: 61
+                color: "#FFFFFF"
+                source: firstRect
+                visible: dayViewButton.checked
+            }
             text: qsTr("Dagweergave")
         }
+
         TabButton {
             id: weekViewButton
             width: menuBar.width * 0.75
             height: width
+            anchors.left: parent.left
             anchors.top: dayViewButton.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
             anchors.topMargin: menuBar.width * 0.125
-            anchors.bottom: undefined
+
+            background: Rectangle {
+                id: secondRect
+                color: "#E5E5E5"
+                radius: 10
+
+                visible: false
+            }
+
+            DropShadow {
+                anchors.fill: secondRect
+                transparentBorder: true
+                horizontalOffset: 15
+                verticalOffset: 15
+                radius: 30
+                samples: 61
+                color: "#BEBEC0"
+                source: secondRect
+                visible: !weekViewButton.checked
+            }
+
+            DropShadow {
+                anchors.fill: secondRect
+                transparentBorder: true
+                horizontalOffset: -15
+                verticalOffset: -15
+                radius: 30
+                samples: 61
+                color: "#FFFFFF"
+                source: secondRect
+                visible: !weekViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: secondRect
+                horizontalOffset: 15
+                verticalOffset: 15
+                radius: 30
+                samples: 61
+                color: "#BEBEC0"
+                source: secondRect
+                visible: weekViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: secondRect
+                horizontalOffset: -15
+                verticalOffset: -15
+                radius: 30
+                samples: 61
+                color: "#FFFFFF"
+                source: secondRect
+                visible: weekViewButton.checked
+            }
+
             text: qsTr("Weekweergave")
+        }
+
+        layer.enabled: true
+        layer.effect: DropShadow {
+            color: "#40000000"
+            horizontalOffset: 4
+            verticalOffset: 0
+            radius: 15
+            samples: 31
         }
     }
 
