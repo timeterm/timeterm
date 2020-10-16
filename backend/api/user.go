@@ -64,13 +64,13 @@ func (s *Server) patchUser(c echo.Context) error {
 	}
 
 	newAPIUser.ID = oldAPIUser.ID
-	NewDBUser := UserToDB(newAPIUser)
+	newDBUser := UserToDB(newAPIUser)
 
-	err = s.db.ReplaceUser(c.Request().Context(), NewDBUser)
+	err = s.db.ReplaceUser(c.Request().Context(), newDBUser)
 	if err != nil {
 		s.log.Error(err, "could not update the user in the database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the user in the database")
 	}
 
-	return c.JSON(http.StatusOK, NewAPIUser)
+	return c.JSON(http.StatusOK, newAPIUser)
 }
