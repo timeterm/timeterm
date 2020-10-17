@@ -14,11 +14,10 @@ import (
 )
 
 type Server struct {
-	db       *database.Wrapper
-	log      logr.Logger
-	echo     *echo.Echo
-	apiGroup *echo.Group
-	brw      *broker.Wrapper
+	db   *database.Wrapper
+	log  logr.Logger
+	echo *echo.Echo
+	brw  *broker.Wrapper
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -44,11 +43,10 @@ func NewServer(db *database.Wrapper, log logr.Logger, brw *broker.Wrapper) (Serv
 	}
 
 	server := Server{
-		db:       db,
-		log:      log,
-		echo:     e,
-		apiGroup: e.Group("/api"),
-		brw:      brw,
+		db:   db,
+		log:  log,
+		echo: e,
+		brw:  brw,
 	}
 	server.registerRoutes()
 
@@ -56,13 +54,13 @@ func NewServer(db *database.Wrapper, log logr.Logger, brw *broker.Wrapper) (Serv
 	if err != nil {
 		return server, err
 	}
-	authnr.RegisterRoutes(server.apiGroup)
+	authnr.RegisterRoutes(e.Group(""))
 
 	return server, nil
 }
 
 func (s *Server) registerRoutes() {
-	g := s.apiGroup.Group("")
+	g := s.echo.Group("")
 	g.Use(authn.Middleware(s.db, s.log))
 
 	g.GET("/user/me", s.getCurrentUser)
@@ -77,7 +75,7 @@ func (s *Server) registerRoutes() {
 	g.PATCH("/device/:id", s.patchDevice)
 	g.DELETE("/device/:id", s.deleteDevice)
 
-	orgGroup := s.apiGroup.Group("/organization")
+	orgGroup := s.echo.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)
 

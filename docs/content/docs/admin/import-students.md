@@ -1,6 +1,10 @@
 ---
-title: "Import Students"
-date: 2020-10-14T23:13:55+02:00
-draft: true
+title: "Leerlingen importeren"
+weight: 1
+# bookFlatSection: false
+# bookToc: true
+# bookHidden: false
+# bookCollapseSection: false
+# bookComments: true
 ---
 

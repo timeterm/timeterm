@@ -4,5 +4,8 @@
 # go build
 /backend
 
+# make build
+/timeterm
+
 # .env may contain secrets
 .env

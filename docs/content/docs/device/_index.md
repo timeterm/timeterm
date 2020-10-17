@@ -1,6 +1,10 @@
 ---
-title: "Device"
-date: 2020-10-14T23:13:39+02:00
-draft: true
+title: "De Timeterm"
+weight: 1
+# bookFlatSection: false
+# bookToc: true
+# bookHidden: false
+# bookCollapseSection: false
+# bookComments: true
 ---
 
