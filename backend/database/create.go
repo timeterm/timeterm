@@ -194,6 +194,15 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 		return user, err
 	}
 
+	err = tx.GetContext(ctx, &user.ID,`
+		INSERT INTO "user" (name, organization_id, email)
+		VALUES ($1, $2, $3)
+		RETURNING id
+	`, user.Name, user.OrganizationID, user.Email)
+	if err != nil {
+		return user, err
+	}
+
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO "oidc_federation" (oidc_subject, oidc_issuer, oidc_audience, user_id)
 		VALUES ($1, $2, $3, $4)
