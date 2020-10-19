@@ -24,7 +24,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         leftPadding: width * 0.125
-        width: parent.width * 0.125
+        width: parent.width * 0.15
         z: 1
 
         background: Rectangle {
@@ -42,7 +42,7 @@ ApplicationWindow {
             background: Rectangle {
                 id: firstRect
                 color: "#E5E5E5"
-                radius: 10
+                radius: parent.width * 0.10
 
                 visible: false
             }
@@ -50,10 +50,10 @@ ApplicationWindow {
             DropShadow {
                 anchors.fill: firstRect
                 transparentBorder: true
-                horizontalOffset: 15
-                verticalOffset: 15
-                radius: 30
-                samples: 61
+                horizontalOffset: parent.width * 0.10
+                verticalOffset: parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
                 color: "#BEBEC0"
                 source: firstRect
                 visible: !dayViewButton.checked
@@ -62,10 +62,10 @@ ApplicationWindow {
             DropShadow {
                 anchors.fill: firstRect
                 transparentBorder: true
-                horizontalOffset: -15
-                verticalOffset: -15
-                radius: 30
-                samples: 61
+                horizontalOffset: -parent.width * 0.10
+                verticalOffset: -parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
                 color: "#FFFFFF"
                 source: firstRect
                 visible: !dayViewButton.checked
@@ -73,26 +73,35 @@ ApplicationWindow {
 
             InnerShadow {
                 anchors.fill: firstRect
-                horizontalOffset: 15
-                verticalOffset: 15
-                radius: 30
-                samples: 61
-                color: "#BEBEC0"
+                horizontalOffset: -parent.width * 0.033
+                verticalOffset: -parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#FFFFFF"
                 source: firstRect
                 visible: dayViewButton.checked
             }
 
             InnerShadow {
-                anchors.fill: firstRect
-                horizontalOffset: -15
-                verticalOffset: -15
-                radius: 30
-                samples: 61
-                color: "#FFFFFF"
-                source: firstRect
+                anchors.fill: dayViewButton
+                horizontalOffset: parent.width * 0.033
+                verticalOffset: parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#BEBEC0"
+                source: dayViewButton
                 visible: dayViewButton.checked
             }
-            text: qsTr("Dagweergave")
+
+            icon.color: "#424242"
+            icon.width: width * (dayViewButton.checked ? 0.375 : 0.40)
+            icon.height: width * (dayViewButton.checked ? 0.375 : 0.40)
+            icon.source: "../../assets/icons/calendar-today.svg"
+            display: AbstractButton.TextUnderIcon
+
+            font.pixelSize: height * (dayViewButton.checked ? 0.15 : 0.16)
+
+            text: "<font color=\"#424242\">Vandaag</font>"
         }
 
         TabButton {
@@ -106,7 +115,7 @@ ApplicationWindow {
             background: Rectangle {
                 id: secondRect
                 color: "#E5E5E5"
-                radius: 10
+                radius: parent.width * 0.10
 
                 visible: false
             }
@@ -114,10 +123,10 @@ ApplicationWindow {
             DropShadow {
                 anchors.fill: secondRect
                 transparentBorder: true
-                horizontalOffset: 15
-                verticalOffset: 15
-                radius: 30
-                samples: 61
+                horizontalOffset: parent.width * 0.10
+                verticalOffset: parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
                 color: "#BEBEC0"
                 source: secondRect
                 visible: !weekViewButton.checked
@@ -126,10 +135,10 @@ ApplicationWindow {
             DropShadow {
                 anchors.fill: secondRect
                 transparentBorder: true
-                horizontalOffset: -15
-                verticalOffset: -15
-                radius: 30
-                samples: 61
+                horizontalOffset: -parent.width * 0.10
+                verticalOffset: -parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
                 color: "#FFFFFF"
                 source: secondRect
                 visible: !weekViewButton.checked
@@ -137,36 +146,44 @@ ApplicationWindow {
 
             InnerShadow {
                 anchors.fill: secondRect
-                horizontalOffset: 15
-                verticalOffset: 15
-                radius: 30
-                samples: 61
-                color: "#BEBEC0"
-                source: secondRect
-                visible: weekViewButton.checked
-            }
-
-            InnerShadow {
-                anchors.fill: secondRect
-                horizontalOffset: -15
-                verticalOffset: -15
-                radius: 30
-                samples: 61
+                horizontalOffset: -parent.width * 0.033
+                verticalOffset: -parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
                 color: "#FFFFFF"
                 source: secondRect
                 visible: weekViewButton.checked
             }
 
-            text: qsTr("Weekweergave")
+            InnerShadow {
+                anchors.fill: weekViewButton
+                horizontalOffset: parent.width * 0.033
+                verticalOffset: parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#BEBEC0"
+                source: weekViewButton
+                visible: weekViewButton.checked
+            }
+
+            icon.color: "#424242"
+            icon.width: width * (weekViewButton.checked ? 0.375 : 0.40)
+            icon.height: width * (weekViewButton.checked ? 0.375 : 0.40)
+            icon.source: "../../assets/icons/calendar-week.svg"
+            display: AbstractButton.TextUnderIcon
+
+            font.pixelSize: height * (weekViewButton.checked ? 0.15 : 0.16)
+
+            text: "<font color=\"#424242\">Week</font>"
         }
 
         layer.enabled: true
         layer.effect: DropShadow {
             color: "#40000000"
-            horizontalOffset: 4
+            horizontalOffset: width * 0.02
             verticalOffset: 0
-            radius: 15
-            samples: 31
+            radius: width * 0.10
+            samples: 32
         }
     }
 
@@ -189,10 +206,6 @@ ApplicationWindow {
         }
     }
 
-    //    Button {
-    //        y: 200
-    //        text: "blabla"
-    //    }
     Internals {
         id: internals
 

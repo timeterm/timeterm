@@ -13,5 +13,7 @@
         <file>assets/fonts/Roboto/Roboto-Regular.ttf</file>
         <file>src/qml/DayView.qml</file>
         <file>src/qml/WeekView.qml</file>
+        <file>assets/icons/calendar-today.svg</file>
+        <file>assets/icons/calendar-week.svg</file>
     </qresource>
 </RCC>

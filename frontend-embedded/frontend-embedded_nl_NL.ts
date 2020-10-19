@@ -32,15 +32,5 @@
         <source>Timeterm</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="src/qml/main.qml" line="38"/>
-        <source>Dagweergave</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/qml/main.qml" line="48"/>
-        <source>Weekweergave</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 </TS>

@@ -5,7 +5,7 @@ Page {
     anchors.fill: parent
 
     background: Rectangle {
-        color: "#7BB0FF"
+        color: "#FFFFFF"
     }
     Text {
         id: blabla
