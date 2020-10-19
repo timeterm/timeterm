@@ -12,7 +12,7 @@ interface UserPatch {
 }
 
 const updateUser = (patch: UserPatch) =>
-  fetchAuthnd(`/api/user/${patch.id}`, {
+  fetchAuthnd(`https://api.timeterm.nl/user/${patch.id}`, {
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -32,7 +32,7 @@ const UserSettings = forwardRef(
         return original.name !== patch.name;
       },
       fetch(): Promise<UserResponse> {
-        return fetchAuthnd("/api/user/me").then((res) => res.json());
+        return fetchAuthnd("https://api.timeterm.nl/user/me").then((res) => res.json());
       },
       initPatch(original: UserResponse): UserPatch {
         return { id: original.id, name: original.name };

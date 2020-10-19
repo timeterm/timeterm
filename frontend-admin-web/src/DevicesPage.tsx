@@ -8,7 +8,7 @@ import Cookies from "universal-cookie";
 import { queryCache } from "./App";
 
 const removeDevice = (devices: Device[]) =>
-  fetchAuthnd(`/api/device`, {
+  fetchAuthnd(`https://api.timeterm.nl/device`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
@@ -20,7 +20,7 @@ const removeDevice = (devices: Device[]) =>
   });
 
 const restartDevices = (devices: Device[]) =>
-  fetchAuthnd(`/api/device/restart`, {
+  fetchAuthnd(`https://api.timeterm.nl/device/restart`, {
     method: "POST",
     headers: {
       Accept: "application/json",

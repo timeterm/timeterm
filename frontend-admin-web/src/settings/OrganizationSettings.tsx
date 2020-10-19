@@ -1,6 +1,6 @@
 import { Typography } from "@rmwc/typography";
 import { TextField } from "@rmwc/textfield";
-import React, { forwardRef, MutableRefObject, Ref } from "react";
+import React, { forwardRef } from "react";
 import { fetchAuthnd } from "../DevicesPage";
 import { Savable } from "../SettingsPage";
 import useSetting, { SettingPageProps } from "./useSetting";
@@ -16,7 +16,7 @@ interface OrganizationResponse {
 }
 
 const updateOrganization = (patch: OrganizationPatch) =>
-  fetchAuthnd(`/api/organization/${patch.id}`, {
+  fetchAuthnd(`https://api.timeterm.nl/organization/${patch.id}`, {
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -39,11 +39,11 @@ const OrganizationSettings = forwardRef<Savable, OrganizationSettingProps>(
         return original.name !== patch.name;
       },
       fetch(): Promise<OrganizationResponse> {
-        return fetchAuthnd("/api/user/me")
+        return fetchAuthnd("https://api.timeterm.nl/user/me")
           .then((res) => res.json())
           .then((user) =>
             fetchAuthnd(
-              `/api/organization/${user.organizationId}`
+              `https://api.timeterm.nl/organization/${user.organizationId}`
             ).then((res) => res.json())
           );
       },

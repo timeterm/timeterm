@@ -8,7 +8,7 @@ import { fetchAuthnd } from "./DevicesPage";
 import StudentsTable, { Student } from "./StudentsTable";
 
 const removeStudent = (students: Student[]) =>
-  fetchAuthnd(`/api/student`, {
+  fetchAuthnd(`https://api.timeterm.nl/student`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
