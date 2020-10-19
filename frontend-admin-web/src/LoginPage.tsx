@@ -70,7 +70,7 @@ const LoginPage: React.FC = (props) => {
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
               onClick={() => {
-                window.location.href = `http://api.timeterm.nl/oidc/login/microsoft?redirectTo=${encodeURIComponent(
+                window.location.href = `https://api.timeterm.nl/oidc/login/microsoft?redirectTo=${encodeURIComponent(
                   window.location.href + "login/done"
                 )}`;
               }}
