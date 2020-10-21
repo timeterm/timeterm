@@ -1,0 +1,6 @@
+/build-*
+/downloads
+/sstate-cache
+/.repo/*
+!/.repo/manifest.xml
+
