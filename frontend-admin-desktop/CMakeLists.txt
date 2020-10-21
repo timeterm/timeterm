@@ -24,7 +24,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Core QuickControls2 Quick LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Core QuickControls2 Quick LinguistTools Bluetooth REQUIRED)
 
 set(TS_FILES frontend-admin-desktop_nl_NL.ts)
 set(SOURCE_FILES main.cpp qml.qrc)
@@ -44,6 +44,6 @@ endif()
 target_compile_definitions(frontend-admin-desktop
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(frontend-admin-desktop
-  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2)
+  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 Qt5::Bluetooth)
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})

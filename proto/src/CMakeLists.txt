@@ -6,16 +6,22 @@ set(CMAKE_CXX_STANDARD 11)
 
 cmake_policy(SET CMP0071 NEW)
 
-if (NOT MSVC)
+if(NOT MSVC)
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else ()
+else()
     add_definitions(-D_WIN32_WINNT=0x600)
-endif ()
+endif()
 
 set(Protobuf_DEBUG ON)
-set(Protobuf_USE_STATIC_LIBS ON)
-find_package(protobuf CONFIG REQUIRED)
-message(STATUS "Using protobuf ${protobuf_VERSION}")
+if(DEFINED VCPKG_TARGET_TRIPLET)
+	message(STATUS "timeterm/proto: Vcpkg detected, using static libprotobuf")
+	set(Protobuf_USE_STATIC_LIBS ON)
+	find_package(protobuf CONFIG REQUIRED)
+else()
+	find_package(Protobuf REQUIRED)
+endif()
+
+message(STATUS "timeterm/proto: using libprotobuf + protoc ${protobuf_VERSION}")
 
 if(MSVC AND protobuf_MSVC_STATIC_RUNTIME)
 	foreach(flag_var

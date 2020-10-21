@@ -1,0 +1,36 @@
+This README file contains information on the contents of the meta-timeterm layer.
+
+Please see the corresponding sections below for details.
+
+Dependencies
+============
+
+  . meta-qt5
+  . meta-boot2qt
+  . meta-poky
+
+Patches
+=======
+
+Please submit any patches against the meat-timeterm layer as a merge request on the GitLab repository
+at https://gitlab.com/timeterm/timeterm.
+
+Maintainer: Rutger Broekhoff <rutger@viasalix.nl>
+
+Table of Contents
+=================
+
+  I. Adding the meta-timeterm layer to your build
+ II. Misc
+
+
+I. Adding the meta-timeterm layer to your build
+=================================================
+
+Run 'bitbake-layers add-layer meta-timeterm'
+
+II. Misc
+========
+
+Currently only works on Raspberry Pi 4
+
