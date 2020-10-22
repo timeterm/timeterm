@@ -21,5 +21,5 @@ template<typename F>
 auto after(F f, const std::function<void()> &cleanup) -> decltype(f())
 {
     auto _ = onScopeExit(cleanup);
-    f();
+    return f();
 }
