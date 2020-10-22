@@ -3,6 +3,7 @@
 #include "spi.h"
 #include <cstdint>
 #include <cstdio>
+#include <gpiod.hpp>
 #include <string>
 
 namespace Mfrc522
@@ -779,6 +780,10 @@ private:
 
     /// The SPI device, used for communicating with the MFRC522.
     Spi::Device m_spiDev;
+
+    std::string m_gpioConsumer;
+    gpiod::chip m_gpioChip;
+    gpiod::line m_rstLine;
 };
 
 }// namespace Mfrc522

@@ -1,11 +1,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <mfrc522/gpio.h>
 #include <mfrc522/mfrc522.h>
 #include <string>
 
-#define RSTPIN 25
+#define LIBGPIOD_RSTPIN_LINE 25
+#define LIBGPIOD_CHIP "gpiochip0"
+#define LIBGPIOD_CONSUMER "timeterm-mfrc522"
 #define LOW 0
 #define HIGH 1
 
@@ -13,10 +14,16 @@ namespace Mfrc522
 {
 
 Device::Device(std::initializer_list<Spi::DeviceOpenOption> spiOptions)
-    : m_spiDev(spiOptions)
+    : m_spiDev(spiOptions),
+      m_gpioConsumer(LIBGPIOD_CONSUMER),
+      m_gpioChip(LIBGPIOD_CHIP),
+      m_rstLine(m_gpioChip.get_line(LIBGPIOD_RSTPIN_LINE))
 {
-    Gpio::exportPin(RSTPIN, Gpio::PinDirection::Out);
-    Gpio::writePin(RSTPIN, LOW);
+    m_rstLine.request({
+        m_gpioConsumer,
+        gpiod::line_request::DIRECTION_OUTPUT,
+        0,
+    });
 }
 
 //-----------------------------------------------------------------------------------
@@ -126,11 +133,11 @@ uint8_t Device::pcdCalculateCrc(uint8_t *data, uint8_t length, uint8_t *result) 
 
 void Device::pcdInit() const
 {
-    if (Gpio::readPin(RSTPIN) == LOW) {
+    if (m_rstLine.get_value() == LOW) {
         // The MFRC522 chip is in power down mode.
 
         // Exit power down mode. This triggers a hard reset.
-        Gpio::writePin(RSTPIN, HIGH);
+        m_rstLine.set_value(HIGH);
 
         // Section 8.8.2 in the datasheet says the oscillator start-up time is the start
         // up time of the crystal + 37,74�s. Let us be generous: 50ms.

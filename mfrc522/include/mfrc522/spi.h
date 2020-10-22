@@ -4,6 +4,7 @@
 #include <functional>
 #include <linux/spi/spidev.h>
 #include <string>
+#include <stdexcept>
 
 //! The Mfrc522 namespace.
 namespace Mfrc522
