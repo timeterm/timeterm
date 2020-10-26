@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
@@ -15,7 +16,7 @@ public:
 
     explicit ConnManIpv4Config(QObject *parent = nullptr);
 
-    [[nodiscard]] virtual QString toString() const = 0;
+    [[nodiscard]] virtual QString toConnManString() const = 0;
 
     static ConnManIpv4Config *read(const QJsonObject &cfg);
 };
@@ -27,7 +28,7 @@ class ConnManIpv4ConfigOff: public ConnManIpv4Config
 public:
     explicit ConnManIpv4ConfigOff(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 };
 
 class ConnManIpv4ConfigDhcp: public ConnManIpv4Config
@@ -37,7 +38,7 @@ class ConnManIpv4ConfigDhcp: public ConnManIpv4Config
 public:
     explicit ConnManIpv4ConfigDhcp(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 };
 
 class ConnManIpv4ConfigCustom: public ConnManIpv4Config
@@ -50,7 +51,7 @@ class ConnManIpv4ConfigCustom: public ConnManIpv4Config
 public:
     explicit ConnManIpv4ConfigCustom(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 
     static ConnManIpv4ConfigCustom *read(const QJsonObject &settings);
 
@@ -83,7 +84,7 @@ public:
 
     explicit ConnManIpv6Config(QObject *parent = nullptr);
 
-    [[nodiscard]] virtual QString toString() const = 0;
+    [[nodiscard]] virtual QString toConnManString() const = 0;
 
     static ConnManIpv6Config *read(const QJsonObject &cfg);
 };
@@ -95,7 +96,7 @@ class ConnManIpv6ConfigOff: public ConnManIpv6Config
 public:
     explicit ConnManIpv6ConfigOff(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 };
 
 class ConnManIpv6ConfigAuto: public ConnManIpv6Config
@@ -105,7 +106,7 @@ class ConnManIpv6ConfigAuto: public ConnManIpv6Config
 public:
     explicit ConnManIpv6ConfigAuto(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 };
 
 class ConnManIpv6ConfigCustom: public ConnManIpv6Config
@@ -118,7 +119,7 @@ class ConnManIpv6ConfigCustom: public ConnManIpv6Config
 public:
     explicit ConnManIpv6ConfigCustom(QObject *parent = nullptr);
 
-    [[nodiscard]] QString toString() const override;
+    [[nodiscard]] QString toConnManString() const override;
 
     static ConnManIpv6ConfigCustom *read(const QJsonObject &settings);
 
@@ -144,6 +145,7 @@ private:
 class ConnManServiceConfig: public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName NOTIFY serviceNameChanged)
     Q_PROPERTY(ServiceType type READ type WRITE setType NOTIFY typeChanged)
     Q_PROPERTY(ConnManIpv4Config *ipv4Config READ ipv4Config WRITE setIpv4Config NOTIFY ipv4ConfigChanged)
     Q_PROPERTY(ConnManIpv6Config *ipv6Config READ ipv6Config WRITE setIpv6Config NOTIFY ipv6ConfigChanged)
@@ -152,7 +154,7 @@ class ConnManServiceConfig: public QObject
     Q_PROPERTY(QString deviceName READ deviceName WRITE setDeviceName NOTIFY deviceNameChanged)
     Q_PROPERTY(QStringList nameservers READ nameservers WRITE setNameservers NOTIFY nameserversChanged)
     Q_PROPERTY(QStringList searchDomains READ searchDomains WRITE setSearchDomains NOTIFY searchDomainsChanged)
-    Q_PROPERTY(QStringList timeServers READ timeServers WRITE setTimeServers NOTIFY timeServersChanged)
+    Q_PROPERTY(QStringList timeservers READ timeservers WRITE setTimeservers NOTIFY timeserversChanged)
     Q_PROPERTY(QString domain READ domain WRITE setDomain NOTIFY domainChanged)
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     Q_PROPERTY(QString ssid READ ssid WRITE setSsid NOTIFY ssidChanged)
@@ -170,7 +172,7 @@ class ConnManServiceConfig: public QObject
     Q_PROPERTY(QString anonymousIdentity READ anonymousIdentity WRITE setAnonymousIdentity NOTIFY anonymousIdentityChanged)
     Q_PROPERTY(QString subjectMatch READ subjectMatch WRITE setSubjectMatch NOTIFY subjectMatchChanged)
     Q_PROPERTY(QString altSubjectMatch READ altSubjectMatch WRITE setAltSubjectMatch NOTIFY altSubjectMatchChanged)
-    Q_PROPERTY(QString domainSubjectMatch READ domainSubjectMatch WRITE setDomainSubjectMatch NOTIFY domainSubjectMatchChanged)
+    Q_PROPERTY(QString domainSuffixMatch READ domainSuffixMatch WRITE setDomainSuffixMatch NOTIFY domainSuffixMatchChanged)
     Q_PROPERTY(QString domainMatch READ domainMatch WRITE setDomainMatch NOTIFY domainMatchChanged)
     Q_PROPERTY(bool isPhase2EapBased READ isPhase2EapBased WRITE setIsPhase2EapBased NOTIFY isPhase2EapBasedChanged)
 
@@ -245,6 +247,8 @@ public:
 
     explicit ConnManServiceConfig(QObject *parent = nullptr);
 
+    void setServiceName(const QString &serviceName);
+    [[nodiscard]] QString serviceName() const;
     void setType(ServiceType type);
     [[nodiscard]] ServiceType type() const;
     void setIpv4Config(ConnManIpv4Config *config);
@@ -261,8 +265,8 @@ public:
     [[nodiscard]] QStringList nameservers() const;
     void setSearchDomains(const QStringList &searchDomains);
     [[nodiscard]] QStringList searchDomains() const;
-    void setTimeServers(const QStringList &timeServers);
-    [[nodiscard]] QStringList timeServers() const;
+    void setTimeservers(const QStringList &timeservers);
+    [[nodiscard]] QStringList timeservers() const;
     void setDomain(const QString &domain);
     [[nodiscard]] QString domain() const;
 
@@ -299,8 +303,8 @@ public:
     [[nodiscard]] QString subjectMatch() const;
     void setAltSubjectMatch(const QString &altSubjectMatch);
     [[nodiscard]] QString altSubjectMatch() const;
-    void setDomainSubjectMatch(const QString &domainSubjectMatch);
-    [[nodiscard]] QString domainSubjectMatch() const;
+    void setDomainSuffixMatch(const QString &domainSuffixMatch);
+    [[nodiscard]] QString domainSuffixMatch() const;
     void setDomainMatch(const QString &domainMatch);
     [[nodiscard]] QString domainMatch() const;
     void setPhase2Type(Phase2Type phase2Type);
@@ -313,6 +317,8 @@ public:
     };
 
     void read(QJsonObject &obj, ReadError *error = nullptr);
+    void saveCerts(QFile::FileError *error = nullptr);
+    void writeConnManConf(QTextStream &strm);
 
     static ServiceType readServiceType(const QString &t);
     static Ipv6Privacy readIpv6Privacy(const QString &p);
@@ -323,7 +329,15 @@ public:
     static PrivateKeyPassphraseType readPrivateKeyPassphraseType(const QString &t);
     static Phase2Type readPhase2Type(const QString &t);
 
+    static QString serviceTypeToConnManString(ServiceType t);
+    static QString ipv6PrivacyToConnManString(Ipv6Privacy p);
+    static QString securityToConnManString(Security s);
+    static QString eapTypeToConnManString(EapType t);
+    static QString privateKeyPassphraseTypeToConnManString(PrivateKeyPassphraseType t);
+    static QString phase2TypeToConnManString(Phase2Type t);
+
 signals:
+    void serviceNameChanged();
     void typeChanged();
     void ipv4ConfigChanged();
     void ipv6ConfigChanged();
@@ -332,7 +346,7 @@ signals:
     void deviceNameChanged();
     void nameserversChanged();
     void searchDomainsChanged();
-    void timeServersChanged();
+    void timeserversChanged();
     void domainChanged();
 
     void nameChanged();
@@ -352,12 +366,16 @@ signals:
     void anonymousIdentityChanged();
     void subjectMatchChanged();
     void altSubjectMatchChanged();
-    void domainSubjectMatchChanged();
+    void domainSuffixMatchChanged();
     void domainMatchChanged();
     void phase2TypeChanged();
     void isPhase2EapBasedChanged();
 
 private:
+    /// Mandatory. Interpolated in the [service_*] config section name.
+    /// Named 'timeterm' by default.
+    QString m_serviceName = "timeterm";
+
     /// Mandatory. Other types than Ethernet or Wifi are not supported.
     ServiceType m_type = ServiceTypeUndefined;
     /// IPv4 settings for the service. If set to off, IPv4 won't be used.
@@ -382,7 +400,7 @@ private:
     /// Comma separated list of DNS search domains.
     QStringList m_searchDomains;
     /// Comma separated list of timeservers.
-    QStringList m_timeServers;
+    QStringList m_timeservers;
     /// Domain name to be used.
     QString m_domain;
 
@@ -430,7 +448,7 @@ private:
     QString m_altSubjectMatch;
     /// Constraint for server domain name.
     /// If set, this FQDN is used as a suffix match requirement for the authentication server certificate for EAP.
-    QString m_domainSubjectMatch;
+    QString m_domainSuffixMatch;
     /// This FQDN is used as a full match requirement for the authentication server certificate for EAP.
     QString m_domainMatch;
     /// Inner authentication type with for eap = Tls or eap = Ttls.

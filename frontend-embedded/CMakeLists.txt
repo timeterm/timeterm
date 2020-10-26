@@ -57,12 +57,12 @@ target_include_directories(frontend-embedded
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nats/src src/cpp)
 
 # Make sure we only compile with the MFRC522 module if we're on the Raspberry Pi.
-if(RASPBERRYPI)
+if(TIMETERMOS)
     add_subdirectory(../mfrc522 ${CMAKE_BINARY_DIR}/mfrc522)
 
-    target_compile_definitions(frontend-embedded PRIVATE RASPBERRYPI)
+    target_compile_definitions(frontend-embedded PRIVATE TIMETERMOS)
     target_link_libraries(frontend-embedded PRIVATE mfrc522)
-endif(RASPBERRYPI)
+endif(TIMETERMOS)
 
 # Required for nats.c
 if(WIN32)

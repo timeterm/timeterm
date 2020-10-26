@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QThread>
 
-#ifdef RASPBERRYPI
+#ifdef TIMETERMOS
 #include "mfrc522cardreader.h"
 #endif
 
@@ -18,8 +18,8 @@ class CardReaderController: public QObject
 public:
     static CardReader *defaultCardReader(QObject *parent = nullptr)
     {
-#ifdef RASPBERRYPI
-        qDebug() << "Running on Raspberry Pi, using Mfrc522CardReader";
+#ifdef TIMETERMOS
+        qDebug() << "Running on Timeterm OS, using Mfrc522CardReader";
         return new Mfrc522CardReader(parent);
 #else
         qDebug() << "Not running on a supported embedded device, using FakeCardReader";

@@ -1,4 +1,4 @@
-#ifdef RASPBERRYPI
+#ifdef TIMETERMOS
 
 #include "mfrc522cardreader.h"
 
@@ -50,4 +50,4 @@ void Mfrc522CardReader::shutDown()
     m_shutDown = true;
 }
 
-#endif // RASPBERRYPI
+#endif // TIMETERMOS

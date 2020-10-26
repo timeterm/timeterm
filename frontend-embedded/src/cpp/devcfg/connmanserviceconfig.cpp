@@ -27,7 +27,7 @@ ConnManIpv4ConfigOff::ConnManIpv4ConfigOff(QObject *parent)
     : ConnManIpv4Config(parent)
 {}
 
-QString ConnManIpv4ConfigOff::toString() const
+QString ConnManIpv4ConfigOff::toConnManString() const
 {
     return QStringLiteral("off");
 }
@@ -36,7 +36,7 @@ ConnManIpv4ConfigDhcp::ConnManIpv4ConfigDhcp(QObject *parent)
     : ConnManIpv4Config(parent)
 {}
 
-QString ConnManIpv4ConfigDhcp::toString() const
+QString ConnManIpv4ConfigDhcp::toConnManString() const
 {
     return QStringLiteral("dhcp");
 }
@@ -59,7 +59,7 @@ ConnManIpv4ConfigCustom *ConnManIpv4ConfigCustom::read(const QJsonObject &settin
     return config;
 }
 
-QString ConnManIpv4ConfigCustom::toString() const
+QString ConnManIpv4ConfigCustom::toConnManString() const
 {
     return QStringLiteral("%1/%2/%3").arg(m_network, m_netmask, m_gateway);
 }
@@ -130,7 +130,7 @@ ConnManIpv6ConfigOff::ConnManIpv6ConfigOff(QObject *parent)
     : ConnManIpv6Config(parent)
 {}
 
-QString ConnManIpv6ConfigOff::toString() const
+QString ConnManIpv6ConfigOff::toConnManString() const
 {
     return QStringLiteral("off");
 }
@@ -139,7 +139,7 @@ ConnManIpv6ConfigAuto::ConnManIpv6ConfigAuto(QObject *parent)
     : ConnManIpv6Config(parent)
 {}
 
-QString ConnManIpv6ConfigAuto::toString() const
+QString ConnManIpv6ConfigAuto::toConnManString() const
 {
     return QStringLiteral("auto");
 }
@@ -148,7 +148,7 @@ ConnManIpv6ConfigCustom::ConnManIpv6ConfigCustom(QObject *parent)
     : ConnManIpv6Config(parent)
 {}
 
-QString ConnManIpv6ConfigCustom::toString() const
+QString ConnManIpv6ConfigCustom::toConnManString() const
 {
     return QStringLiteral("%1/%2/%3").arg(m_network).arg(m_prefixLength).arg(m_gateway);
 }
@@ -225,6 +225,8 @@ QStringList jsonArrayToQStringList(const QJsonArray &a)
 
 void ConnManServiceConfig::read(QJsonObject &obj, ConnManServiceConfig::ReadError *error)
 {
+    if (obj.contains("serviceName") && obj["serviceName"].isString())
+        setServiceName(obj["serviceName"].toString());
     if (obj.contains("type") && obj["type"].isString())
         setType(readServiceType(obj["type"].toString()));
     if (obj.contains("ipv4Config") && obj["ipv4Config"].isObject())
@@ -239,8 +241,8 @@ void ConnManServiceConfig::read(QJsonObject &obj, ConnManServiceConfig::ReadErro
         setDeviceName(obj["deviceName"].toString());
     if (obj.contains("searchDomains") && obj["searchDomains"].isArray())
         setSearchDomains(jsonArrayToQStringList(obj["searchDomains"].toArray()));
-    if (obj.contains("timeServers") && obj["timeServers"].isArray())
-        setTimeServers(jsonArrayToQStringList(obj["timeServers"].toArray()));
+    if (obj.contains("timeservers") && obj["timeservers"].isArray())
+        setTimeservers(jsonArrayToQStringList(obj["timeservers"].toArray()));
     if (obj.contains("domain") && obj["domain"].isString())
         setDomain(obj["domain"].toString());
 
@@ -267,6 +269,8 @@ void ConnManServiceConfig::read(QJsonObject &obj, ConnManServiceConfig::ReadErro
         setPrivateKeyType(readPrivateKeyType(obj["privateKeyType"].toString()));
     if (obj.contains("privateKeyPassphrase") && obj["privateKeyPassphrase"].isString())
         setPrivateKeyPassphrase(obj["privateKeyPassphrase"].toString());
+    if (obj.contains("privateKeyPassphraseType") && obj["privateKeyPassphraseType"].isString())
+        setPrivateKeyPassphraseType(readPrivateKeyPassphraseType(obj["privateKeyPassphraseType"].toString()));
     if (obj.contains("identity") && obj["identity"].isString())
         setIdentity(obj["identity"].toString());
     if (obj.contains("anonymousIdentity") && obj["anonymousIdentity"].isString())
@@ -275,8 +279,8 @@ void ConnManServiceConfig::read(QJsonObject &obj, ConnManServiceConfig::ReadErro
         setSubjectMatch(obj["subjectMatch"].toString());
     if (obj.contains("altSubjectMatch") && obj["altSubjectMatch"].isString())
         setAltSubjectMatch(obj["altSubjectMatch"].toString());
-    if (obj.contains("domainSubjectMatch") && obj["domainSubjectMatch"].isString())
-        setDomainSubjectMatch(obj["domainSubjectMatch"].toString());
+    if (obj.contains("domainSuffixMatch") && obj["domainSuffixMatch"].isString())
+        setDomainSuffixMatch(obj["domainSuffixMatch"].toString());
     if (obj.contains("domainMatch") && obj["domainMatch"].isString())
         setDomainMatch(obj["domainMatch"].toString());
     if (obj.contains("phase2Type") && obj["phase2Type"].isString())
@@ -363,6 +367,19 @@ ConnManServiceConfig::Phase2Type ConnManServiceConfig::readPhase2Type(const QStr
     if (t == "Gtc")
         return Phase2TypeGtc;
     return Phase2TypeUndefined;
+}
+
+void ConnManServiceConfig::setServiceName(const QString &serviceName)
+{
+    if (serviceName != m_serviceName) {
+        m_serviceName = serviceName;
+        emit serviceNameChanged();
+    }
+}
+
+QString ConnManServiceConfig::serviceName() const
+{
+    return m_serviceName;
 }
 
 void ConnManServiceConfig::setType(ConnManServiceConfig::ServiceType type)
@@ -473,17 +490,17 @@ QStringList ConnManServiceConfig::searchDomains() const
     return m_searchDomains;
 }
 
-void ConnManServiceConfig::setTimeServers(const QStringList &timeServers)
+void ConnManServiceConfig::setTimeservers(const QStringList &timeServers)
 {
-    if (timeServers != m_timeServers) {
-        m_timeServers = timeServers;
-        emit timeServersChanged();
+    if (timeServers != m_timeservers) {
+        m_timeservers = timeServers;
+        emit timeserversChanged();
     }
 }
 
-QStringList ConnManServiceConfig::timeServers() const
+QStringList ConnManServiceConfig::timeservers() const
 {
-    return m_timeServers;
+    return m_timeservers;
 }
 
 void ConnManServiceConfig::setDomain(const QString &domain)
@@ -707,17 +724,17 @@ QString ConnManServiceConfig::altSubjectMatch() const
     return m_altSubjectMatch;
 }
 
-void ConnManServiceConfig::setDomainSubjectMatch(const QString &domainSubjectMatch)
+void ConnManServiceConfig::setDomainSuffixMatch(const QString &domainSuffixMatch)
 {
-    if (domainSubjectMatch != m_domainSubjectMatch) {
-        m_domainSubjectMatch = domainSubjectMatch;
-        emit domainSubjectMatchChanged();
+    if (domainSuffixMatch != m_domainSuffixMatch) {
+        m_domainSuffixMatch = domainSuffixMatch;
+        emit domainSuffixMatchChanged();
     }
 }
 
-QString ConnManServiceConfig::domainSubjectMatch() const
+QString ConnManServiceConfig::domainSuffixMatch() const
 {
-    return m_domainSubjectMatch;
+    return m_domainSuffixMatch;
 }
 
 void ConnManServiceConfig::setDomainMatch(const QString &domainMatch)
@@ -757,4 +774,222 @@ void ConnManServiceConfig::setIsPhase2EapBased(bool isPhase2EapBased)
 bool ConnManServiceConfig::isPhase2EapBased() const
 {
     return m_isPhase2EapBased;
+}
+
+void writeKv(QTextStream &strm, const QString &k, const QString &v)
+{
+    strm << k << '=' << v << '\n';
+}
+
+QString privateKeyTypeExtension(ConnManServiceConfig::PrivateKeyType t)
+{
+    switch (t) {
+    case ConnManServiceConfig::PrivateKeyTypePem:
+        return "pem";
+    case ConnManServiceConfig::PrivateKeyTypeDer:
+        return "der";
+    case ConnManServiceConfig::PrivateKeyTypePfx:
+        return "pfx";
+    default:
+        return "";
+    }
+}
+
+QString caCertTypeExtension(ConnManServiceConfig::CaCertType t)
+{
+    switch (t) {
+    case ConnManServiceConfig::CaCertTypePem:
+        return "pem";
+    case ConnManServiceConfig::CaCertTypeDer:
+        return "der";
+    default:
+        return "";
+    }
+}
+
+QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::PrivateKeyType type)
+{
+    auto suffix = "pkey." + privateKeyTypeExtension(type);
+    auto relative = QStringLiteral("keys/%1/%2").arg(serviceName, suffix);
+
+#if TIMETERMOS
+    return "/opt/frontend-embedded/keys/" + relative;
+#endif
+    return relative;
+}
+
+QString createCaCertPath(const QString &serviceName, ConnManServiceConfig::CaCertType type)
+{
+    auto suffix = "cacert." + caCertTypeExtension(type);
+    auto relative = QStringLiteral("keys/%1/%2").arg(serviceName, suffix);
+
+#if TIMETERMOS
+    return "/opt/frontend-embedded/" + relative;
+#endif
+    return relative;
+}
+
+void writeFileBytes(const QString &path, const QByteArray &arr, QFile::FileError *error = nullptr)
+{
+    auto f = QFile(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (error != nullptr)
+            *error = f.error();
+        return;
+    }
+
+    f.write(arr);
+}
+
+void ConnManServiceConfig::saveCerts(QFile::FileError *error)
+{
+    if (!m_privateKey.isEmpty()) {
+        auto path = createPrivateKeyPath(m_serviceName, m_privateKeyType);
+        writeFileBytes(path, m_privateKey, error);
+        if (error != nullptr && *error != QFile::NoError)
+            return;
+    }
+
+    if (!m_caCert.isEmpty()) {
+        auto path = createCaCertPath(m_serviceName, m_caCertType);
+        writeFileBytes(path, m_caCert, error);
+    }
+}
+
+void ConnManServiceConfig::writeConnManConf(QTextStream &strm)
+{
+    if (m_serviceName.isEmpty())
+        return; // TODO: set error
+
+    strm << "[service_" << m_serviceName << "]\n";
+    if (m_type != ServiceTypeUndefined)
+        writeKv(strm, "Type", serviceTypeToConnManString(m_type));
+    if (m_ipv4Config != nullptr)
+        writeKv(strm, "Ipv4", m_ipv4Config->toConnManString());
+    if (m_ipv6Config != nullptr)
+        writeKv(strm, "Ipv6", m_ipv6Config->toConnManString());
+    if (m_ipv6Privacy != Ipv6PrivacyUndefined)
+        writeKv(strm, "Ipv6.Privacy", ipv6PrivacyToConnManString(m_ipv6Privacy));
+    if (!m_mac.isEmpty())
+        writeKv(strm, "MAC", m_mac);
+    if (!m_deviceName.isEmpty())
+        writeKv(strm, "DeviceName", m_deviceName);
+    if (!m_nameservers.isEmpty())
+        writeKv(strm, "Nameservers", m_nameservers.join(','));
+    if (!m_searchDomains.isEmpty())
+        writeKv(strm, "SearchDomains", m_searchDomains.join(','));
+    if (!m_timeservers.isEmpty())
+        writeKv(strm, "Timeservers", m_timeservers.join(','));
+    if (!m_domain.isEmpty())
+        writeKv(strm, "Domain", m_domain);
+
+    if (!m_name.isEmpty())
+        writeKv(strm, "Name", m_name);
+    if (!m_ssid.isEmpty())
+        writeKv(strm, "SSID", m_ssid);
+    if (!m_passphrase.isEmpty())
+        writeKv(strm, "Passphrase", m_passphrase);
+    if (m_security != SecurityUndefined)
+        writeKv(strm, "Security", securityToConnManString(m_security));
+    writeKv(strm, "Hidden", m_isHidden ? "true" : "false");
+
+    if (m_eap != EapTypeUndefined)
+        writeKv(strm, "EAP", eapTypeToConnManString(m_eap));
+    if (!m_caCert.isEmpty() && m_caCertType != CaCertTypeUndefined)
+        writeKv(strm, "CaCertFile", createCaCertPath(m_serviceName, m_caCertType));
+    if (!m_privateKey.isEmpty() && m_privateKeyType != PrivateKeyTypeUndefined)
+        writeKv(strm, "PrivateKeyFile", createPrivateKeyPath(m_serviceName, m_privateKeyType));
+    if (!m_privateKeyPassphrase.isEmpty())
+        writeKv(strm, "PrivateKeyPassphrase", m_privateKeyPassphrase);
+    if (m_privateKeyPassphraseType == PrivateKeyPassphraseTypeUndefined)
+        writeKv(strm, "PrivateKeyPassphraseType", privateKeyPassphraseTypeToConnManString(m_privateKeyPassphraseType));
+    if (!m_identity.isEmpty())
+        writeKv(strm, "Identity", m_identity);
+    if (!m_anonymousIdentity.isEmpty())
+        writeKv(strm, "AnonymousIdentity", m_anonymousIdentity);
+    if (!m_subjectMatch.isEmpty())
+        writeKv(strm, "SubjectMatch", m_subjectMatch);
+    if (!m_altSubjectMatch.isEmpty())
+        writeKv(strm, "AltSubjectMatch", m_altSubjectMatch);
+    if (!m_domainSuffixMatch.isEmpty())
+        writeKv(strm, "DomainSuffixMatch", m_domainSuffixMatch);
+    if (!m_domainMatch.isEmpty())
+        writeKv(strm, "DomainMatch", m_domainMatch);
+    if (m_phase2Type != Phase2TypeUndefined)
+        writeKv(strm, "Phase2Type", phase2TypeToConnManString(m_phase2Type));
+}
+
+QString ConnManServiceConfig::serviceTypeToConnManString(ConnManServiceConfig::ServiceType t)
+{
+    switch (t) {
+    case ServiceTypeWifi:
+        return "wifi";
+    case ServiceTypeEthernet:
+        return "ethernet";
+    default:
+        return "";
+    }
+}
+
+QString ConnManServiceConfig::ipv6PrivacyToConnManString(ConnManServiceConfig::Ipv6Privacy p)
+{
+    switch (p) {
+    case Ipv6PrivacyPreferred:
+        return "preferred";
+    case Ipv6PrivacyEnabled:
+        return "enabled";
+    case Ipv6PrivacyDisabled:
+        return "disabled";
+    default:
+        return "";
+    }
+}
+
+QString ConnManServiceConfig::securityToConnManString(ConnManServiceConfig::Security s)
+{
+    switch (s) {
+    case SecurityIeee8021x:
+        return "ieee8021x";
+    case SecurityPsk:
+        return "psk";
+    case SecurityWep:
+        return "wep";
+    case SecurityNone:
+        return "none";
+    default:
+        return "";
+    }
+}
+
+QString ConnManServiceConfig::eapTypeToConnManString(ConnManServiceConfig::EapType t)
+{
+    switch (t) {
+    case EapTypePeap:
+        return "peap";
+    case EapTypeTtls:
+        return "ttls";
+    case EapTypeTls:
+        return "tls";
+    default:
+        return "";
+    }
+}
+
+QString ConnManServiceConfig::privateKeyPassphraseTypeToConnManString(ConnManServiceConfig::PrivateKeyPassphraseType t)
+{
+    if (t == PrivateKeyPassphraseTypeFsid)
+        return "fsid";
+    return "";
+}
+
+QString ConnManServiceConfig::phase2TypeToConnManString(ConnManServiceConfig::Phase2Type t)
+{
+    switch (t) {
+    case Phase2TypeMschapV2:
+        return "mschapv2";
+    case Phase2TypeGtc:
+        return "gtc";
+    default:
+        return "";
+    }
 }

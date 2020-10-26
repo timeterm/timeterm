@@ -8,6 +8,6 @@ Embedded frontend for Timeterm.
 
 ```
 frontend-embedded $ mkdir build && cd build
-build $ cmake .. -G Ninja -DRASPBERRYPI:BOOL=TRUE
+build $ cmake .. -G Ninja -DTIMETERMOS:BOOL=TRUE
 build $ ninja
 ```

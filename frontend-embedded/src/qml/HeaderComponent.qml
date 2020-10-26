@@ -10,20 +10,29 @@ Item {
 
     property int textSize: height * 0.5
     property var textColor: "#e5e5e5"
+    property var title: "asdf"
+
+    Connections {
+        target: header
+
+        function onTitleChanged() {
+            titleLabel.text = "Timeterm-" + title
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
         color: "#242424"
 
         Label {
-            id: title
+            id: titleLabel
             anchors.left: parent.left
             anchors.leftMargin: parent.height * 0.5
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             verticalAlignment: "AlignVCenter"
             color: textColor
-            text: "Timeterm"
+            text: "Timeterm-" + title
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
         }

@@ -15,6 +15,7 @@ ApplicationWindow {
     title: qsTr("Timeterm")
 
     header: HeaderComponent {
+        id: header
         z: 2
     }
 
@@ -210,7 +211,7 @@ ApplicationWindow {
         id: internals
 
         onCardRead: function (uid) {
-            mainWindow.title = uid
+            header.title = uid
         }
 
         onTimetableReceived: function (timetable) {

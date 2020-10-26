@@ -1,4 +1,4 @@
-#ifdef RASPBERRYPI
+#ifdef TIMETERMOS
 
 #pragma once
 
@@ -28,4 +28,4 @@ private:
     bool m_shutDown = false;
 };
 
-#endif // RASPBERRPI
+#endif // TIMETERMOS

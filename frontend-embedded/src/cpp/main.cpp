@@ -1,5 +1,6 @@
 #include "api/apiclient.h"
 #include "cardreader/cardreadercontroller.h"
+#include "devcfg/connmanserviceconfig.h"
 #include "messagequeue/enums.h"
 #include "messagequeue/jetstreamconsumer.h"
 #include "messagequeue/messages/disowntokenmessage.h"
