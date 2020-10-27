@@ -1,8 +1,10 @@
 # Qt build folders (also covers for build-frontend-embedded-devtools)
 build-frontend-*
 
-# IDE folders
+# IDE / text editor folders
 /.idea
+/.vscode
 
 # Any build folder
 build/
+
