@@ -312,13 +312,14 @@ public:
     void setIsPhase2EapBased(bool isPhase2EapBased);
     [[nodiscard]] bool isPhase2EapBased() const;
 
-    class ReadError
+    enum ReadError
     {
+        ReadErrorNoError,
     };
 
-    void read(QJsonObject &obj, ReadError *error = nullptr);
+    void read(const QJsonObject &obj, ReadError *error = nullptr);
     void saveCerts(QFile::FileError *error = nullptr);
-    void writeConnManConf(QTextStream &strm);
+    void saveConnManConf(QFile::FileError *error = nullptr);
 
     static ServiceType readServiceType(const QString &t);
     static Ipv6Privacy readIpv6Privacy(const QString &p);
@@ -456,3 +457,5 @@ private:
     Phase2Type m_phase2Type = Phase2TypeUndefined;
     bool m_isPhase2EapBased = false;
 };
+
+Q_DECLARE_METATYPE(ConnManServiceConfig *)

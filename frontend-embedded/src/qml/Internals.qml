@@ -1,8 +1,9 @@
 import QtQuick 2.14
 import QtQml 2.3
-import Timeterm.Rfid 1.0
 import Timeterm.Api 1.0
+import Timeterm.Config 1.0
 import Timeterm.MessageQueue 1.0
+import Timeterm.Rfid 1.0
 
 Item {
     id: internalsItem
@@ -39,6 +40,22 @@ Item {
         }
     }
 
+    ConfigLoader {
+        id: configLoader
+
+        Component.onCompleted: {
+            configLoader.loadConfig()
+        }
+    }
+
+    Connections {
+        target: configLoader
+
+        function onConfigLoaded() {
+            console.log("Configuration loaded")
+        }
+    }
+
     NatsConnection {
         id: natsConn
         options: NatsOptions {
@@ -60,10 +77,8 @@ Item {
             console.log(`Error occurred in NATS connection: ${msg}`)
             disownSub.stop()
 
-            if (code == NatsStatus.NoServer || code == NatsStatus.ConnectionClosed) {
-                // Try to reconnect
-                natsConnReconnectWait.restart()
-            }
+            // Try to reconnect
+            natsConnReconnectWait.restart()
         }
 
         onLastStatusChanged: {

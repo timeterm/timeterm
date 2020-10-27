@@ -14,6 +14,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include <devcfg/configloader.h>
 #include <timeterm_proto/messages.pb.h>
 
 void installDefaultFont()
@@ -54,6 +55,7 @@ int runApp(int argc, char *argv[])
     qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
+    qmlRegisterType<ConfigLoader>("Timeterm.Config", 1, 0, "ConfigLoader");
 
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/src/qml/main.qml");

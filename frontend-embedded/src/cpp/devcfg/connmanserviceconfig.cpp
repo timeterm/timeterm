@@ -223,7 +223,7 @@ QStringList jsonArrayToQStringList(const QJsonArray &a)
     return l;
 }
 
-void ConnManServiceConfig::read(QJsonObject &obj, ConnManServiceConfig::ReadError *error)
+void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::ReadError *error)
 {
     if (obj.contains("serviceName") && obj["serviceName"].isString())
         setServiceName(obj["serviceName"].toString());
@@ -856,10 +856,29 @@ void ConnManServiceConfig::saveCerts(QFile::FileError *error)
     }
 }
 
-void ConnManServiceConfig::writeConnManConf(QTextStream &strm)
+QString createConnManConfigPath(const QString &serviceName)
+{
+    auto relative = QStringLiteral("%1.config").arg(serviceName);
+
+#if TIMETERMOS
+    return "/var/lib/connman/" + relative;
+#endif
+    return relative;
+}
+
+void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
 {
     if (m_serviceName.isEmpty())
         return; // TODO: set error
+
+    auto path = createConnManConfigPath(m_serviceName);
+    auto f = QFile(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (error != nullptr)
+            *error = f.error();
+        return;
+    }
+    auto strm = QTextStream(&f);
 
     strm << "[service_" << m_serviceName << "]\n";
     if (m_type != ServiceTypeUndefined)

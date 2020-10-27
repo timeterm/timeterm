@@ -64,6 +64,7 @@ void NatsConnection::connect()
                 [](natsConnection **ppConn) {
                     if (ppConn != nullptr) {
                         if (*ppConn != nullptr) {
+                            natsConnection_Close(*ppConn);
                             natsConnection_Destroy(*ppConn);
                         }
                         delete ppConn;
