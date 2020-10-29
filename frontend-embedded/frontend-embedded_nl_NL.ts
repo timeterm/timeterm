@@ -10,14 +10,6 @@
     </message>
 </context>
 <context>
-    <name>DayView</name>
-    <message>
-        <location filename="src/qml/DayView.qml" line="12"/>
-        <source>Prachtige tekst hierzo</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>WeekView</name>
     <message>
         <location filename="src/qml/WeekView.qml" line="12"/>

@@ -24,6 +24,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        //width: 300
         leftPadding: width * 0.125
         width: parent.width * 0.15
         z: 1
@@ -35,6 +36,7 @@ ApplicationWindow {
         TabButton {
             id: dayViewButton
             width: menuBar.width * 0.75
+            //width: 150
             height: width
             anchors.left: parent.left
             anchors.top: parent.top
@@ -112,6 +114,7 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.top: dayViewButton.bottom
             anchors.topMargin: menuBar.width * 0.125
+            //width: 150
 
             background: Rectangle {
                 id: secondRect

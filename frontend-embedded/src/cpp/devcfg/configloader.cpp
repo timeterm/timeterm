@@ -1,7 +1,9 @@
 #include "configloader.h"
+#include "ttsystemd.h"
 #include "usbmount.h"
 
 #include <QJsonDocument>
+
 #include <util/scopeguard.h>
 
 Config::Config(QObject *parent)
@@ -28,7 +30,7 @@ void Config::read(const QJsonObject &obj)
             if (svcItem.isObject()) {
                 auto svc = new ConnManServiceConfig(this);
                 auto err = ConnManServiceConfig::ReadErrorNoError;
-                svc->read(obj, &err);
+                svc->read(svcItem.toObject(), &err);
                 if (err == ConnManServiceConfig::ReadErrorNoError) {
                     services.append(svc);
                 }
@@ -57,7 +59,8 @@ ConfigLoader::ConfigLoader(QObject *parent)
 {
 }
 
-QString configLocation() {
+QString configLocation()
+{
 #ifdef TIMETERMOS
     return "/mnt/config/timeterm-config.json";
 #else
@@ -65,36 +68,83 @@ QString configLocation() {
 #endif
 }
 
+void ConfigLoader::restartConnMan()
+{
+    auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus(), this);
+    auto reply = manager.RestartUnit("connman.service", "replace");
+    reply.waitForFinished();
+
+    if (reply.isError())
+        qCritical() << "Could not restarted ConnMan:" << reply.error().message();
+    else
+        qDebug() << "ConnMan restarted";
+
+    reply = manager.RestartUnit("wpa_supplicant.service", "replace");
+    reply.waitForFinished();
+
+    if (reply.isError())
+        qCritical() << "Could not restarted wpa_supplicant:" << reply.error().message();
+    else
+        qDebug() << "ConnMan reloaded";
+}
+
 void ConfigLoader::loadConfig()
 {
+    qDebug() << "Loading configuration";
     auto _loadedGuard = onScopeExit([this]() {
-      emit configLoaded();
+        emit configLoaded();
     });
 
+    qDebug() << "Trying to mount config volume...";
     if (tryMountConfig() == std::nullopt) {
+        qDebug() << "Config volume mounted";
         auto _unmountGuard = onScopeExit([]() {
-            tryUnmountConfig();
+            if (tryUnmountConfig() == std::nullopt) {
+                qDebug() << "Config volume unmounted";
+            } else {
+                qCritical() << "Unmounting config volume failed";
+            }
         });
 
+        qDebug() << "Trying to load config...";
         auto doc = QFile(configLocation());
-        if (!doc.exists())
+        if (!doc.exists()) {
+            qDebug() << "Config file not present";
             return;
+        }
+        qDebug() << "Config file present, opening...";
 
-        if (!doc.open(QIODevice::ReadOnly))
+        if (!doc.open(QIODevice::ReadOnly)) {
+            qDebug() << "Could not open config file";
             return;
+        }
         auto bytes = doc.readAll();
+        qDebug() << "Config file opened";
 
+        qDebug() << "Parsing config file...";
         auto parseError = QJsonParseError();
         auto jsonDoc = QJsonDocument::fromJson(bytes, &parseError);
-        if (parseError.error)
+        if (parseError.error) {
+            qDebug() << "Invalid config file";
             return;
+        }
+        qDebug() << "Parsed config file";
 
+        qDebug() << "Reading config file...";
         auto config = new Config(this);
         config->read(jsonDoc);
+        qDebug() << "Config file read";
 
         for (auto &svc : config->ethernetServices()) {
+            qDebug() << "Configuring ethernet service" << svc->serviceName();
             svc->saveCerts();
             svc->saveConnManConf();
+            qDebug() << "Ethernet service" << svc->serviceName() << "configured";
         }
+    } else {
+        qDebug() << "Mounting config volume failed";
     }
+
+    qDebug() << "Restarting ConnMan...";
+    restartConnMan();
 }

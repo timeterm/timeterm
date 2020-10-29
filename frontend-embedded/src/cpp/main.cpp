@@ -15,7 +15,10 @@
 #include <QQmlApplicationEngine>
 
 #include <devcfg/configloader.h>
+#include <logs/ttlogmanager.h>
+#include <networking/networkmanager.h>
 #include <timeterm_proto/messages.pb.h>
+#include <util/scopeguard.h>
 
 void installDefaultFont()
 {
@@ -56,6 +59,10 @@ int runApp(int argc, char *argv[])
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
     qmlRegisterType<ConfigLoader>("Timeterm.Config", 1, 0, "ConfigLoader");
+    qmlRegisterSingletonType<QObject>("Timeterm.Logging", 1, 0, "TtLogManager", [](QQmlEngine *e, QJSEngine *se) {
+        return TtLogManager::singleton();
+    });
+    qmlRegisterType<NetworkManager>("Timeterm.Networking", 1, 0, "NetworkManager");
 
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/src/qml/main.qml");
@@ -77,6 +84,7 @@ int main(int argc, char *argv[])
 {
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     qSetMessagePattern("%{time} %{type}%{if-category}:%{category}%{endif} [%{if-category}%{file}:%{endif}%{function}:%{line}]: %{message}");
+    qInstallMessageHandler(TtLogManager::handleMessage);
 
     qInfo() << "Starting Timeterm frontend-embedded";
 

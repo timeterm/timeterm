@@ -874,8 +874,11 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
     auto path = createConnManConfigPath(m_serviceName);
     auto f = QFile(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (error != nullptr)
+        qCritical() << "Could not open service config file";
+        if (error != nullptr) {
+            qCritical() << "QFile::open said:" << f.errorString();
             *error = f.error();
+        }
         return;
     }
     auto strm = QTextStream(&f);
@@ -920,7 +923,7 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
         writeKv(strm, "PrivateKeyFile", createPrivateKeyPath(m_serviceName, m_privateKeyType));
     if (!m_privateKeyPassphrase.isEmpty())
         writeKv(strm, "PrivateKeyPassphrase", m_privateKeyPassphrase);
-    if (m_privateKeyPassphraseType == PrivateKeyPassphraseTypeUndefined)
+    if (m_privateKeyPassphraseType != PrivateKeyPassphraseTypeUndefined)
         writeKv(strm, "PrivateKeyPassphraseType", privateKeyPassphraseTypeToConnManString(m_privateKeyPassphraseType));
     if (!m_identity.isEmpty())
         writeKv(strm, "Identity", m_identity);

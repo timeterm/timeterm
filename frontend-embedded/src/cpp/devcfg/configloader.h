@@ -37,6 +37,9 @@ public slots:
 
 signals:
     void configLoaded();
+
+private:
+    void restartConnMan();
 };
 
 Q_DECLARE_METATYPE(Config *)

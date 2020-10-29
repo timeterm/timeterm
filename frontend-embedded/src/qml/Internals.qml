@@ -4,6 +4,7 @@ import Timeterm.Api 1.0
 import Timeterm.Config 1.0
 import Timeterm.MessageQueue 1.0
 import Timeterm.Rfid 1.0
+import Timeterm.Networking 1.0
 
 Item {
     id: internalsItem
@@ -52,8 +53,14 @@ Item {
         target: configLoader
 
         function onConfigLoaded() {
-            console.log("Configuration loaded")
+            console.log("Config loaded, triggering TtNetworkManager")
+
+            networkManager.configLoaded()
         }
+    }
+
+    NetworkManager {
+        id: networkManager
     }
 
     NatsConnection {

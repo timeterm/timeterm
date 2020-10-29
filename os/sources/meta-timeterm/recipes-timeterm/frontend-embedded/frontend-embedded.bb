@@ -2,7 +2,7 @@ SUMMARY = "Timeterm frontend-embedded"
 SECTION = "ui"
 LICENSE = "CLOSED"
 
-DEPENDS += "qtdeclarative qtquickcontrols2 qttools qttools-native protobuf protobuf-native libgpiod"
+DEPENDS += "qtdeviceutilities qtdeclarative qtquickcontrols2 qttools qttools-native protobuf protobuf-native libgpiod"
 
 # We're in a monorepo, this should be the root
 FILESEXTRAPATHS_prepend := "${THISDIR}/../../../../../:"
@@ -27,6 +27,6 @@ FILES_${PN} += "/opt/frontend-embedded/frontend-embedded"
 
 inherit cmake_qt5
 
-EXTRA_OECMAKE += "-DRASPBERRYPI:BOOL=TRUE"
+EXTRA_OECMAKE += "-DTIMETERMOS:BOOL=TRUE"
 KERNEL_MODULE_AUTOLOAD += "spidev"
 

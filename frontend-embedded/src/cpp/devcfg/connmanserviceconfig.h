@@ -314,7 +314,7 @@ public:
 
     enum ReadError
     {
-        ReadErrorNoError,
+        ReadErrorNoError = 0,
     };
 
     void read(const QJsonObject &obj, ReadError *error = nullptr);
