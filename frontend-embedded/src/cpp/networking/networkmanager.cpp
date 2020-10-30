@@ -35,6 +35,8 @@ void NetworkManager::activateInactiveNetworkingInterfaces()
 
     int i = 0;
     for (auto &iface : interfaces) {
+        i++;
+
         if (iface->type() == QNetworkSettingsType::Wifi)
             qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless network";
         else {
@@ -49,8 +51,6 @@ void NetworkManager::activateInactiveNetworkingInterfaces()
             qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is already powered, scanning";
             iface->scanServices();
         }
-
-        i++;
     }
 }
 
@@ -61,6 +61,8 @@ void NetworkManager::servicesChanged()
 
     int i = 0;
     for (const auto &service : services) {
+        i++;
+
         if (service->type() == QNetworkSettingsType::Wifi)
             qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is a wireless network";
         else {
@@ -96,7 +98,5 @@ void NetworkManager::servicesChanged()
             break;
         }
         qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "currently has state" << stateString;
-
-        i++;
     }
 }

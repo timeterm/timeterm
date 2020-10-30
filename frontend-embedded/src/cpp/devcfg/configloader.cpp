@@ -68,24 +68,26 @@ QString configLocation()
 #endif
 }
 
-void ConfigLoader::restartConnMan()
+void ConfigLoader::reloadSystem()
 {
     auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus(), this);
     auto reply = manager.RestartUnit("connman.service", "replace");
     reply.waitForFinished();
 
+    qDebug() << "Restarting ConnMan...";
     if (reply.isError())
-        qCritical() << "Could not restarted ConnMan:" << reply.error().message();
+        qCritical() << "Could not restart ConnMan:" << reply.error().message();
     else
         qDebug() << "ConnMan restarted";
 
     reply = manager.RestartUnit("wpa_supplicant.service", "replace");
     reply.waitForFinished();
 
+    qDebug() << "Restarting wpa_supplicant...";
     if (reply.isError())
-        qCritical() << "Could not restarted wpa_supplicant:" << reply.error().message();
+        qCritical() << "Could not restart wpa_supplicant:" << reply.error().message();
     else
-        qDebug() << "ConnMan reloaded";
+        qDebug() << "wpa_supplicant restarted";
 }
 
 void ConfigLoader::loadConfig()
@@ -145,6 +147,6 @@ void ConfigLoader::loadConfig()
         qDebug() << "Mounting config volume failed";
     }
 
-    qDebug() << "Restarting ConnMan...";
-    restartConnMan();
+    qDebug() << "Reloading system...";
+    reloadSystem();
 }

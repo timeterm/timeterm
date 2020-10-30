@@ -39,7 +39,7 @@ signals:
     void configLoaded();
 
 private:
-    void restartConnMan();
+    void reloadSystem();
 };
 
 Q_DECLARE_METATYPE(Config *)
