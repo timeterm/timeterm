@@ -15,6 +15,7 @@ class ZermeloAppointment
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
     Q_PROPERTY(QDateTime endTime WRITE setEndTime READ endTime)
     Q_PROPERTY(QStringList subjects WRITE setSubjects READ subjects)
+    Q_PROPERTY(QStringList groups WRITE setGroups READ groups)
     Q_PROPERTY(QStringList locations WRITE setLocations READ locations)
     Q_PROPERTY(QStringList teachers WRITE setTeachers READ teachers)
     Q_PROPERTY(bool isOnline WRITE setIsOnline READ isOnline)
@@ -41,6 +42,8 @@ public:
     [[nodiscard]] QDateTime endTime() const;
     void setSubjects(const QStringList &subjects);
     [[nodiscard]] QStringList subjects() const;
+    void setGroups(const QStringList &groups);
+    [[nodiscard]] QStringList groups() const;
     void setLocations(const QStringList &locations);
     [[nodiscard]] QStringList locations() const;
     void setTeachers(const QStringList &teachers);
@@ -67,6 +70,7 @@ private:
     QDateTime m_startTime;
     QDateTime m_endTime;
     QStringList m_subjects;
+    QStringList m_groups;
     QStringList m_locations;
     QStringList m_teachers;
     bool m_isOnline = false;

@@ -16,6 +16,7 @@
 
 #include <devcfg/configloader.h>
 #include <timeterm_proto/messages.pb.h>
+#include "api/zermeloappointment.h"
 
 void installDefaultFont()
 {
@@ -50,6 +51,8 @@ int runApp(int argc, char *argv[])
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
+    qmlRegisterType<ZermeloAppointment>("Timeterm.Api.Zermelo", 1, 0, "ZermeloApopintment");
+    qmlRegisterType<ZermeloAppointments>("Timeterm.Api.Zermelo", 1, 0, "ZermeloApopintments");
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
     qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
     qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");

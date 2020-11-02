@@ -12,7 +12,7 @@
 <context>
     <name>DayView</name>
     <message>
-        <location filename="src/qml/DayView.qml" line="12"/>
+        <location filename="src/qml/DayView.qml" line="13"/>
         <source>Prachtige tekst hierzo</source>
         <translation type="unfinished"></translation>
     </message>
