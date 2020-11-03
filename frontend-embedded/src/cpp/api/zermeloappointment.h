@@ -8,8 +8,8 @@ class ZermeloAppointment
     Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
-    Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
-    Q_PROPERTY(qint32 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
+    Q_PROPERTY(qint64 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
+    Q_PROPERTY(qint64 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
     Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
     Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
@@ -28,10 +28,10 @@ public:
     [[nodiscard]] qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
-    void setStartTimeSlot(qint32 startTimeSlot);
-    [[nodiscard]] qint32 startTimeSlot() const;
-    void setEndTimeSlot(qint32 endTimeSlot);
-    [[nodiscard]] qint32 endTimeSlot() const;
+    void setStartTimeSlot(QString startTimeSlot);
+    [[nodiscard]] QString startTimeSlot() const;
+    void setEndTimeSlot(QString endTimeSlot);
+    [[nodiscard]] QString endTimeSlot() const;
     void setCapacity(qint32 capacity);
     [[nodiscard]] qint32 capacity() const;
     void setAvailableSpace(qint32 availableSpace);
@@ -63,8 +63,8 @@ public:
 private:
     qint64 m_id = 0;
     qint64 m_appointmentInstance = 0;
-    qint32 m_startTimeSlot = 0;
-    qint32 m_endTimeSlot = 0;
+    QString m_startTimeSlot = 0;
+    QString m_endTimeSlot = 0;
     qint32 m_capacity = 0;
     qint32 m_availableSpace = 0;
     QDateTime m_startTime;
