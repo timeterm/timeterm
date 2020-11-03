@@ -67,7 +67,7 @@ const OrganizationSettings = forwardRef<Savable, OrganizationSettingProps>(
           label={"Naam"}
           outlined
           value={patch?.name || ""}
-          onChange={(evt) => {
+          onInput={(evt) => {
             setPatch({
               ...patch,
               name: (evt.target as HTMLInputElement).value,

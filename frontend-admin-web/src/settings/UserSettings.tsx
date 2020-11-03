@@ -32,7 +32,9 @@ const UserSettings = forwardRef(
         return original.name !== patch.name;
       },
       fetch(): Promise<UserResponse> {
-        return fetchAuthnd("https://api.timeterm.nl/user/me").then((res) => res.json());
+        return fetchAuthnd("https://api.timeterm.nl/user/me").then((res) =>
+          res.json()
+        );
       },
       initPatch(original: UserResponse): UserPatch {
         return { id: original.id, name: original.name };
@@ -54,7 +56,7 @@ const UserSettings = forwardRef(
           label={"Naam"}
           outlined
           value={patch?.name || ""}
-          onChange={(evt) => {
+          onInput={(evt) => {
             setPatch({
               ...patch,
               name: (evt.target as HTMLInputElement).value,
