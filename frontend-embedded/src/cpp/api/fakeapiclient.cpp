@@ -1,4 +1,4 @@
-#include "apiclient.h"
+#include "fakeapiclient.h"
 #include "timetermuser.h"
 #include "zermeloappointment.h"
 #include "zermeloappointments.h"
@@ -34,8 +34,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("1");
     appointment.setEndTimeSlot("1");
     appointment.setStartTime(testTime);
-    testTime.addSecs(45*60);
-    appointment.setEndTime(testTime);
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"nat"});
     appointment.setGroups({"gv6.nat1"});
     appointment.setLocations({"g208"});

@@ -82,7 +82,7 @@ Page {
 
         width: parent.width * 0.8
         header: dayHeader
-        model: TestdataDayView {}
+        model: timetable // ReferenceError: timetable is not defined
         delegate: dayItem
         spacing: parent.height * 0.02
     }

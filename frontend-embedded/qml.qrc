@@ -15,6 +15,5 @@
         <file>src/qml/WeekView.qml</file>
         <file>assets/icons/calendar-today.svg</file>
         <file>assets/icons/calendar-week.svg</file>
-        <file>src/qml/TestdataDayView.qml</file>
     </qresource>
 </RCC>

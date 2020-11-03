@@ -1,4 +1,4 @@
-#include "api/apiclient.h"
+#include "api/fakeapiclient.h"
 #include "cardreader/cardreadercontroller.h"
 #include "devcfg/connmanserviceconfig.h"
 #include "messagequeue/enums.h"
@@ -37,7 +37,7 @@ int runApp(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
-    qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
+    qmlRegisterType<FakeApiClient>("Timeterm.Api", 1, 0, "FakeApiClient");
     qmlRegisterUncreatableMetaObject(MessageQueue::NatsStatus::staticMetaObject,
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");
@@ -51,8 +51,6 @@ int runApp(int argc, char *argv[])
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
-    qmlRegisterType<ZermeloAppointment>("Timeterm.Api.Zermelo", 1, 0, "ZermeloApopintment");
-    qmlRegisterType<ZermeloAppointments>("Timeterm.Api.Zermelo", 1, 0, "ZermeloApopintments");
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
     qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
     qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");
