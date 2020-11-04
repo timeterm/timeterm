@@ -1,6 +1,7 @@
-import QtQuick 2.0
+import QtQuick 2.9
 import QtQuick.Controls 2.5
 import QtQml.Models 2.3
+import QtQuick.Layouts 1.3
 
 Page {
     id: dayPage
@@ -12,7 +13,7 @@ Page {
 
     function setTimetable(timetable) {
         // Pretty-print the timetable as JSON
-        console.log(`Using timetable: ${JSON.stringify(timetable, null, 2)}`)
+        console.log()
 
         // Use it
         dayViewList.model = timetable.data
@@ -46,6 +47,7 @@ Page {
         Rectangle {
             width: ListView.view.width
             height: ListView.view.height * 0.09
+            //Layout.preferredHeight: 50
             color: "#52AEAEAE"
             radius: 5
 
@@ -91,6 +93,7 @@ Page {
 
         width: parent.width * 0.8
         header: dayHeader
+        headerPositioning: ListView.PullBackHeader
         delegate: dayItem
         spacing: parent.height * 0.02
     }
