@@ -46,8 +46,10 @@ Page {
 
         Rectangle {
             width: ListView.view.width
-            height: ListView.view.height * 0.09
-            //Layout.preferredHeight: 50
+            //height: ListView.view.height * 0.09
+            Layout.minimumHeight: dayPage.height * 0.08
+            Layout.preferredHeight: dayPage.height * modelData.startTime.secsTo(
+                                        modelData.endTime)
             color: "#52AEAEAE"
             radius: 5
 

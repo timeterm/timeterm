@@ -44,7 +44,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("2");
     appointment.setEndTimeSlot("2");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"nat"});
     appointment.setGroups({"gv6.nat1"});
     appointment.setLocations({"g208"});
@@ -54,7 +54,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("3");
     appointment.setEndTimeSlot("3");
     appointment.setStartTime(testTime.addSecs(15*60));
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"to"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
@@ -64,7 +64,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("4");
     appointment.setEndTimeSlot("4");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"gd"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
@@ -74,7 +74,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("5");
     appointment.setEndTimeSlot("5");
     appointment.setStartTime(testTime.addSecs(45*60));
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"z_uur"});
     appointment.setGroups({});
     appointment.setLocations({"g035"});
@@ -84,7 +84,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("6");
     appointment.setEndTimeSlot("6");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(45*60));
     appointment.setSubjects({"netl"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g137"});
@@ -94,7 +94,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("7");
     appointment.setEndTimeSlot("7");
     appointment.setStartTime(testTime.addSecs(15*60));
-    appointment.setEndTime(testTime.addSecs(46*60));
+    appointment.setEndTime(testTime.addSecs(90*60));
     appointment.setSubjects({"wisb"});
     appointment.setGroups({"gv6.wisb6"});
     appointment.setLocations({"g153"});
