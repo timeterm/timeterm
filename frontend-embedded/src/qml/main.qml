@@ -189,21 +189,34 @@ ApplicationWindow {
     }
 
     StackLayout {
+        id: stack
         currentIndex: menuBar.currentIndex
 
         anchors.left: menuBar.right
         anchors.right: parent.right
         height: parent.height
 
+        function redirectTimetable(timetable) {
+            if (currentIndex == 0) {
+                dayView.setTimetable(timetable)
+            } else if (currentIndex == 1) {
+                weekView.setTimetable(timetable)
+            }
+        }
+
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            DayView {}
+            DayView {
+                id: dayView
+            }
         }
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            WeekView {}
+            WeekView {
+                id: weekView
+            }
         }
     }
 
@@ -217,6 +230,7 @@ ApplicationWindow {
         onTimetableReceived: function (timetable) {
             console.log("Timetable received")
             console.log(timetable.data[0].locations[0])
+            stack.redirectTimetable(timetable)
         }
 
         Component.onCompleted: {

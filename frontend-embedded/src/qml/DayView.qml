@@ -10,6 +10,11 @@ Page {
         color: "#FFFFFF"
     }
 
+    function setTimetable(timetable) {
+        console.log(timetable.data[0].locations[0])
+        dayViewList.model = timetable.data
+    }
+
     Component {
         id: dayHeader
 
@@ -48,27 +53,27 @@ Page {
                 text: subjects.join(", ")
             }
             Text {
-                text: teacher
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.horizontalCenterOffset: -parent.width * 0.125
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
                 color: "#666666"
+                text: teachers.join(", ")
             }
             Text {
-                text: group
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.horizontalCenterOffset: parent.width * 0.125
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
                 color: "#666666"
+                text: groups.join(", ")
             }
             Text {
-                text: location
                 anchors.right: parent.right
                 anchors.rightMargin: parent.height * 0.6
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
+                text: locations.join(", ")
             }
         }
     }
@@ -82,7 +87,7 @@ Page {
 
         width: parent.width * 0.8
         header: dayHeader
-        model: timetable // ReferenceError: timetable is not defined
+        //model: timetable // ReferenceError: timetable is not defined
         delegate: dayItem
         spacing: parent.height * 0.02
     }
