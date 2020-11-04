@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.9
 import QtQuick.Controls 2.5
 
 Page {
@@ -7,6 +7,11 @@ Page {
     background: Rectangle {
         color: "#FFFFFF"
     }
+
+    function setTimetable(timetable) {
+        console.log(timetable.data[0].locations[0])
+    }
+
     Text {
         id: blabla
         text: qsTr("Nog meer prachtige tekst hierzo")

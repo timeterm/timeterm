@@ -1,4 +1,4 @@
-#include "api/apiclient.h"
+#include "api/fakeapiclient.h"
 #include "cardreader/cardreadercontroller.h"
 #include "devcfg/connmanserviceconfig.h"
 #include "messagequeue/enums.h"
@@ -19,6 +19,7 @@
 #include <networking/networkmanager.h>
 #include <timeterm_proto/messages.pb.h>
 #include <util/scopeguard.h>
+#include "api/zermeloappointment.h"
 
 void installDefaultFont()
 {
@@ -39,7 +40,7 @@ int runApp(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
-    qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
+    qmlRegisterType<FakeApiClient>("Timeterm.Api", 1, 0, "FakeApiClient");
     qmlRegisterUncreatableMetaObject(MessageQueue::NatsStatus::staticMetaObject,
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",
                                      "cannot create namespace NatsStatus in QML");

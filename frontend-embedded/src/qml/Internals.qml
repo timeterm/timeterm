@@ -1,4 +1,4 @@
-import QtQuick 2.14
+import QtQuick 2.9
 import QtQml 2.3
 import Timeterm.Api 1.0
 import Timeterm.Config 1.0
@@ -23,7 +23,7 @@ Item {
         }
     }
 
-    ApiClient {
+    FakeApiClient {
         id: apiClient
 
         onTimetableReceived: function (timetable) {
@@ -81,7 +81,7 @@ Item {
         }
 
         onErrorOccurred: function (code, msg) {
-            console.log(`Error occurred in NATS connection: ${msg}`)
+            console.log()
             disownSub.stop()
 
             // Try to reconnect

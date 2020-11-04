@@ -8,13 +8,14 @@ class ZermeloAppointment
     Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
-    Q_PROPERTY(qint32 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
-    Q_PROPERTY(qint32 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
+    Q_PROPERTY(QString startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
+    Q_PROPERTY(QString endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
     Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
     Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
     Q_PROPERTY(QDateTime endTime WRITE setEndTime READ endTime)
     Q_PROPERTY(QStringList subjects WRITE setSubjects READ subjects)
+    Q_PROPERTY(QStringList groups WRITE setGroups READ groups)
     Q_PROPERTY(QStringList locations WRITE setLocations READ locations)
     Q_PROPERTY(QStringList teachers WRITE setTeachers READ teachers)
     Q_PROPERTY(bool isOnline WRITE setIsOnline READ isOnline)
@@ -27,10 +28,10 @@ public:
     [[nodiscard]] qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
-    void setStartTimeSlot(qint32 startTimeSlot);
-    [[nodiscard]] qint32 startTimeSlot() const;
-    void setEndTimeSlot(qint32 endTimeSlot);
-    [[nodiscard]] qint32 endTimeSlot() const;
+    void setStartTimeSlot(QString startTimeSlot);
+    [[nodiscard]] QString startTimeSlot() const;
+    void setEndTimeSlot(QString endTimeSlot);
+    [[nodiscard]] QString endTimeSlot() const;
     void setCapacity(qint32 capacity);
     [[nodiscard]] qint32 capacity() const;
     void setAvailableSpace(qint32 availableSpace);
@@ -41,6 +42,8 @@ public:
     [[nodiscard]] QDateTime endTime() const;
     void setSubjects(const QStringList &subjects);
     [[nodiscard]] QStringList subjects() const;
+    void setGroups(const QStringList &groups);
+    [[nodiscard]] QStringList groups() const;
     void setLocations(const QStringList &locations);
     [[nodiscard]] QStringList locations() const;
     void setTeachers(const QStringList &teachers);
@@ -60,13 +63,14 @@ public:
 private:
     qint64 m_id = 0;
     qint64 m_appointmentInstance = 0;
-    qint32 m_startTimeSlot = 0;
-    qint32 m_endTimeSlot = 0;
+    QString m_startTimeSlot = 0;
+    QString m_endTimeSlot = 0;
     qint32 m_capacity = 0;
     qint32 m_availableSpace = 0;
     QDateTime m_startTime;
     QDateTime m_endTime;
     QStringList m_subjects;
+    QStringList m_groups;
     QStringList m_locations;
     QStringList m_teachers;
     bool m_isOnline = false;

@@ -25,24 +25,24 @@ qint64 ZermeloAppointment::appointmentInstance() const
     return m_appointmentInstance;
 }
 
-void ZermeloAppointment::setStartTimeSlot(qint32 startTimeSlot)
+void ZermeloAppointment::setStartTimeSlot(QString startTimeSlot)
 {
     if (startTimeSlot != m_startTimeSlot)
         m_startTimeSlot = startTimeSlot;
 }
 
-qint32 ZermeloAppointment::startTimeSlot() const
+QString ZermeloAppointment::startTimeSlot() const
 {
     return m_startTimeSlot;
 }
 
-void ZermeloAppointment::setEndTimeSlot(qint32 endTimeSlot)
+void ZermeloAppointment::setEndTimeSlot(QString endTimeSlot)
 {
     if (endTimeSlot != m_endTimeSlot)
         m_endTimeSlot = endTimeSlot;
 }
 
-qint32 ZermeloAppointment::endTimeSlot() const
+QString ZermeloAppointment::endTimeSlot() const
 {
     return m_endTimeSlot;
 }
@@ -100,6 +100,17 @@ void ZermeloAppointment::setSubjects(const QStringList &subjects)
 QStringList ZermeloAppointment::subjects() const
 {
     return m_subjects;
+}
+
+void ZermeloAppointment::setGroups(const QStringList &groups)
+{
+    if (groups != m_groups)
+        m_groups = groups;
+}
+
+QStringList ZermeloAppointment::groups() const
+{
+    return m_groups;
 }
 
 void ZermeloAppointment::setLocations(const QStringList &locations)
@@ -186,11 +197,11 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("appointmentInstance") && json["appointmentInstance"].isDouble())
         m_appointmentInstance = json["appointmentInstance"].toInt();
 
-    if (json.contains("startTimeSlot") && json["startTimeSlot"].isDouble())
-        m_startTimeSlot = json["startTimeSlot"].toInt();
+    if (json.contains("startTimeSlot") && json["startTimeSlot"].isString())
+        m_startTimeSlot = json["startTimeSlot"].toString();
 
-    if (json.contains("endTimeSlot") && json["endTimeSlot"].isDouble())
-        m_endTimeSlot = json["endTimeSlot"].toInt();
+    if (json.contains("endTimeSlot") && json["endTimeSlot"].isString())
+        m_endTimeSlot = json["endTimeSlot"].toString();
 
     if (json.contains("capacity") && json["capacity"].isDouble())
         m_capacity = json["capacity"].toInt();
@@ -206,6 +217,9 @@ void ZermeloAppointment::read(const QJsonObject &json)
 
     if (json.contains("subjects") && json["subjects"].isArray())
         readStringArray(json["subjects"].toArray(), m_subjects);
+
+    if (json.contains("groups") && json["groups"].isArray())
+        readStringArray(json["groups"].toArray(), m_groups);
 
     if (json.contains("locations") && json["locations"].isArray())
         readStringArray(json["locations"].toArray(), m_locations);
@@ -246,6 +260,7 @@ void ZermeloAppointment::write(QJsonObject &json) const
     json["startTime"] = m_startTime.toString();
     json["endTime"] = m_endTime.toString();
     json["subjects"] = stringListAsQJsonArray(m_subjects);
+    json["groups"] = stringListAsQJsonArray(m_groups);
     json["locations"] = stringListAsQJsonArray(m_locations);
     json["teachers"] = stringListAsQJsonArray(m_teachers);
     json["isOnline"] = m_isOnline;
