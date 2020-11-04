@@ -21,9 +21,11 @@ FakeApiClient::FakeApiClient(QObject *parent)
 
 void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end)
 {
-    QString string = "Tuesday, 3 November 20 08:40:00";
-    QString format = "dddd, d MMMM yy hh:mm:ss";
-    QDateTime testTime = QDateTime::fromString(string, format);
+    //QString string = "Tuesday, 3 November 20 08:40:00";
+    //QString format = "dddd, d MMMM yy hh:mm:ss";
+    //QDateTime testTime = QDateTime::fromString(string, format);
+
+    QDateTime testTime = QDateTime::currentDateTime();
 
     auto appointments = ZermeloAppointments();
 
@@ -34,7 +36,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("1");
     appointment.setEndTimeSlot("1");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"entl"});
     appointment.setGroups({"gv6.gv6a", "gv6.gv6b"});
     appointment.setLocations({"g028", "g029"});
@@ -44,7 +47,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("2");
     appointment.setEndTimeSlot("2");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"nat"});
     appointment.setGroups({"gv6.nat1"});
     appointment.setLocations({"g208"});
@@ -53,8 +57,10 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
 
     appointment.setStartTimeSlot("3");
     appointment.setEndTimeSlot("3");
-    appointment.setStartTime(testTime.addSecs(15*60));
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(15*60);
+    appointment.setStartTime(testTime);
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"to"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
@@ -64,7 +70,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("4");
     appointment.setEndTimeSlot("4");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"gd"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
@@ -73,8 +80,10 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
 
     appointment.setStartTimeSlot("5");
     appointment.setEndTimeSlot("5");
-    appointment.setStartTime(testTime.addSecs(45*60));
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(45*60);
+    appointment.setStartTime(testTime);
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"z_uur"});
     appointment.setGroups({});
     appointment.setLocations({"g035"});
@@ -84,7 +93,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setStartTimeSlot("6");
     appointment.setEndTimeSlot("6");
     appointment.setStartTime(testTime);
-    appointment.setEndTime(testTime.addSecs(45*60));
+    testTime = testTime.addSecs(45*60);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"netl"});
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g137"});
@@ -93,8 +103,10 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
 
     appointment.setStartTimeSlot("7");
     appointment.setEndTimeSlot("7");
-    appointment.setStartTime(testTime.addSecs(15*60));
-    appointment.setEndTime(testTime.addSecs(90*60));
+    testTime = testTime.addSecs(15*60);
+    appointment.setStartTime(testTime);
+    testTime = testTime.addSecs(45*90);
+    appointment.setEndTime(testTime);
     appointment.setSubjects({"wisb"});
     appointment.setGroups({"gv6.wisb6"});
     appointment.setLocations({"g153"});

@@ -8,6 +8,9 @@ Page {
     anchors.fill: parent
     padding: 32
 
+    property int textSize: dayPage.height * 0.04
+    property int customMargin: dayPage.height * 0.05
+
     background: Rectangle {
         color: "#FFFFFF"
     }
@@ -15,6 +18,9 @@ Page {
     function setTimetable(timetable) {
         // Pretty-print the timetable as JSON
         console.log()
+
+        console.log(timetable.data[0].startTime.toString())
+        console.log((timetable.data[0].endTime - timetable.data[0].startTime) / 1000)
 
         // Use it
         dayViewList.model = timetable.data
@@ -25,18 +31,19 @@ Page {
 
         Item {
             width: ListView.view.width
-            height: ListView.view.height * 0.06 + dayPage.height * 0.02
+            height: ListView.view.height * 0.08 + dayPage.height * 0.02
 
             Rectangle {
                 anchors.fill: parent
                 anchors.bottomMargin: dayPage.height * 0.02
-                color: "#52AEAEAE"
+                color: "#b5b5b5"
                 radius: 5
+                z: 1
                 Text {
                     text: "Dinsdag"
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.centerIn: parent
-                    font.pixelSize: parent.height * 0.75
+                    font.pixelSize: textSize
                 }
             }
         }
@@ -46,26 +53,27 @@ Page {
         id: dayItem
 
         Rectangle {
+            z: -1
+
             width: ListView.view.width
             //height: ListView.view.height * 0.09
-            Layout.minimumHeight: dayPage.height * 0.08
-            Layout.preferredHeight: dayPage.height * modelData.startTime.secsTo(
-                                        modelData.endTime)
-            color: "#52AEAEAE"
+            //Layout.minimumHeight: ListView.view.height * 0.08
+            height: ListView.view.height * (modelData.endTime - modelData.startTime) / 1000 / 22500
+            color: "#e5e5e5"
             radius: 5
 
             Text {
                 anchors.left: parent.left
-                anchors.leftMargin: parent.height * 0.6
+                anchors.leftMargin: customMargin
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: parent.height * 0.5
+                font.pixelSize: textSize
                 text: modelData.subjects.join(", ")
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.horizontalCenterOffset: -parent.width * 0.125
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: parent.height * 0.5
+                font.pixelSize: textSize
                 color: "#666666"
                 text: modelData.teachers.join(", ")
             }
@@ -73,15 +81,15 @@ Page {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.horizontalCenterOffset: parent.width * 0.125
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: parent.height * 0.5
+                font.pixelSize: textSize
                 color: "#666666"
                 text: modelData.groups.join(", ")
             }
             Text {
                 anchors.right: parent.right
-                anchors.rightMargin: parent.height * 0.6
+                anchors.rightMargin: customMargin
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: parent.height * 0.5
+                font.pixelSize: textSize
                 text: modelData.locations.join(", ")
             }
         }
@@ -96,7 +104,7 @@ Page {
 
         width: parent.width * 0.8
         header: dayHeader
-        headerPositioning: ListView.PullBackHeader
+        headerPositioning: ListView.OverlayHeader
         delegate: dayItem
         spacing: parent.height * 0.02
     }
