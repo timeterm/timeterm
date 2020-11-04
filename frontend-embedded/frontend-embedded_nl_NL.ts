@@ -12,7 +12,7 @@
 <context>
     <name>WeekView</name>
     <message>
-        <location filename="src/qml/WeekView.qml" line="12"/>
+        <location filename="src/qml/WeekView.qml" line="17"/>
         <source>Nog meer prachtige tekst hierzo</source>
         <translation type="unfinished"></translation>
     </message>

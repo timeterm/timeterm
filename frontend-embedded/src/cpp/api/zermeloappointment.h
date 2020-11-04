@@ -8,8 +8,8 @@ class ZermeloAppointment
     Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
-    Q_PROPERTY(qint64 startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
-    Q_PROPERTY(qint64 endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
+    Q_PROPERTY(QString startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
+    Q_PROPERTY(QString endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
     Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
     Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)

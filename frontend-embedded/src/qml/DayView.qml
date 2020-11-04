@@ -11,7 +11,10 @@ Page {
     }
 
     function setTimetable(timetable) {
-        console.log(timetable.data[0].locations[0])
+        // Pretty-print the timetable as JSON
+        console.log(`Using timetable: ${JSON.stringify(timetable, null, 2)}`)
+
+        // Use it
         dayViewList.model = timetable.data
     }
 
@@ -45,12 +48,13 @@ Page {
             height: ListView.view.height * 0.09
             color: "#52AEAEAE"
             radius: 5
+
             Text {
                 anchors.left: parent.left
                 anchors.leftMargin: parent.height * 0.6
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
-                text: subjects.join(", ")
+                text: modelData.subjects.join(", ")
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -58,7 +62,7 @@ Page {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
                 color: "#666666"
-                text: teachers.join(", ")
+                text: modelData.teachers.join(", ")
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -66,14 +70,14 @@ Page {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
                 color: "#666666"
-                text: groups.join(", ")
+                text: modelData.groups.join(", ")
             }
             Text {
                 anchors.right: parent.right
                 anchors.rightMargin: parent.height * 0.6
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: parent.height * 0.5
-                text: locations.join(", ")
+                text: modelData.locations.join(", ")
             }
         }
     }
@@ -87,7 +91,6 @@ Page {
 
         width: parent.width * 0.8
         header: dayHeader
-        //model: timetable // ReferenceError: timetable is not defined
         delegate: dayItem
         spacing: parent.height * 0.02
     }
