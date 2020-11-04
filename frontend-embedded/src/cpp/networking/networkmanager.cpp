@@ -1,19 +1,26 @@
 #include "networkmanager.h"
 
 #include <QDebug>
+
+#ifdef TIMETERMOS
 #include <QNetworkSettingsInterface>
 #include <QNetworkSettingsInterfaceModel>
 #include <QNetworkSettingsManager>
 #include <QNetworkSettingsService>
 #include <QNetworkSettingsServiceModel>
 #include <QNetworkSettingsType>
+#endif
 
 NetworkManager::NetworkManager(QObject *parent)
     : QObject(parent)
+#ifdef TIMETERMOS
     , m_manager(new QNetworkSettingsManager(this))
+#endif
 {
+#ifdef TIMETERMOS
     QObject::connect(m_manager, &QNetworkSettingsManager::interfacesChanged, this, &NetworkManager::networkingInterfacesChanged);
     QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManager::servicesChanged);
+#endif
 }
 
 void NetworkManager::configLoaded()
@@ -30,6 +37,7 @@ void NetworkManager::networkingInterfacesChanged()
 
 void NetworkManager::activateInactiveNetworkingInterfaces()
 {
+#ifdef TIMETERMOS
     auto interfaces = m_manager->interfaces()->getModel();
     qDebug() << "TtNetworkManager: found" << interfaces.size() << "interfaces";
 
@@ -52,10 +60,12 @@ void NetworkManager::activateInactiveNetworkingInterfaces()
             iface->scanServices();
         }
     }
+#endif
 }
 
 void NetworkManager::servicesChanged()
 {
+#ifdef TIMETERMOS
     QList<QNetworkSettingsService *> services = qobject_cast<QNetworkSettingsServiceModel *>(m_manager->services()->sourceModel())->getModel();
     qDebug() << "TtNetworkManager: found" << services.size() << "services";
 
@@ -99,4 +109,5 @@ void NetworkManager::servicesChanged()
         }
         qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "currently has state" << stateString;
     }
+#endif
 }

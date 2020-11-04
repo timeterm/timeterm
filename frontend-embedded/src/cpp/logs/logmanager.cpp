@@ -1,17 +1,17 @@
-#include "ttlogmanager.h"
+#include "logmanager.h"
 
-TtLogManager::TtLogManager(QObject *parent)
+LogManager::LogManager(QObject *parent)
     : QObject(parent)
 {
 }
 
-TtLogManager *TtLogManager::singleton()
+LogManager *LogManager::singleton()
 {
-    static TtLogManager instance;
+    static LogManager instance;
     return &instance;
 }
 
-void TtLogManager::setMessages(const QStringList &messages)
+void LogManager::setMessages(const QStringList &messages)
 {
     QMutexLocker locker(&m_mut);
 
@@ -21,7 +21,7 @@ void TtLogManager::setMessages(const QStringList &messages)
     }
 }
 
-QStringList TtLogManager::messages()
+QStringList LogManager::messages()
 {
     QMutexLocker locker(&m_mut);
     QStringList copy = m_messages;
@@ -29,7 +29,7 @@ QStringList TtLogManager::messages()
     return copy;
 }
 
-void TtLogManager::_handleMessage(QtMsgType type, const QMessageLogContext &context, const QString &buf)
+void LogManager::_handleMessage(QtMsgType type, const QMessageLogContext &context, const QString &buf)
 {
     QMutexLocker locker(&m_mut);
 
@@ -42,7 +42,7 @@ void TtLogManager::_handleMessage(QtMsgType type, const QMessageLogContext &cont
     emit messagesChanged();
 }
 
-void TtLogManager::handleMessage(QtMsgType type, const QMessageLogContext &context, const QString &buf)
+void LogManager::handleMessage(QtMsgType type, const QMessageLogContext &context, const QString &buf)
 {
     singleton()->_handleMessage(type, context, buf);
 }

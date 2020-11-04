@@ -1,7 +1,10 @@
 #pragma once
 
 #include <QObject>
+
+#ifdef TIMETERMOS
 #include <QNetworkSettingsManager>
+#endif
 
 class NetworkManager: public QObject
 {
@@ -20,6 +23,9 @@ public slots:
 private:
     void activateInactiveNetworkingInterfaces();
 
-    QNetworkSettingsManager *m_manager;
     bool m_configLoaded = false;
+
+#ifdef TIMETERMOS
+    QNetworkSettingsManager *m_manager;
+#endif
 };

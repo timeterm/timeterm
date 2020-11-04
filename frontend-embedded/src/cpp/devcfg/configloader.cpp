@@ -1,6 +1,9 @@
 #include "configloader.h"
-#include "ttsystemd.h"
 #include "usbmount.h"
+
+#ifdef TIMETERMOS
+#include "ttsystemd.h"
+#endif
 
 #include <QJsonDocument>
 
@@ -70,6 +73,7 @@ QString configLocation()
 
 void ConfigLoader::reloadSystem()
 {
+#ifdef TIMETERMOS
     auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus(), this);
     auto reply = manager.RestartUnit("connman.service", "replace");
     reply.waitForFinished();
@@ -88,6 +92,7 @@ void ConfigLoader::reloadSystem()
         qCritical() << "Could not restart wpa_supplicant:" << reply.error().message();
     else
         qDebug() << "wpa_supplicant restarted";
+#endif
 }
 
 void ConfigLoader::loadConfig()

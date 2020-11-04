@@ -20,15 +20,15 @@ Page {
             id: blabla
             font.family: "Fira Code"
             wrapMode: Text.Wrap
-            text: TtLogManager.messages.join("\n")
+            text: LogManager.messages.join("\n")
         }
     }
 
     Connections {
-        target: TtLogManager
+        target: LogManager
 
         function onMessagesChanged() {
-            blabla.text = TtLogManager.messages.join("\n")
+            blabla.text = LogManager.messages.join("\n")
         }
     }
 }

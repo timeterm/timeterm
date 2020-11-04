@@ -15,7 +15,7 @@
 #include <QQmlApplicationEngine>
 
 #include <devcfg/configloader.h>
-#include <logs/ttlogmanager.h>
+#include <logs/logmanager.h>
 #include <networking/networkmanager.h>
 #include <timeterm_proto/messages.pb.h>
 #include <util/scopeguard.h>
@@ -59,8 +59,13 @@ int runApp(int argc, char *argv[])
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
     qmlRegisterType<ConfigLoader>("Timeterm.Config", 1, 0, "ConfigLoader");
-    qmlRegisterSingletonType<QObject>("Timeterm.Logging", 1, 0, "TtLogManager", [](QQmlEngine *e, QJSEngine *se) {
-        return TtLogManager::singleton();
+    qmlRegisterSingletonType<QObject>("Timeterm.Logging", 1, 0, "LogManager", [](QQmlEngine *e, QJSEngine *se) {
+        auto logMgr = LogManager::singleton();
+
+        // The QML should not destroy the singleton as that would cause an invalid free.
+        QQmlEngine::setObjectOwnership(logMgr, QQmlEngine::CppOwnership);
+
+        return logMgr;
     });
     qmlRegisterType<NetworkManager>("Timeterm.Networking", 1, 0, "NetworkManager");
 
@@ -84,7 +89,7 @@ int main(int argc, char *argv[])
 {
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     qSetMessagePattern("%{time} %{type}%{if-category}:%{category}%{endif} [%{if-category}%{file}:%{endif}%{function}:%{line}]: %{message}");
-    qInstallMessageHandler(TtLogManager::handleMessage);
+    qInstallMessageHandler(LogManager::handleMessage);
 
     qInfo() << "Starting Timeterm frontend-embedded";
 

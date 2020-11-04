@@ -24,12 +24,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Core Quick QuickControls2 LinguistTools DBus NetworkSettings REQUIRED)
+set(QT_COMPONENTS Core Quick QuickControls2 LinguistTools)
+if(TIMETERMOS)
+    list(APPEND TIMETERMOS DBus NetworkSettings)
+endif()
 
-qt5_add_dbus_interface(GENERATED_SOURCES dbus/org.freedesktop.systemd1.xml ttsystemd)
+set(QT_LINK_TARGETS ${QT_COMPONENTS})
+list(REMOVE_ITEM QT_LINK_TARGETS LinguistTools)
+list(TRANSFORM QT_LINK_TARGETS PREPEND "Qt5::")
+
+find_package(Qt5 COMPONENTS ${QT_COMPONENTS} REQUIRED)
+
+if(TIMETERMOS)
+    qt5_add_dbus_interface(GENERATED_SOURCES dbus/org.freedesktop.systemd1.xml ttsystemd)
+endif()
 
 set(TS_FILES frontend-embedded_nl_NL.ts)
-set(SOURCE_FILES src/cpp/main.cpp qml.qrc src/cpp/cardreader/mfrc522cardreader.cpp src/cpp/cardreader/mfrc522cardreader.h src/cpp/cardreader/cardreader.h src/cpp/cardreader/cardreader.cpp src/cpp/cardreader/cardreadercontroller.cpp src/cpp/cardreader/cardreadercontroller.h src/cpp/cardreader/fakecardreader.cpp src/cpp/cardreader/fakecardreader.h src/cpp/api/apiclient.cpp src/cpp/api/apiclient.h src/cpp/messagequeue/enums.h src/cpp/api/timetermuser.h src/cpp/api/timetermuser.cpp src/cpp/api/zermeloappointments.h src/cpp/api/zermeloappointment.h src/cpp/api/zermeloappointment.cpp src/cpp/api/zermeloappointments.cpp src/cpp/messagequeue/strings.h src/cpp/messagequeue/strings.cpp src/cpp/messagequeue/messages/disowntokenmessage.h src/cpp/messagequeue/messages/disowntokenmessage.cpp src/cpp/messagequeue/messages/retrievenewtokenmessage.cpp src/cpp/messagequeue/messages/retrievenewtokenmessage.h src/cpp/messagequeue/natsoptions.cpp src/cpp/messagequeue/natsoptions.h src/cpp/messagequeue/natsstatusstringer.cpp src/cpp/messagequeue/natsstatusstringer.h src/cpp/util/scopeguard.h src/cpp/util/unixsignalhandler.cpp src/cpp/util/unixsignalhandler.h src/cpp/util/teardown.h src/cpp/messagequeue/natsconnection.cpp src/cpp/messagequeue/natsconnection.h src/cpp/messagequeue/jetstreamconsumer.cpp src/cpp/messagequeue/jetstreamconsumer.h src/cpp/devcfg/configloader.cpp src/cpp/devcfg/configloader.h src/cpp/devcfg/connmanserviceconfig.cpp src/cpp/devcfg/connmanserviceconfig.h src/cpp/devcfg/usbmount.cpp src/cpp/devcfg/usbmount.h src/cpp/devcfg/usbmount_ttos.cpp src/cpp/logs/ttlogmanager.cpp src/cpp/logs/ttlogmanager.h src/cpp/networking/networkmanager.cpp src/cpp/networking/networkmanager.h)
+set(SOURCE_FILES src/cpp/main.cpp qml.qrc src/cpp/cardreader/mfrc522cardreader.cpp src/cpp/cardreader/mfrc522cardreader.h src/cpp/cardreader/cardreader.h src/cpp/cardreader/cardreader.cpp src/cpp/cardreader/cardreadercontroller.cpp src/cpp/cardreader/cardreadercontroller.h src/cpp/cardreader/fakecardreader.cpp src/cpp/cardreader/fakecardreader.h src/cpp/api/apiclient.cpp src/cpp/api/apiclient.h src/cpp/messagequeue/enums.h src/cpp/api/timetermuser.h src/cpp/api/timetermuser.cpp src/cpp/api/zermeloappointments.h src/cpp/api/zermeloappointment.h src/cpp/api/zermeloappointment.cpp src/cpp/api/zermeloappointments.cpp src/cpp/messagequeue/strings.h src/cpp/messagequeue/strings.cpp src/cpp/messagequeue/messages/disowntokenmessage.h src/cpp/messagequeue/messages/disowntokenmessage.cpp src/cpp/messagequeue/messages/retrievenewtokenmessage.cpp src/cpp/messagequeue/messages/retrievenewtokenmessage.h src/cpp/messagequeue/natsoptions.cpp src/cpp/messagequeue/natsoptions.h src/cpp/messagequeue/natsstatusstringer.cpp src/cpp/messagequeue/natsstatusstringer.h src/cpp/util/scopeguard.h src/cpp/util/unixsignalhandler.cpp src/cpp/util/unixsignalhandler.h src/cpp/util/teardown.h src/cpp/messagequeue/natsconnection.cpp src/cpp/messagequeue/natsconnection.h src/cpp/messagequeue/jetstreamconsumer.cpp src/cpp/messagequeue/jetstreamconsumer.h src/cpp/devcfg/configloader.cpp src/cpp/devcfg/configloader.h src/cpp/devcfg/connmanserviceconfig.cpp src/cpp/devcfg/connmanserviceconfig.h src/cpp/devcfg/usbmount.cpp src/cpp/devcfg/usbmount.h src/cpp/devcfg/usbmount_ttos.cpp src/cpp/logs/logmanager.cpp src/cpp/logs/logmanager.h src/cpp/networking/networkmanager.cpp src/cpp/networking/networkmanager.h)
 
 if(ANDROID)
     add_library(frontend-embedded SHARED ${SOURCE_FILES} ${GENERATED_SOURCES} ${TS_FILES})
@@ -48,7 +59,7 @@ add_subdirectory(../proto/src ${CMAKE_BINARY_DIR}/timeterm_proto)
 target_compile_definitions(frontend-embedded
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(frontend-embedded
-  PRIVATE Qt5::Core Qt5::Quick Qt5::QuickControls2 Qt::DBus Qt::NetworkSettings nats_static timeterm_proto)
+  PRIVATE ${QT_LINK_TARGETS} nats_static timeterm_proto)
 target_include_directories(frontend-embedded
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nats/src src/cpp)
 
