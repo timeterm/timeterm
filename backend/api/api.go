@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
-	"gitlab.com/timeterm/timeterm/backend/broker"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/mq"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -17,7 +17,7 @@ type Server struct {
 	db   *database.Wrapper
 	log  logr.Logger
 	echo *echo.Echo
-	brw  *broker.Wrapper
+	mqw  *mq.Wrapper
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -36,7 +36,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, brw *broker.Wrapper) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper) (Server, error) {
 	e, err := newEcho(log)
 	if err != nil {
 		return Server{}, err
@@ -46,7 +46,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, brw *broker.Wrapper) (Serv
 		db:   db,
 		log:  log,
 		echo: e,
-		brw:  brw,
+		mqw:  mqw,
 	}
 	server.registerRoutes()
 

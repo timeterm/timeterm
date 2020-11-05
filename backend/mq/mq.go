@@ -1,13 +1,13 @@
-package broker
+package mq
 
 import (
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
-	timetermpb "gitlab.com/timeterm/timeterm/proto/go"
+	mqpb "gitlab.com/timeterm/timeterm/proto/go/mq"
 
-	"gitlab.com/timeterm/timeterm/backend/broker/natspb"
+	"gitlab.com/timeterm/timeterm/backend/mq/natspb"
 )
 
 type Wrapper struct {
@@ -24,7 +24,7 @@ func NewWrapper(nc *nats.Conn) *Wrapper {
 }
 
 func (w *Wrapper) RebootDevice(id uuid.UUID) error {
-	return w.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", id), &timetermpb.RebootMessage{
+	return w.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", id), &mqpb.RebootMessage{
 		DeviceId: id.String(),
 	})
 }

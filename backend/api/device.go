@@ -119,7 +119,7 @@ func (s *Server) rebootDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
 
-	err = s.brw.RebootDevice(uid)
+	err = s.mqw.RebootDevice(uid)
 	if err != nil {
 		s.log.Error(err, "could not publish reboot message")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")
@@ -154,7 +154,7 @@ func (s *Server) rebootDevices(c echo.Context) error {
 	}
 
 	for _, deviceID := range params.DeviceIDs {
-		err = s.brw.RebootDevice(deviceID)
+		err = s.mqw.RebootDevice(deviceID)
 		if err != nil {
 			s.log.Error(err, "could not publish reboot message")
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not send reboot message")

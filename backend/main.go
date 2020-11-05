@@ -14,9 +14,9 @@ import (
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
-	"gitlab.com/timeterm/timeterm/backend/broker"
-	_ "gitlab.com/timeterm/timeterm/backend/broker/natspb"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/mq"
+	_ "gitlab.com/timeterm/timeterm/backend/mq/natspb"
 )
 
 func main() {
@@ -46,8 +46,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	brw := broker.NewWrapper(nc)
-	server, err := api.NewServer(db, log, brw)
+	mqw := mq.NewWrapper(nc)
+	server, err := api.NewServer(db, log, mqw)
 	if err != nil {
 		log.Error(err, "could not create API server")
 		os.Exit(1)

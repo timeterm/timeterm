@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
-	"gitlab.com/timeterm/timeterm/proto/go"
+	mqpb "gitlab.com/timeterm/timeterm/proto/go/mq"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/protobuf/proto"
 )
@@ -31,7 +31,7 @@ func TestJSMGetMsg(t *testing.T) {
 		go func() {
 			defer sema.Release(1)
 
-			bs, err := proto.Marshal(&timetermpb.DisownTokenMessage{
+			bs, err := proto.Marshal(&mqpb.DisownTokenMessage{
 				DeviceId: uuid.New().String(),
 			})
 			if err != nil {
