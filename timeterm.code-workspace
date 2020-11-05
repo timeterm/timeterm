@@ -24,9 +24,12 @@
 		{
 			"path": "docs"
 		},
-        {
-            "path": "os"
-        }
+		{
+			"path": "os"
+		},
+		{
+			"path": "proto"
+		}
 	],
 	"settings": {}
 }
