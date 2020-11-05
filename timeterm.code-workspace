@@ -23,7 +23,10 @@
 		},
 		{
 			"path": "docs"
-		}
+		},
+        {
+            "path": "os"
+        }
 	],
 	"settings": {}
 }
