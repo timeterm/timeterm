@@ -36,14 +36,21 @@ paths:
           content:
             application/json:
               schema:
+                required:
+                  - token
+                  - ethernetConfig
                 properties:
                   token:
                     type: string
                   ethernetConfig:
+                    required:
+                      - services
                     properties:
                       services:
                         type: object
                         additionalProperties:
+                          required:
+                            - type
                           properties:
                             type:
                               type: string
