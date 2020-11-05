@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+option go_package = "gitlab.com/timeterm/timeterm/proto/go/devcfg;devcfgpb";
+
+package timeterm_proto.devcfg;
+
+message EthernetServices {
+    map<string, EthernetService> services = 1;
+}
+
+enum EthernetServiceType {
+    ETHERNET_SERVICE_TYPE_UNSPECIFIED = 0;
+    ETHERNET_SERVICE_TYPE_ETHERNET = 1;
+    ETHERNET_SERVICE_TYPE_WIFI = 2;
+}
+
+enum Ipv4ConfigType {
+    IPV4_CONFIG_TYPE_UNSPECIFIED = 0;
+    IPV4_CONFIG_TYPE_OFF = 1;
+    IPV4_CONFIG_TYPE_DHCP = 2;
+    IPV4_CONFIG_TYPE_CUSTOM = 3;
+}
+
+message Ipv4ConfigSettings {
+    string network = 1;
+    string netmask = 2;
+    string gateway = 3;
+}
+
+message Ipv4Config {
+    Ipv4ConfigType type = 1;
+    Ipv4ConfigSettings settings = 2;
+}
+
+enum Ipv6ConfigType {
+    IPV6_CONFIG_TYPE_UNSPECIFIED = 0;
+    IPV6_CONFIG_TYPE_OFF = 1;
+    IPV6_CONFIG_TYPE_AUTO = 2;
+    IPV6_CONFIG_TYPE_CUSTOM = 3;
+}
+
+message Ipv6ConfigSettings {
+    string network = 1;
+    uint64 prefix_length = 2;
+    string gateway = 3;
+}
+
+message Ipv6Config {
+    Ipv6ConfigType type = 1;
+    Ipv6ConfigSettings settings = 2;
+}
+
+enum Ipv6Privacy {
+    IPV6_PRIVACY_UNSPECIFIED = 0;
+    IPV6_PRIVACY_DISABLED = 1;
+    IPV6_PRIVACY_ENABLED = 2;
+    IPV6_PRIVACY_PREFERRED = 3;
+}
+
+enum Security {
+    SECURITY_UNSPECIFIED = 0;
+    SECURITY_PSK = 1;
+    SECURITY_IEEE8021X = 2;
+    SECURITY_NONE = 3;
+    SECURITY_WEP = 4;
+}
+
+enum Eap {
+    EAP_TLS = 0;
+    EAP_TTLS = 1;
+    EAP_PEAP = 2;
+}
+
+enum CaCertType {
+    CA_CERT_TYPE_UNSPECIFIED = 0;
+    CA_CERT_TYPE_PEM = 1;
+    CA_CERT_TYPE_DER = 2;
+}
+
+enum PrivateKeyType {
+    PRIVATE_KEY_TYPE_UNSPECIFIED = 0;
+    PRIVATE_KEY_TYPE_PEM = 1;
+    PRIVATE_KEY_TYPE_DER = 2;
+    PRIVATE_KEY_TYPE_PFX = 3;
+}
+
+enum PrivateKeyPassphraseType {
+    PRIVATE_KEY_PASSPHRASE_TYPE_UNSPECIFIED = 0;
+    PRIVATE_KEY_PASSPHRASE_TYPE_FSID = 1;
+}
+
+message EthernetService {
+    EthernetServiceType type = 1;
+    Ipv4Config ipv4_config = 2;
+    Ipv6Config ipv6_config = 3;
+    Ipv6Privacy ipv6_privacy = 4;
+    string mac = 5;
+    repeated string nameservers = 6;
+    repeated string search_domains = 7;
+    repeated string timeservers = 8;
+    string domain = 9;
+    string name = 10;
+    string ssid = 11;
+    string passphrase = 12;
+    Security security = 13;
+    bool is_hidden = 14;
+    Eap eap = 15;
+    bytes ca_cert = 16;
+    CaCertType ca_cert_type = 17;
+    bytes private_key = 18;
+    PrivateKeyType private_key_type = 19;
+    string private_key_passphrase = 20;
+    PrivateKeyPassphraseType private_key_passphrase_type = 21; 
+    string identity = 22;
+    string anonymous_identity = 23;
+    string subject_match = 24;
+    string alt_subject_match = 25;
+    string domain_suffix_match = 26;
+    string domain_match = 27;
+    bool is_phase_2_eap_based = 28; 
+}

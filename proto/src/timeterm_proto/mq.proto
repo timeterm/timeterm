@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package = "gitlab.com/timeterm/timeterm/proto/go;timetermpb";
+option go_package = "gitlab.com/timeterm/timeterm/proto/go/mq;mqpb";
 
-package timeterm_proto.messages;
+package timeterm_proto.mq;
 
 message DisownTokenMessage {
     string device_id = 1;
