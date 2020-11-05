@@ -11,7 +11,7 @@ security:
   - ApiKeyAuth: []
 
 servers:
-  - url: "https://api.timeterm.nl/v1/"
+  - url: "https://api.timeterm.nl/"
 
 paths:
   /user/me:
