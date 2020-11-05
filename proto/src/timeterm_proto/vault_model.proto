@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = "gitlab.com/timeterm/timeterm/proto/go;timetermpb";
+
+package timeterm_proto.vault_model;
+
+message EthernetServices {
+    map<string, EthernetService> services = 1;
+}
+
+enum EthernetServiceType {
+    ETHERNET_SERVICE_TYPE_UNSPECIFIED = 0;
+    ETHERNET_SERVICE_TYPE_ETHERNET = 1;
+    ETHERNET_SERVICE_TYPE_WIFI = 2;
+}
+
+enum Ipv4ConfigType {
+    IPV4_CONFIG_TYPE_OFF = 0;
+    IPV4_CONFIG_TYPE_DHCP = 1;
+    IPV4_CONFIG_TYPE_CUSTOM = 2;
+}
+
+message Ipv4ConfigSettings {
+    string network = 1;
+    string netmask = 2;
+    string gateway = 3;
+}
+
+message Ipv4Config {
+    Ipv4ConfigType type = 1;
+    Ipv4ConfigSettings settings = 2;
+}
+
+message EthernetService {
+    EthernetServiceType type = 1;
+    Ipv4Config ipv4_config = 2;
+}
