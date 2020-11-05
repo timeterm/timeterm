@@ -26,6 +26,141 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
+  /device/registerconfig:
+    get:
+      operationId: getDeviceRegisterConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  token:
+                    type: string
+                  ethernetConfig:
+                    properties:
+                      services:
+                        additionalProperties:
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - Ethernet
+                                - Wifi
+                            ipv4Config:
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - "Off"
+                                    - Dhcp
+                                    - Custom
+                                settings:
+                                  properties:
+                                    network:
+                                      type: string
+                                    netmask:
+                                      type: string
+                                    gateway:
+                                      type: string
+                            ipv6Config:
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - "Off"
+                                    - Auto
+                                    - Custom
+                                settings:
+                                  properties:
+                                    network:
+                                      type: string
+                                    prefixLength:
+                                      type: integer
+                                    gateway:
+                                      type: string
+                            ipv6Privacy:
+                              type: string
+                              enum:
+                              - Disabled
+                              - Enabled
+                              - Preferred
+                            mac:
+                              type: string
+                            nameservers:
+                              type: array
+                              items:
+                                type: string
+                            searchDomains:
+                              type: array
+                              items:
+                                type: string
+                            timeservers:
+                              type: array
+                              items:
+                                type: string
+                            domain:
+                              type: string
+                            name:
+                              type: string
+                            ssid:
+                              type: string
+                            passphrase:
+                              type: string
+                            security:
+                              type: string
+                              enum:
+                              - Psk
+                              - Ieee8021x
+                              - None
+                              - Wep
+                            isHidden:
+                              type: boolean
+                            eap:
+                              type: string
+                              enum:
+                              - Tls
+                              - Ttls
+                              - Peap
+                            caCert:
+                              type: string
+                              format: byte
+                            caCertType:
+                              type: string
+                              enum: 
+                              - Pem
+                              - Der
+                            privateKey:
+                              type: string
+                              format: byte
+                            privateKeyType:
+                              type: string
+                              enum:
+                              - Pem
+                              - Der
+                              - Pfx
+                            privateKeyPassphrase:
+                              type: string
+                            privateKeyPassphraseType:
+                              type: string
+                              enum:
+                              - Fsid
+                            identity:
+                              type: string
+                            anonymousIdentity:
+                              type: string
+                            subjectMatch:
+                              type: string
+                            altSubjectMatch:
+                              type: string
+                            domainSuffixMatch:
+                              type: string
+                            domainMatch:
+                              type: string
+                            isPhase2EapBased:
+                              type: boolean
+
   /device:
     post:
       operationId: createDevice
@@ -270,7 +405,7 @@ paths:
         - name: searchName
           in: query
           schema:
-            type: string 
+            type: string
       responses:
         "200":
           description: OK
