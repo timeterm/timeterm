@@ -31,5 +31,10 @@
 			"path": "proto"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"qstring": "cpp",
+			"qobject": "cpp"
+		}
+	}
 }

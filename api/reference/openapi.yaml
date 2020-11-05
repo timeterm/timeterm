@@ -29,6 +29,7 @@ paths:
   /device/registerconfig:
     get:
       operationId: getDeviceRegisterConfig
+      summary: Get the device registration configuration
       responses:
         "200":
           description: OK
@@ -41,6 +42,7 @@ paths:
                   ethernetConfig:
                     properties:
                       services:
+                        type: object
                         additionalProperties:
                           properties:
                             type:

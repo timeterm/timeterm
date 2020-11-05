@@ -6,3 +6,6 @@ image:
 push: 
 	docker push registry.gitlab.com/timeterm/timeterm/api-reference
 
+.PHONY: serve
+serve:
+	python -m http.server
