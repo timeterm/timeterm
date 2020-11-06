@@ -70,12 +70,6 @@ const OrganizationSettings = (props: OrganizationSettingProps) => {
             name: (evt.target as HTMLInputElement).value,
           });
         }}
-        onKeyDown={(evt) => {
-          setPatch({
-            ...patch,
-            name: (evt.target as HTMLInputElement).value,
-          });
-        }}
       />
     </>
   );
