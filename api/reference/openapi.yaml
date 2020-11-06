@@ -26,9 +26,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-  /device/registerconfig:
+  /device/registrationconfig:
     get:
-      operationId: getDeviceRegisterConfig
+      operationId: getDeviceRegistrationConfig
       summary: Get the device registration configuration
       responses:
         "200":
@@ -49,126 +49,7 @@ paths:
                       services:
                         type: object
                         additionalProperties:
-                          required:
-                            - type
-                          properties:
-                            type:
-                              type: string
-                              enum:
-                                - Ethernet
-                                - Wifi
-                            ipv4Config:
-                              properties:
-                                type:
-                                  type: string
-                                  enum:
-                                    - "Off"
-                                    - Dhcp
-                                    - Custom
-                                settings:
-                                  properties:
-                                    network:
-                                      type: string
-                                    netmask:
-                                      type: string
-                                    gateway:
-                                      type: string
-                            ipv6Config:
-                              properties:
-                                type:
-                                  type: string
-                                  enum:
-                                    - "Off"
-                                    - Auto
-                                    - Custom
-                                settings:
-                                  properties:
-                                    network:
-                                      type: string
-                                    prefixLength:
-                                      type: integer
-                                    gateway:
-                                      type: string
-                            ipv6Privacy:
-                              type: string
-                              enum:
-                              - Disabled
-                              - Enabled
-                              - Preferred
-                            mac:
-                              type: string
-                            nameservers:
-                              type: array
-                              items:
-                                type: string
-                            searchDomains:
-                              type: array
-                              items:
-                                type: string
-                            timeservers:
-                              type: array
-                              items:
-                                type: string
-                            domain:
-                              type: string
-                            name:
-                              type: string
-                            ssid:
-                              type: string
-                            passphrase:
-                              type: string
-                            security:
-                              type: string
-                              enum:
-                              - Psk
-                              - Ieee8021x
-                              - None
-                              - Wep
-                            isHidden:
-                              type: boolean
-                            eap:
-                              type: string
-                              enum:
-                              - Tls
-                              - Ttls
-                              - Peap
-                            caCert:
-                              type: string
-                              format: byte
-                            caCertType:
-                              type: string
-                              enum: 
-                              - Pem
-                              - Der
-                            privateKey:
-                              type: string
-                              format: byte
-                            privateKeyType:
-                              type: string
-                              enum:
-                              - Pem
-                              - Der
-                              - Pfx
-                            privateKeyPassphrase:
-                              type: string
-                            privateKeyPassphraseType:
-                              type: string
-                              enum:
-                              - Fsid
-                            identity:
-                              type: string
-                            anonymousIdentity:
-                              type: string
-                            subjectMatch:
-                              type: string
-                            altSubjectMatch:
-                              type: string
-                            domainSuffixMatch:
-                              type: string
-                            domainMatch:
-                              type: string
-                            isPhase2EapBased:
-                              type: boolean
+                          $ref: "#/components/schemas/EthernetService"
 
   /device:
     post:
@@ -368,6 +249,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Organization"
+  
+  /ethernet/service:
+    get:
+      operationId: getEthernetServices
+      summary: Get ethernet services
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedEthernetServices"
 
   /student:
     post:
@@ -685,6 +578,15 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Student"
+    
+    PaginatedEthernetServices:
+      allOf:
+        - $ref: "#/components/schemas/Pagination"
+        - properties:
+            data:
+              type: array
+              items:
+                $ref: "#/component/schemas/EthernetService"
 
     Problem:
       description: An RFC7807 Problem Details Object.
@@ -711,6 +613,128 @@ components:
           $ref: "#/components/schemas/Device"
         token:
           type: string
+
+    EthernetService:
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - Ethernet
+            - Wifi
+        ipv4Config:
+          properties:
+            type:
+              type: string
+              enum:
+                - "Off"
+                - Dhcp
+                - Custom
+            settings:
+              properties:
+                network:
+                  type: string
+                netmask:
+                  type: string
+                gateway:
+                  type: string
+        ipv6Config:
+          properties:
+            type:
+              type: string
+              enum:
+                - "Off"
+                - Auto
+                - Custom
+            settings:
+              properties:
+                network:
+                  type: string
+                prefixLength:
+                  type: integer
+                gateway:
+                  type: string
+        ipv6Privacy:
+          type: string
+          enum:
+          - Disabled
+          - Enabled
+          - Preferred
+        mac:
+          type: string
+        nameservers:
+          type: array
+          items:
+            type: string
+        searchDomains:
+          type: array
+          items:
+            type: string
+        timeservers:
+          type: array
+          items:
+            type: string
+        domain:
+          type: string
+        name:
+          type: string
+        ssid:
+          type: string
+        passphrase:
+          type: string
+        security:
+          type: string
+          enum:
+          - Psk
+          - Ieee8021x
+          - None
+          - Wep
+        isHidden:
+          type: boolean
+        eap:
+          type: string
+          enum:
+          - Tls
+          - Ttls
+          - Peap
+        caCert:
+          type: string
+          format: byte
+        caCertType:
+          type: string
+          enum: 
+          - Pem
+          - Der
+        privateKey:
+          type: string
+          format: byte
+        privateKeyType:
+          type: string
+          enum:
+          - Pem
+          - Der
+          - Pfx
+        privateKeyPassphrase:
+          type: string
+        privateKeyPassphraseType:
+          type: string
+          enum:
+          - Fsid
+        identity:
+          type: string
+        anonymousIdentity:
+          type: string
+        subjectMatch:
+          type: string
+        altSubjectMatch:
+          type: string
+        domainSuffixMatch:
+          type: string
+        domainMatch:
+          type: string
+        isPhase2EapBased:
+          type: boolean
 
   responses:
     ProblemResponse:
