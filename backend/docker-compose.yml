@@ -23,3 +23,13 @@ services:
     command: server -sd /datastore
     ports:
       - "4222:4222"
+  
+  vault:
+    image: vault
+    environment:
+      VAULT_CONFIG: '{"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}'
+    entrypoint: /bin/sh -c "echo \"$$VAULT_CONFIG\" > /vault/config/config.hcl && vault server -config /vault/config/config.hcl"
+    ports:
+      - '8300:8300'
+    cap_add:
+      - IPC_LOCK
