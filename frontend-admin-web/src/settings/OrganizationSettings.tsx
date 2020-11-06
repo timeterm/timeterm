@@ -1,8 +1,7 @@
 import { Typography } from "@rmwc/typography";
 import { TextField } from "@rmwc/textfield";
-import React, { forwardRef } from "react";
+import React from "react";
 import { fetchAuthnd } from "../DevicesPage";
-import { Savable } from "../SettingsPage";
 import useSetting, { SettingPageProps } from "./useSetting";
 
 interface OrganizationPatch {

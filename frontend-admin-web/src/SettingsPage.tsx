@@ -1,6 +1,6 @@
 import { Theme } from "@rmwc/theme";
 import { Elevation } from "@rmwc/elevation";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { LinkListItem } from "./AppDrawer";
 import { Button } from "@rmwc/button";
 import { TextField } from "@rmwc/textfield";
@@ -33,7 +33,6 @@ interface SettingsStore {
 const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [areContentsModified, setAreContentsModified] = useState(false);
-  const settingsRef = useRef<Savable>(null);
   const [settingsStore, setSettingsStore] = useState({} as SettingsStore);
   const [saveChanges, setSaveChanges] = useState(
     () => undefined as (() => void) | undefined
