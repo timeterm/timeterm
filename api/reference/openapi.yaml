@@ -586,7 +586,7 @@ components:
             data:
               type: array
               items:
-                $ref: "#/component/schemas/EthernetService"
+                $ref: "#/components/schemas/EthernetService"
 
     Problem:
       description: An RFC7807 Problem Details Object.
