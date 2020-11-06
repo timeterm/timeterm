@@ -8,6 +8,7 @@ export interface SettingPageProps {
   setIsModified: (isModified: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
   settingsStore: SettingsStore;
+  setSaveChanges: (save: () => void) => void;
 }
 
 export interface SettingsStore {
@@ -16,7 +17,6 @@ export interface SettingsStore {
 }
 
 export interface UseSettingProps<T, P extends object> {
-  ref: Ref<Savable | undefined>;
   fetch: () => Promise<T>;
   save: (patch: P) => Promise<Response>;
   initPatch: (original: T) => P;
@@ -28,7 +28,6 @@ export interface UseSettingProps<T, P extends object> {
 }
 
 const useSetting = <T, P extends object>({
-  ref,
   fetch,
   save,
   initPatch,
@@ -93,8 +92,8 @@ const useSetting = <T, P extends object>({
       });
   }, [error]);
 
-  useImperativeHandle(ref, () => ({
-    save() {
+  useEffect(() => {
+    pageProps.setSaveChanges(() => () => {
       saveMut(patch)
         .then()
         .catch(() =>
@@ -111,8 +110,10 @@ const useSetting = <T, P extends object>({
             ],
           })
         );
-    },
-  }));
+    });
+  }, [patch, saveMut]); // eslint-disable-line react-hooks/exhaustive-deps
+  // For the line above we really don't want pageProps to be in the dependencies array because this causes
+  // an infinite loop and imperative handles also don't seem to work too well.
 
   return {
     original,

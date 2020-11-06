@@ -35,6 +35,9 @@ const SettingsPage: React.FC = () => {
   const [areContentsModified, setAreContentsModified] = useState(false);
   const settingsRef = useRef<Savable>(null);
   const [settingsStore, setSettingsStore] = useState({} as SettingsStore);
+  const [saveChanges, setSaveChanges] = useState(
+    () => undefined as (() => void) | undefined
+  );
   const store = {
     store: settingsStore,
     update: (store: SettingsStore) =>
@@ -69,7 +72,7 @@ const SettingsPage: React.FC = () => {
               backgroundColor: areContentsModified ? "#4CAF50" : undefined,
             }}
             disabled={!areContentsModified}
-            onClick={settingsRef.current?.save}
+            onClick={() => saveChanges && saveChanges()}
           >
             Opslaan
           </Button>
@@ -166,10 +169,10 @@ const SettingsPage: React.FC = () => {
 
                 <Route exact path="/settings/account">
                   <UserSettings
-                    ref={settingsRef}
                     setIsLoading={setIsLoading}
                     setIsModified={setAreContentsModified}
                     settingsStore={store}
+                    setSaveChanges={setSaveChanges}
                   />
                 </Route>
 
@@ -177,8 +180,8 @@ const SettingsPage: React.FC = () => {
                   <OrganizationSettings
                     setIsModified={setAreContentsModified}
                     setIsLoading={setIsLoading}
-                    ref={settingsRef}
                     settingsStore={store}
+                    setSaveChanges={setSaveChanges}
                   />
                 </Route>
 

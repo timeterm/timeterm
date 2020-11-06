@@ -144,17 +144,6 @@ const AppDrawer: React.FC = () => {
                 </LinkListItem>
               </Theme>
               <Theme use="onPrimary" wrap>
-                <AnchorListItem
-                  href={`timeterm:${btoa(new Cookies().get("ttsess"))}`}
-                  rel="noopener noreferrer"
-                >
-                  <Theme use="onPrimary" wrap>
-                    <ListItemGraphic icon="bluetooth_connected" />
-                  </Theme>
-                  Apparaat koppelen
-                </AnchorListItem>
-              </Theme>
-              <Theme use="onPrimary" wrap>
                 <LinkListItem to="/settings">
                   <Theme use="onPrimary" wrap>
                     <ListItemGraphic icon="settings" />
@@ -184,6 +173,17 @@ const AppDrawer: React.FC = () => {
               </Theme>
             </List>
             <List>
+              <Theme use="onPrimary" wrap>
+                <AnchorListItem
+                  href="https://docs.timeterm.nl/"
+                  rel="noopener noreferrer"
+                >
+                  <Theme use="onPrimary" wrap>
+                    <ListItemGraphic icon="book" />
+                  </Theme>
+                  Documentatie
+                </AnchorListItem>
+              </Theme>
               <Theme use="onPrimary" wrap>
                 <AnchorListItem
                   href="mailto:support@timeterm.nl"

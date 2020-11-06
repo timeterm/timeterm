@@ -23,55 +23,46 @@ const updateUser = (patch: UserPatch) =>
 
 interface UserSettingsProps extends SettingPageProps {}
 
-const UserSettings = forwardRef(
-  (props: UserSettingsProps, ref: Ref<Savable | undefined>) => {
-    const { patch, setPatch } = useSetting<UserResponse, UserPatch>({
-      ref: ref,
-      pageProps: props,
-      isModified: (original, patch) => {
-        return original.name !== patch.name;
-      },
-      fetch(): Promise<UserResponse> {
-        return fetchAuthnd("https://api.timeterm.nl/user/me").then((res) =>
-          res.json()
-        );
-      },
-      initPatch(original: UserResponse): UserPatch {
-        return { id: original.id, name: original.name };
-      },
-      queryKey: "user",
-      save: updateUser,
-      settingsKey: "user",
-    });
+const UserSettings = (props: UserSettingsProps) => {
+  const { patch, setPatch } = useSetting<UserResponse, UserPatch>({
+    pageProps: props,
+    isModified: (original, patch) => {
+      return original.name !== patch.name;
+    },
+    fetch(): Promise<UserResponse> {
+      return fetchAuthnd("https://api.timeterm.nl/user/me").then((res) =>
+        res.json()
+      );
+    },
+    initPatch(original: UserResponse): UserPatch {
+      return { id: original.id, name: original.name };
+    },
+    queryKey: "user",
+    save: updateUser,
+    settingsKey: "user",
+  });
 
-    return (
-      <>
-        <Typography use="headline5">Mijn account</Typography>
+  return (
+    <>
+      <Typography use="headline5">Mijn account</Typography>
 
-        <TextField
-          style={{
-            marginTop: 16,
-            width: "25em",
-          }}
-          label={"Naam"}
-          outlined
-          value={patch?.name || ""}
-          onInput={(evt) => {
-            setPatch({
-              ...patch,
-              name: (evt.target as HTMLInputElement).value,
-            });
-          }}
-          onKeyDown={(evt) => {
-            setPatch({
-              ...patch,
-              name: (evt.target as HTMLInputElement).value,
-            })
-          }}
-        />
-      </>
-    );
-  }
-);
+      <TextField
+        style={{
+          marginTop: 16,
+          width: "25em",
+        }}
+        label={"Naam"}
+        outlined
+        value={patch?.name || ""}
+        onInput={(evt) => {
+          setPatch({
+            ...patch,
+            name: (evt.target as HTMLInputElement).value,
+          });
+        }}
+      />
+    </>
+  );
+};
 
 export default UserSettings;
