@@ -3,6 +3,7 @@ include:
 
 variables:
   DOCKER_TLS_CERTDIR: "/certs"
+  GIT_SUBMODULE_STRATEGY: recursive
 
 services:
   - docker:19.03.13-dind
@@ -43,7 +44,7 @@ build-oci-nats-jsm-backup:
 
 build-oci-postgres-backup:
   stage: build
-  image: registry.gitlab.com/timeterm/timeterm/postgres-backup
+  image: registry.gitlab.com/timeterm/timeterm/docker-build
   variables:
     PACKAGE: "oci-postgres-backup"
   script:
@@ -64,6 +65,7 @@ build-frontend-admin-web:
   script:
     - cd frontend-admin-web
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - yarn install
     - make image push
   only:
     refs:
