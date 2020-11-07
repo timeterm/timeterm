@@ -3,7 +3,7 @@ build:
 	hugo
 
 .PHONY: image
-image: build
+image:
 	docker build -t registry.gitlab.com/timeterm/timeterm/docs .
 
 .PHONY: push

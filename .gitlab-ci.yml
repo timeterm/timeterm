@@ -95,6 +95,25 @@ build-docs:
   script:
     - cd docs
     - git submodule update --init themes/book
+    - make build
+  artifacts:
+    paths:
+      - docs/public/
+  only:
+    refs:
+      - master
+    # changes:
+    #   - "docs/**/*"
+
+deploy-docs:
+  stage: deploy
+  image: docker:19.03.13
+  variables:
+    PACKAGE: "docs"
+  dependencies:
+    - build-docs
+  script:
+    - cd docs
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
