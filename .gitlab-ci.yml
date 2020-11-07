@@ -16,8 +16,8 @@ build-backend:
   only:
     refs:
       - master
-    changes:
-      - "backend/**/*"
+    # changes:
+    #   - "backend/**/*"
 
 build-oci-nats-jsm-backup:
   stage: build
@@ -30,8 +30,8 @@ build-oci-nats-jsm-backup:
   only:
     refs:
       - master
-    changes:
-      - "oci-images/nats-jsm-backup/**/*"
+    # changes:
+    #   - "oci-images/nats-jsm-backup/**/*"
 
 build-oci-postgres-backup:
   stage: build
@@ -44,8 +44,8 @@ build-oci-postgres-backup:
   only:
     refs:
       - master
-    changes:
-      - "oci-images/postgres-backup/**/*"
+    # changes:
+    #   - "oci-images/postgres-backup/**/*"
 
 build-frontend-admin-web:
   stage: build
@@ -58,8 +58,8 @@ build-frontend-admin-web:
   only:
     refs:
       - master
-    changes:
-      - "frontend-admin-web/**/*"
+    # changes:
+    #   - "frontend-admin-web/**/*"
 
 build-api-reference:
   stage: build
@@ -72,8 +72,8 @@ build-api-reference:
   only:
     refs:
       - master
-    changes:
-      - "api/reference/**/*"
+    # changes:
+    #   - "api/reference/**/*"
 
 build-docs:
   stage: build
@@ -86,6 +86,6 @@ build-docs:
   only:
     refs:
       - master
-    changes:
-      - "docs/**/*"
+    # changes:
+    #   - "docs/**/*"
 
