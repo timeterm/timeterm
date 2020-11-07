@@ -3,6 +3,7 @@ include:
 
 stages:
   - build
+  - test
 
 build-backend:
   stage: build
