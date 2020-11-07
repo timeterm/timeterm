@@ -24,12 +24,32 @@ services:
     ports:
       - "4222:4222"
   
+  nats-account-server:
+    environment:
+      NAS_CONFIG: |
+        {
+          store: {
+            dir: /data
+          }
+        }
+    volumes:
+      - nats-account-server:/data
+    image: synadia/nats-account-server:0.8.4
+    restart: always
+    entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
+    ports:
+      - "9090:9090"
+  
   vault:
     image: vault
     environment:
-      VAULT_CONFIG: '{"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}'
+      VAULT_CONFIG: |
+        {"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}
     entrypoint: /bin/sh -c "echo \"$$VAULT_CONFIG\" > /vault/config/config.hcl && vault server -config /vault/config/config.hcl"
     ports:
-      - '8300:8300'
+      - "8300:8300"
     cap_add:
       - IPC_LOCK
+
+volumes:
+  nats-account-server: {}
