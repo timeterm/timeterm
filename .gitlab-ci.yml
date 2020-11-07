@@ -106,6 +106,7 @@ deploy-frontend-admin-web:
     - build-frontend-admin-web
   script:
     - cd frontend-admin-web
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
