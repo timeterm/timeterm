@@ -15,7 +15,7 @@ stages:
 
 build-backend:
   stage: build
-  image: registry.gitlab.com/timeterm/timeterm/golang-build
+  image: golang:1.15.4-alpine
   variables:
     PACKAGE: "backend"
   artifacts:
