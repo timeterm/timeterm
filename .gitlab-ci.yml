@@ -86,7 +86,7 @@ build-frontend-admin-web:
       - frontend-embedded/node_modules
   artifacts:
     paths:
-      - frontend-admin-web/public
+      - frontend-admin-web/build
   script:
     - cd frontend-admin-web
     - yarn install
