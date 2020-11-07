@@ -1,2 +1,84 @@
 include:
   - template: Dependency-Scanning.gitlab-ci.yml
+
+stages:
+  - build
+
+build-backend:
+  stage: build
+  variables:
+    PACKAGE: "backend"
+  script:
+    - cd backend
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "backend/**/*"
+
+build-oci-nats-jsm-backup:
+  stage: build
+  variables:
+    PACKAGE: "oci-nats-jsm-backup"
+  script:
+    - cd oci-images/nats-jsm-backup
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "oci-images/nats-jsm-backup/**/*"
+
+build-oci-postgres-backup:
+  stage: build
+  variables:
+    PACKAGE: "oci-postgres-backup"
+  script:
+    - cd oci-images/postgres-backup
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "oci-images/postgres-backup/**/*"
+
+build-frontend-admin-web:
+  stage: build
+  variables:
+    PACKAGE: "frontend-admin-web"
+  script:
+    - cd frontend-admin-web
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "frontend-admin-web/**/*"
+
+build-api-reference:
+  stage: build
+  variables:
+    PACKAGE: "api-reference"
+  script:
+    - cd api/reference
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "api/reference/**/*"
+
+build-docs:
+  stage: build
+  variables:
+    PACKAGE: "docs"
+  script:
+    - cd docs
+    - make image push
+  only:
+    refs:
+      - master
+    changes:
+      - "docs/**/*"
+
