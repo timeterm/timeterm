@@ -27,8 +27,8 @@ build-backend:
   only:
     refs:
       - master
-    # changes: &beChanges
-    #   - "backend/**/*"
+    changes: &beChanges
+      - "backend/**/*"
 
 deploy-backend:
   stage: deploy
@@ -44,7 +44,7 @@ deploy-backend:
   only:
     refs:
       - master
-    # changes: *beChanges
+    changes: *beChanges
 
 deploy-oci-nats-jsm-backup:
   stage: deploy
@@ -58,8 +58,8 @@ deploy-oci-nats-jsm-backup:
   only:
     refs:
       - master
-    # changes:
-    #   - "oci-images/nats-jsm-backup/**/*"
+    changes:
+      - "oci-images/nats-jsm-backup/**/*"
 
 deploy-oci-postgres-backup:
   stage: deploy
@@ -73,8 +73,8 @@ deploy-oci-postgres-backup:
   only:
     refs:
       - master
-    # changes:
-    #   - "oci-images/postgres-backup/**/*"
+    changes:
+      - "oci-images/postgres-backup/**/*"
 
 build-frontend-admin-web:
   stage: build
@@ -94,8 +94,8 @@ build-frontend-admin-web:
   only:
     refs:
       - master
-    # changes: &fawChanges
-    #   - "frontend-admin-web/**/*"
+    changes: &fawChanges
+      - "frontend-admin-web/**/*"
 
 deploy-frontend-admin-web:
   stage: deploy
@@ -111,7 +111,7 @@ deploy-frontend-admin-web:
   only:
     refs:
       - master
-    # changes: *fawChanges
+    changes: *fawChanges
 
 deploy-api-reference:
   stage: deploy
@@ -125,8 +125,8 @@ deploy-api-reference:
   only:
     refs:
       - master
-    # changes:
-    #   - "api/reference/**/*"
+    changes:
+      - "api/reference/**/*"
 
 build-docs:
   stage: build
@@ -143,8 +143,8 @@ build-docs:
   only:
     refs:
       - master
-    # changes: &docsChanges
-    #   - "docs/**/*"
+    changes: &docsChanges
+      - "docs/**/*"
 
 deploy-docs:
   stage: deploy
@@ -160,5 +160,5 @@ deploy-docs:
   only:
     refs:
       - master
-    # changes: *docsChanges
+    changes: *docsChanges
 
