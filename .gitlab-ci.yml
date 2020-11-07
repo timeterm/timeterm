@@ -94,7 +94,7 @@ build-docs:
     PACKAGE: "docs"
   script:
     - cd docs
-    - git submodule update themes/book
+    - git submodule update themes/book --init
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
