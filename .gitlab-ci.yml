@@ -18,6 +18,7 @@ build-backend:
     PACKAGE: "backend"
   script:
     - cd backend
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
@@ -32,6 +33,7 @@ build-oci-nats-jsm-backup:
     PACKAGE: "oci-nats-jsm-backup"
   script:
     - cd oci-images/nats-jsm-backup
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
@@ -46,6 +48,7 @@ build-oci-postgres-backup:
     PACKAGE: "oci-postgres-backup"
   script:
     - cd oci-images/postgres-backup
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
@@ -60,6 +63,7 @@ build-frontend-admin-web:
     PACKAGE: "frontend-admin-web"
   script:
     - cd frontend-admin-web
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
@@ -74,6 +78,7 @@ build-api-reference:
     PACKAGE: "api-reference"
   script:
     - cd api/reference
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
@@ -88,6 +93,7 @@ build-docs:
     PACKAGE: "docs"
   script:
     - cd docs
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
