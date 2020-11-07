@@ -2,7 +2,7 @@
 build:
 	yarn build
 
-.PHONY: image
+.PHONY:
 image: build
 	docker build -t registry.gitlab.com/timeterm/timeterm/frontend-admin-web .
 

@@ -9,23 +9,41 @@ services:
 
 stages:
   - build
-  - test
+  - qa
   - deploy
+  - test
 
 build-backend:
   stage: build
   image: registry.gitlab.com/timeterm/timeterm/golang-build
   variables:
     PACKAGE: "backend"
+  artifacts:
+    paths:
+      - backend/timeterm
   script:
     - cd backend
+    - make build
+  only:
+    refs:
+      - master
+    # changes: &beChanges
+    #   - "backend/**/*"
+
+deploy-backend:
+  stage: deploy
+  image: registry.gitlab.com/timeterm/timeterm/docker-build
+  variables:
+    PACKAGE: "backend"
+  dependencies:
+    - build-backend
+  script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make image push
   only:
     refs:
       - master
-    # changes:
-    #   - "backend/**/*"
+    # changes: *beChanges
 
 build-oci-nats-jsm-backup:
   stage: build
@@ -62,19 +80,39 @@ build-frontend-admin-web:
   image: registry.gitlab.com/timeterm/timeterm/react-build
   variables:
     PACKAGE: "frontend-admin-web"
+  cache:
+    paths:
+      - frontend-embedded/node_modules
+  artifacts:
+    paths:
+      - frontend-admin-web/public
   script:
     - cd frontend-admin-web
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - yarn install
+    - make build
+  only:
+    refs:
+      - master
+    # changes: &fawChanges
+    #   - "frontend-admin-web/**/*"
+
+deploy-frontend-admin-web:
+  stage: deploy
+  image: registry.gitlab.com/timeterm/timeterm/docker-build
+  variables:
+    PACKAGE: "frontend-admin-web"
+  dependencies:
+    - build-frontend-admin-web
+  script:
+    - cd frontend-admin-web
     - make image push
   only:
     refs:
       - master
-    # changes:
-    #   - "frontend-admin-web/**/*"
+    # changes: *fawChanges
 
-build-api-reference:
-  stage: build
+deploy-api-reference:
+  stage: deploy
   image: registry.gitlab.com/timeterm/timeterm/docker-build
   variables:
     PACKAGE: "api-reference"
@@ -90,7 +128,7 @@ build-api-reference:
 
 build-docs:
   stage: build
-  image: registry.gitlab.com/timeterm/timeterm/hugo-build
+  image: klakegg/hugo:0.78.1-ext-alpine-ci
   variables:
     PACKAGE: "docs"
   script:
@@ -103,12 +141,12 @@ build-docs:
   only:
     refs:
       - master
-    # changes:
+    # changes: &docsChanges
     #   - "docs/**/*"
 
 deploy-docs:
   stage: deploy
-  image: docker:19.03.13
+  image: registry.gitlab.com/timeterm/timeterm/docker-build 
   variables:
     PACKAGE: "docs"
   dependencies:
@@ -120,6 +158,5 @@ deploy-docs:
   only:
     refs:
       - master
-    # changes:
-    #   - "docs/**/*"
+    # changes: *docsChanges
 
