@@ -262,6 +262,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/PaginatedEthernetServices"
 
+  /ethernet/service/{serviceId}:
+    get:
+      operationId: getEthernetService
+      summary: Get an ethernet service
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EthernetService"
+
+    delete:
+      operationId: deleteEthernetService
+      summary: Delete an ethernet service
+      responses:
+        "204":
+          description: No content
+    
+    put:
+      operationId: replaceEthernetService
+      summary: Replace an ethernet service
+      responses:
+        "200":
+          description: Ethernet service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EthernetService"
+
   /student:
     post:
       operationId: createStudent
@@ -612,6 +642,8 @@ components:
         device:
           $ref: "#/components/schemas/Device"
         token:
+          type: string
+        natsCredentials:
           type: string
 
     EthernetService:
