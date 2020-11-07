@@ -10,6 +10,7 @@ services:
 stages:
   - build
   - test
+  - deploy
 
 build-backend:
   stage: build
