@@ -16,10 +16,10 @@ func main() {
 
 	enc := nats.EncodedConn{
 		Conn: nc,
-		Enc: natspb.Encoder{},
+		Enc:  natspb.NewEncoder(),
 	}
 
-	enc.QueueSubscribe("FEDEV.new", "FEDEV.new", func(subject, reply string, o *) {
-
+	enc.QueueSubscribe("FEDEV.new", "FEDEV.new", func(subject, reply string, /* o *mqpb.NewDevMessage */) {
+		enc.Publish(reply, nil)
 	})
 }
