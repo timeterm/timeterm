@@ -15,49 +15,23 @@ Page {
     }
 
     function setTimetable(timetable) {
-        // Pretty-print the timetable as JSON
-        console.log()
-
-        // Use it
         for (var i = 0; i < timetable.data.length; i++) {
-            let appointment = Qt.createComponent("DayViewAppointment.qml")
-
-            var incubator = appointment.incubateObject(appointments, {
-                                                           "startTimeSlot": timetable.data[i].startTimeSlot,
-                                                           "endTimeSlot": timetable.data[i].endTimeSlot,
-                                                           "startTime": timetable.data[i].startTime,
-                                                           "endTime": timetable.data[i].endTime,
-                                                           "subjects": timetable.data[i].subjects,
-                                                           "groups": timetable.data[i].groups,
-                                                           "locations": timetable.data[i].locations,
-                                                           "teachers": timetable.data[i].teachers
-                                                       })
-            if (incubator.status !== Component.Ready) {
-                incubator.onStatusChanged = function (status) {
-                    if (status === Component.Ready) {
-                        print("Object", incubator.object, "is now ready!")
-                    }
+            let finishCreation = (appointment) => {
+                if (appointment.status === Component.Ready) {
+                    appointment.incubateObject(appointments, {
+                        appointment: timetable.data[i]
+                    })
+                } else if (appointment.status === Component.Error) {
+                    console.log("Could not create appointment:", appointment.errorString());
                 }
-            } else {
-                print("Object", incubator.object, "is ready immediately!")
             }
 
-            //            if (appointment.status === Component.Ready) {
-            //                console.log("appointment ready")
-            //                appointment.createObject(appointments.contentItem, {
-            //                                             "startTimeSlot": timetable.data[i].startTimeSlot,
-            //                                             "endTimeSlot": timetable.data[i].endTimeSlot,
-            //                                             "startTime": timetable.data[i].startTime,
-            //                                             "endTime": timetable.data[i].endTime,
-            //                                             "subjects": timetable.data[i].subjects,
-            //                                             "groups": timetable.data[i].groups,
-            //                                             "locations": timetable.data[i].locations,
-            //                                             "teachers": timetable.data[i].teachers
-            //                                         })
-            //                console.log("appointment inserted")
-            //            } else {
-            //                console.log("appointment wasn't ready")
-            //            }
+            let appointment = Qt.createComponent("DayViewAppointment.qml")
+            if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
+                finishCreation(appointment)
+            } else {
+                appointment.statusChanged.connect(finishCreation)
+            }
         }
     }
 

@@ -1,19 +1,12 @@
 import QtQuick 2.12
 
 Rectangle {
-    property QString startTimeSlot
-    property QString endTimeSlot
-    property QDateTime startTime
-    property QDateTime endTime
-    property QStringList subjects
-    property QStringList groups
-    property QStringList locations
-    property QStringList teachers
+    property var appointment
     property int textSize: 10
     property int customMargin: 20
 
     width: parent.width
-    height: parent.height * (endTime - startTime) / 1000 / 22500
+    height: parent.height * (appointment.endTime - appointment.startTime) / 1000 / 22500
     color: "#e5e5e5"
     radius: 5
 
@@ -22,7 +15,7 @@ Rectangle {
         anchors.leftMargin: customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: textSize
-        text: subjects.join(", ")
+        text: appointment.subjects.join(", ")
     }
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -30,7 +23,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: textSize
         color: "#666666"
-        text: teachers.join(", ")
+        text: appointment.teachers.join(", ")
     }
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -38,13 +31,13 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: textSize
         color: "#666666"
-        text: groups.join(", ")
+        text: appointment.groups.join(", ")
     }
     Text {
         anchors.right: parent.right
         anchors.rightMargin: customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: textSize
-        text: locations.join(", ")
+        text: appointment.locations.join(", ")
     }
 }
