@@ -12,7 +12,7 @@
 #include <QtCore/QTimer>
 
 #include <nats.h>
-#include <timeterm_proto/messages.pb.h>
+#include <timeterm_proto/mq/mq.pb.h>
 
 namespace MessageQueue
 {
@@ -85,8 +85,8 @@ private slots:
 
 private:
     void handleMessage(natsMsg *msg);
-    void handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg);
-    void handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg);
+    void handleRetrieveNewTokenProto(const timeterm_proto::mq::RetrieveNewTokenMessage &msg);
+    void handleDisownTokenProto(const timeterm_proto::mq::DisownTokenMessage &msg);
 
     QString m_subject;
     QString m_stream;

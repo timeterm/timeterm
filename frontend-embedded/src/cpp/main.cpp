@@ -17,7 +17,7 @@
 #include <devcfg/configloader.h>
 #include <logs/logmanager.h>
 #include <networking/networkmanager.h>
-#include <timeterm_proto/messages.pb.h>
+#include <timeterm_proto/mq/mq.pb.h>
 #include <util/scopeguard.h>
 #include "api/zermeloappointment.h"
 

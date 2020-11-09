@@ -38,7 +38,7 @@ add_library(timeterm_proto STATIC)
 protobuf_generate(
 		LANGUAGE cpp
 		TARGET timeterm_proto
-		PROTOS timeterm_proto/messages.proto
+		PROTOS timeterm_proto/devcfg/devcfg.proto timeterm_proto/mq/mq.proto
 )
 
 target_link_libraries(timeterm_proto PUBLIC protobuf::libprotobuf)

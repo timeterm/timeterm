@@ -93,19 +93,19 @@ void JetStreamConsumer::handleMessage(natsMsg *msg)
     qDebug() << "Handling message with subject" << subject;
 
     if (subject == QString("FEDEV.%1.DISOWN-TOKEN").arg(m_consumerId)) {
-        timeterm_proto::messages::DisownTokenMessage m;
+        timeterm_proto::mq::DisownTokenMessage m;
 
         if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))
             handleDisownTokenProto(m);
     } else if (subject == QString("FEDEV.%1.RETRIEVE-NEW-TOKEN").arg(m_consumerId)) {
-        timeterm_proto::messages::RetrieveNewTokenMessage m;
+        timeterm_proto::mq::RetrieveNewTokenMessage m;
 
         if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))
             handleRetrieveNewTokenProto(m);
     }
 }
 
-void JetStreamConsumer::handleDisownTokenProto(const timeterm_proto::messages::DisownTokenMessage &msg)
+void JetStreamConsumer::handleDisownTokenProto(const timeterm_proto::mq::DisownTokenMessage &msg)
 {
     DisownTokenMessage m;
 
@@ -116,7 +116,7 @@ void JetStreamConsumer::handleDisownTokenProto(const timeterm_proto::messages::D
     emit disownTokenMessage(m);
 }
 
-void JetStreamConsumer::handleRetrieveNewTokenProto(const timeterm_proto::messages::RetrieveNewTokenMessage &msg)
+void JetStreamConsumer::handleRetrieveNewTokenProto(const timeterm_proto::mq::RetrieveNewTokenMessage &msg)
 {
     RetrieveNewTokenMessage m;
 
