@@ -53,8 +53,11 @@ paths:
 
   /device:
     post:
-      operationId: createDevice
-      summary: Create a new device
+      operationId: registerDevice
+      summary: |
+        Register a new device
+
+        > NOTE: this API call can only be performed by devices.
       requestBody:
         content:
           application/json:
