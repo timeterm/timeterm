@@ -1,10 +1,10 @@
-import QtQuick 2.9
-import QtQuick.Window 2.14
-import QtQuick.VirtualKeyboard 2.14
-import QtQuick.Controls 2.14
-import QtQuick.Layouts 1.3
+import QtQuick 2.12
+import QtQuick.Window 2.12
+import QtQuick.VirtualKeyboard 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.0
-import QtQml 2.3
+import QtQml 2.12
 
 ApplicationWindow {
     id: mainWindow
@@ -114,8 +114,8 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.top: dayViewButton.bottom
             anchors.topMargin: menuBar.width * 0.125
-            //width: 150
 
+            //width: 150
             background: Rectangle {
                 id: secondRect
                 color: "#E5E5E5"

@@ -1,5 +1,5 @@
-import QtQuick 2.9
-import QtQml 2.3
+import QtQuick 2.12
+import QtQml 2.12
 import Timeterm.Api 1.0
 import Timeterm.Config 1.0
 import Timeterm.MessageQueue 1.0
