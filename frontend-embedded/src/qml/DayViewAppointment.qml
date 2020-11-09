@@ -2,8 +2,8 @@ import QtQuick 2.12
 
 Rectangle {
     property var appointment
-    property int textSize: 10
-    property int customMargin: 20
+    property int textSize: parent.height * 0.04
+    property int customMargin: parent.height * 0.05
 
     width: parent.width
     height: parent.height * (appointment.endTime - appointment.startTime) / 1000 / 22500
