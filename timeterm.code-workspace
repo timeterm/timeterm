@@ -29,7 +29,10 @@
 		},
 		{
 			"path": "proto"
-		}
+		},
+        {
+            "path": "nats-manager"
+        }
 	],
 	"settings": {
 		"files.associations": {
