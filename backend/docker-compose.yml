@@ -29,11 +29,11 @@ services:
       NAS_CONFIG: |
         {
           store: {
-            dir: /data
+            nsc: /data
           }
         }
     volumes:
-      - nats-account-server:/data
+      - ./nats-account-server/timeterm:/data
     image: synadia/nats-account-server:0.8.4
     restart: always
     entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
@@ -50,6 +50,3 @@ services:
       - "8300:8300"
     cap_add:
       - IPC_LOCK
-
-volumes:
-  nats-account-server: {}

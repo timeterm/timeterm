@@ -7,7 +7,7 @@ import (
 	"github.com/nats-io/nats.go"
 	mqpb "gitlab.com/timeterm/timeterm/proto/go/mq"
 
-	"gitlab.com/timeterm/timeterm/backend/mq/natspb"
+	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 )
 
 type Wrapper struct {
