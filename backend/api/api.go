@@ -76,6 +76,7 @@ func (s *Server) registerRoutes() {
 	devGroup.POST("/:id/restart", s.rebootDevice)
 	devGroup.PATCH("/:id", s.patchDevice)
 	devGroup.DELETE("/:id", s.deleteDevice)
+	devGroup.GET("/registrationconfig", s.getRegistrationConfig)
 
 	orgGroup := s.echo.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
