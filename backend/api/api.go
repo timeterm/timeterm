@@ -63,8 +63,9 @@ func (s *Server) registerRoutes() {
 	g := s.echo.Group("")
 	g.Use(authn.Middleware(s.db, s.log))
 
-	g.GET("/user/me", s.getCurrentUser)
-	g.PATCH("/user/:id", s.patchUser)
+	userGroup := s.echo.Group("/user")
+	userGroup.GET("/me", s.getCurrentUser)
+	userGroup.PATCH("/:id", s.patchUser)
 
 	devGroup := s.echo.Group("/device")
 	devGroup.GET("/", s.getDevices)
@@ -80,11 +81,12 @@ func (s *Server) registerRoutes() {
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)
 
-	g.GET("/student/:id", s.getStudent)
-	g.PATCH("/student/:id", s.patchStudent)
-	g.GET("/student", s.getStudents)
-	g.POST("/student", s.createStudent)
-	g.DELETE("/student", s.deleteStudents)
+	stdGroup := s.echo.Group("/student")
+	stdGroup.GET("/:id", s.getStudent)
+	stdGroup.PATCH("/:id", s.patchStudent)
+	stdGroup.GET("/", s.getStudents)
+	stdGroup.POST("/", s.createStudent)
+	stdGroup.DELETE("/", s.deleteStudents)
 }
 
 func (s *Server) Run(ctx context.Context) error {
