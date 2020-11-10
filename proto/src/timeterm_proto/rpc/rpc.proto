@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "gitlab.com/timeterm/timeterm/proto/go/rpc;rpcpb";
+
+package timeterm_proto.rpc;
+
+message ProvisionNewDeviceRequest {
+    string device_id = 1;
+}
+
+message ProvisionNewDeviceResponse {
+    string nats_creds = 1;
+}
+
+

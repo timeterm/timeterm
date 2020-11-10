@@ -46,6 +46,39 @@ deploy-backend:
       - master
     changes: *beChanges
 
+build-nats-manager:
+  stage: build
+  image: registry.gitlab.com/timeterm/timeterm/golang-build
+  variables:
+    PACKAGE: "nats-manager"
+  artifacts:
+    paths:
+      - nats-manager/nats-manager
+  script:
+    - cd nats-manager
+    - make build
+  only:
+    refs:
+      - master
+    changes: &nmChanges
+      - "nats-manager/**/*"
+
+deploy-nats-manager:
+  stage: deploy
+  image: registry.gitlab.com/timeterm/timeterm/docker-build
+  variables:
+    PACKAGE: "nats-manager"
+  dependencies:
+    - build-nats-manager
+  script:
+    - cd nats-manager
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - make image push
+  only:
+    refs:
+      - master
+    changes: *nmChanges
+
 deploy-oci-nats-jsm-backup:
   stage: deploy
   image: registry.gitlab.com/timeterm/timeterm/docker-build
