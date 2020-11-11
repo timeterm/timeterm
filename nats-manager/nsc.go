@@ -17,15 +17,12 @@ func streamConsumerACLs(c streamConsumer) []string {
 
 func createNewDevUser(id uuid.UUID) (string, error) {
 	accountName := fmt.Sprintf("fedev-%s", id)
-	cmd := exec.Command("nsc", "add", "account", "--name", accountName)
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
+
+	nscAddAccount(accountName)
 
 	nscAddUser(accountName, []streamConsumer{
 		{
-			stream:   "FEDEV.DISOWN-TOKEN",
+			stream:   "EMDEV-DISOWN-TOKEN",
 			consumer: fmt.Sprintf("FEDEV-%s", id),
 		},
 	})
@@ -35,6 +32,12 @@ func createNewDevUser(id uuid.UUID) (string, error) {
 
 type streamConsumer struct {
 	stream, consumer string
+}
+
+func nscAddAccount(name string) error {
+	args := []string{"add", "account", "--name", name}
+
+	return exec.Command("nsc", args...).Run()
 }
 
 func nscAddUser(name string, allowStreams []streamConsumer) error {

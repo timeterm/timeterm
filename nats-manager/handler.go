@@ -19,9 +19,9 @@ func (h *handler) provisionNewDevice(id uuid.UUID) error {
 		return err
 	}
 
-	consumerName := fmt.Sprintf("FEDEV-%s", id)
-	wantDisownTokenSubject := fmt.Sprintf("FEDEV.%s.DISOWN-TOKEN", id)
-	_, err = mgr.NewConsumer("FEDEV.DISOWN-TOKEN",
+	consumerName := fmt.Sprintf("EMDEV-%s", id)
+	wantDisownTokenSubject := fmt.Sprintf("EMDEV.%s.DISOWN-TOKEN", id)
+	_, err = mgr.NewConsumer("EMDEV-DISOWN-TOKEN",
 		jsm.DurableName(consumerName),
 		jsm.FilterStreamBySubject(wantDisownTokenSubject),
 		jsm.AckWait(time.Second*30),

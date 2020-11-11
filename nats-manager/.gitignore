@@ -1,0 +1,8 @@
+/.idea
+/.vscode
+
+# go / make build
+/nats-manager
+
+# .env may contain secrets
+.env
