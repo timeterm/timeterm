@@ -9,6 +9,7 @@ Page {
 
     property int textSize: dayPage.height * 0.04
     property int customMargin: dayPage.height * 0.05
+    property var secondToPixelRatio: appointments.height * 0.000037
 
     background: Rectangle {
         color: "#FFFFFF"
@@ -16,18 +17,68 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            let finishCreation = (appointment) => {
+            if (i === 0) {
+                appointments.startFirstAppointment = timetable.data[i].startTime
+            } else if (i === timetable.data.length - 1) {
+                appointments.endLastAppointment = timetable.data[i].endTime
+                appointments.contentHeight = (appointments.endLastAppointment
+                                              - appointments.startFirstAppointment)
+                        / 1000 * secondToPixelRatio
+
+                let currentLineTime = new Date()
+                currentLineTime.setTime(
+                            appointments.startFirstAppointment.getTime())
+                if (currentLineTime.getMinutes() !== 0
+                        || currentLineTime.getSeconds() !== 0) {
+                    currentLineTime.setHours(currentLineTime.getHours() + 1)
+                    currentLineTime.setMinutes(0, 0, 0)
+                }
+
+                for (currentLineTime; appointments.endLastAppointment.getTime(
+                         ) - currentLineTime.getTime(
+                         ) > 30 * 60 * 1000; currentLineTime.setHours(
+                         currentLineTime.getHours() + 1)) {
+                    let finishLineItem = function (timeLineItem) {
+                        if (timeLineItem.status === Component.Ready) {
+                            timeLineItem.incubateObject(timeLine, {
+                                                            "y": (currentLineTime - appointments.startFirstAppointment) / 1000 * secondToPixelRatio,
+                                                            "time": currentLineTime.getHours(
+                                                                        ).toString(
+                                                                        ) + ":" + (currentLineTime.getMinutes().toString() < 10 ? '0' : '') + currentLineTime.getMinutes()
+                                                        })
+                        } else if (timeLineItem.status === Component.Error) {
+                            console.log("Could not create lineItem:",
+                                        timeLineItem.errorString())
+                        }
+                    }
+
+                    let timeLineItem = Qt.createComponent(
+                            "DayViewTimeLineItem.qml")
+                    if (timeLineItem.status !== Component.Null
+                            && timeLineItem.status !== Component.Loading) {
+                        finishLineItem(timeLineItem)
+                    } else {
+                        timeLineItem.statusChanged.connect(finishLineItem)
+                    }
+                }
+            }
+
+            let finishCreation = function (appointment) {
                 if (appointment.status === Component.Ready) {
-                    appointment.incubateObject(appointments, {
-                        appointment: timetable.data[i]
-                    })
+                    appointment.incubateObject(appointments.contentItem, {
+                                                   "appointment": timetable.data[i],
+                                                   "startFirstAppointment": appointments.startFirstAppointment,
+                                                   "secondToPixelRatio": secondToPixelRatio
+                                               })
                 } else if (appointment.status === Component.Error) {
-                    console.log("Could not create appointment:", appointment.errorString());
+                    console.log("Could not create appointment:",
+                                appointment.errorString())
                 }
             }
 
             let appointment = Qt.createComponent("DayViewAppointment.qml")
-            if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
+            if (appointment.status !== Component.Null
+                    && appointment.status !== Component.Loading) {
                 finishCreation(appointment)
             } else {
                 appointment.statusChanged.connect(finishCreation)
@@ -55,30 +106,26 @@ Page {
 
     Flickable {
         id: appointments
-        width: parent.width * 0.8
         anchors.margins: parent.height * 0.02
         anchors.top: dayHeader.bottom
+        anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
 
+        contentWidth: width
+        flickableDirection: Flickable.VerticalFlick
+
+        property var startFirstAppointment
+        property var endLastAppointment
+
         Rectangle {
-            width: parent.width
-            height: parent.height
-            color: "#DDDDFF"
+            id: timeLine
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            width: parent.width - dayHeader.width - dayHeader.anchors.margins
+            color: "#7bb0ff"
+            radius: 5
         }
     }
-
-    //    ListView {
-    //        id: dayViewList
-    //        anchors.top: parent.top
-    //        anchors.bottom: parent.bottom
-    //        anchors.right: parent.right
-    //        anchors.margins: parent.height * 0.02
-
-    //        width: parent.width * 0.8
-    //        header: dayHeader
-    //        headerPositioning: ListView.OverlayHeader
-    //        delegate: DayViewAppointment
-    //        spacing: parent.height * 0.02
-    //    }
 }

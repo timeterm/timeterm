@@ -16,5 +16,6 @@
         <file>assets/icons/calendar-today.svg</file>
         <file>assets/icons/calendar-week.svg</file>
         <file>src/qml/DayViewAppointment.qml</file>
+        <file>src/qml/DayViewTimeLineItem.qml</file>
     </qresource>
 </RCC>
