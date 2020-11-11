@@ -11,8 +11,10 @@ Streams:
   Source topic: `EMDEV.*.DISOWN-TOKEN`  
   Makes for ACL entries: 
   - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}`  
+      
     > Required for requesting new messages.
   - <kbd>pub</kbd> `$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}.>`  
+      
     > Required for ACKing messages.  
       Not manually created by the client but set by the NATS server as 
       reply subject in responses to requests to the topic above.
