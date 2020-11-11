@@ -1,6 +1,6 @@
 # nats-manager
 
-nats-manager manages accounts for embedded Timeterm (frontend-embedded) devices, referred to as emdevs.
+nats-manager manages accounts for embedded Timeterm (frontend-embedded) devices, referred to as emdevs to keep topics short.
 
 ## Granted Permissions
 
@@ -9,8 +9,14 @@ Streams:
   Consumer: `EMDEV-{deviceId}`   
   Consumer topic filter: `EMDEV.{deviceId}.DISOWN-TOKEN`  
   Source topic: `EMDEV.*.DISOWN-TOKEN`  
-  Makes for ACL entry: <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{id}`
+  Makes for ACL entries: 
+  - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}`  
+    > Required for requesting new messages.
+  - <kbd>pub</kbd> `$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}.>`  
+    > Required for ACKing messages.  
+      Not manually created by the client but set by the NATS server as 
+      reply subject in responses to requests to the topic above.
 
 Topics:
-- `EMDEV.{deviceId}.REBOOT`
+- `EMDEV.{deviceId}.REBOOT`  
   Makes for ACL entry: <kbd>sub</kbd> `EMDEV.{deviceId}.REBOOT`
