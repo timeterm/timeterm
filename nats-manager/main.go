@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/nats-io/nats.go"
-	"gitlab.com/timeterm/timeterm/backend/mq/natspb"
+	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		Enc:  natspb.NewEncoder(),
 	}
 
-	enc.QueueSubscribe("FEDEV.new", "FEDEV.new", func(subject, reply string, /* o *mqpb.NewDevMessage */) {
+	enc.QueueSubscribe("FEDEV.new", "FEDEV.new", func(subject, reply string /* o *mqpb.NewDevMessage */) {
 		enc.Publish(reply, nil)
 	})
 }

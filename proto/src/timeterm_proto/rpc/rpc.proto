@@ -4,12 +4,15 @@ option go_package = "gitlab.com/timeterm/timeterm/proto/go/rpc;rpcpb";
 
 package timeterm_proto.rpc;
 
-message ProvisionNewDeviceRequest {
-    string device_id = 1;
-}
+message ProvisionNewDeviceRequest { string device_id = 1; }
 
 message ProvisionNewDeviceResponse {
-    string nats_creds = 1;
+  oneof response {
+    Error error = 1;
+    ProvisionNewDeviceResponseData success = 2;
+  }
 }
 
+message ProvisionNewDeviceResponseData { string nats_creds = 1; }
 
+message Error { string message = 1; }

@@ -5,18 +5,15 @@ option go_package = "gitlab.com/timeterm/timeterm/proto/go/mq;mqpb";
 package timeterm_proto.mq;
 
 message DisownTokenMessage {
-    string device_id = 1;
-    string token_hash = 2;
-    string token_hash_alg = 3;
+  string device_id = 1;
+  string token_hash = 2;
+  string token_hash_alg = 3;
 }
 
 message RetrieveNewTokenMessage {
-    string device_id = 1;
-    string current_token_hash = 2;
-    string current_token_hash_alg = 3;
+  string device_id = 1;
+  string current_token_hash = 2;
+  string current_token_hash_alg = 3;
 }
 
-message RebootMessage {
-    string device_id = 1;
-}
-
+message RebootMessage { string device_id = 1; }
