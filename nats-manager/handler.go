@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/jsm.go"
@@ -13,24 +12,20 @@ type handler struct {
 	nc *nats.Conn
 }
 
-func (h *handler) provisionNewDevice(id uuid.UUID) error {
+func (h *handler) provisionNewDevice(id uuid.UUID) (natsCreds string, err error) {
 	mgr, err := jsm.New(h.nc)
 	if err != nil {
-		return err
+		return "", fmt.Errorf("could not create JetStream manager: %w", err)
 	}
 
-	consumerName := fmt.Sprintf("EMDEV-%s", id)
-	wantDisownTokenSubject := fmt.Sprintf("EMDEV.%s.DISOWN-TOKEN", id)
-	_, err = mgr.NewConsumer("EMDEV-DISOWN-TOKEN",
-		jsm.DurableName(consumerName),
-		jsm.FilterStreamBySubject(wantDisownTokenSubject),
-		jsm.AckWait(time.Second*30),
-		jsm.AcknowledgeExplicit(),
-		jsm.DeliverAllAvailable(),
-	)
+	err = setUpDeviceConsumers(id, mgr)
 	if err != nil {
-		return err
+		return "", fmt.Errorf("could not set up device consumers: %w", err)
 	}
 
-	return nil
+	natsCreds, err = createNewDevUser(id)
+	if err != nil {
+		return "", fmt.Errorf("could not create new device user: %w", err)
+	}
+	return natsCreds, nil
 }

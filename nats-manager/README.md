@@ -6,19 +6,21 @@ nats-manager manages accounts for embedded Timeterm (frontend-embedded) devices,
 
 Streams:
 - Stream: `EMDEV-DISOWN-TOKEN`  
-  Consumer: `EMDEV-{deviceId}`   
+  Consumer: `EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN`   
   Consumer topic filter: `EMDEV.{deviceId}.DISOWN-TOKEN`  
   Source topic: `EMDEV.*.DISOWN-TOKEN`  
+  
   Makes for ACL entries: 
-  - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}`  
+  - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN`  
       
     > Required for requesting new messages.
-  - <kbd>pub</kbd> `$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}.>`  
+
+  - <kbd>pub</kbd> `$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN.>`  
       
     > Required for ACKing messages.  
       Not manually created by the client but set by the NATS server as 
       reply subject in responses to requests to the topic above.
 
 Topics:
-- `EMDEV.{deviceId}.REBOOT`  
+- Topic: `EMDEV.{deviceId}.REBOOT`  
   Makes for ACL entry: <kbd>sub</kbd> `EMDEV.{deviceId}.REBOOT`
