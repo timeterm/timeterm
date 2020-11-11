@@ -4,7 +4,9 @@ Rectangle {
     property var appointment
     property int textSize: parent.height * 0.04
     property int customMargin: parent.height * 0.05
+    property int secondToPixelRatio: 1
 
+    y: (appointment.startTime.getHours()*3600 + appointment.startTime.getMinutes()*60 + appointment.startTime.getSeconds() - 8*60)*secondToPixelRatio // time in seconds calculated from 8:00:00
     width: parent.width
     height: parent.height * (appointment.endTime - appointment.startTime) / 1000 / 22500
     color: "#e5e5e5"
