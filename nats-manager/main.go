@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -15,15 +16,25 @@ import (
 )
 
 func main() {
+	exitCode := 0
+	defer os.Exit(exitCode)
+
 	logger, _ := zap.NewDevelopment()
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
 	defer log.Info("shutdown complete")
 
+	if err := realMain(log); err != nil {
+		log.Error(err, "error running nats-manager")
+		exitCode = 1
+	}
+}
+
+func realMain(log logr.Logger) error {
 	nc, err := nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil {
-		logFatal(log, err, "could not connect to NATS")
+		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
 	defer func() {
 		err = nc.Drain()
@@ -35,13 +46,13 @@ func main() {
 	dataDir := os.Getenv("NATS_MANAGER_DATA_DIR")
 	needsInit, err := needsInit(dataDir)
 	if err != nil {
-		logFatal(log, err, "could not check if already initialized")
+		return fmt.Errorf("could not check if already initialized: %w", err)
 	}
 
 	if needsInit {
 		err = nscInitCmd(path.Join(dataDir, "store")).Run()
 		if err != nil {
-			logFatal(log, err, "could not init nsc")
+			return fmt.Errorf("could not init nsc: %w", err)
 		}
 	}
 
@@ -55,13 +66,11 @@ func main() {
 
 	err = runTx(ctx, nc, log, &hdlr)
 	if err != nil {
-		logFatal(log, err, "could not run transport")
+		return fmt.Errorf("could not run transport: %w", err)
 	}
-}
+	log.Info("shutting down")
 
-func logFatal(log logr.Logger, err error, msg string, keysAndValues ...interface{}) {
-	log.Error(err, "fatal: "+msg, keysAndValues...)
-	os.Exit(1)
+	return nil
 }
 
 func contextWithShutdown(parent context.Context) (ctx context.Context, cancel func()) {
