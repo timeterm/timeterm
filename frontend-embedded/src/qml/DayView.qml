@@ -17,50 +17,15 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (i === 0) {
+            if (i === 0) {                                                          // first appointment in the list
                 appointments.startFirstAppointment = timetable.data[i].startTime
-            } else if (i === timetable.data.length - 1) {
+            } else if (i === timetable.data.length - 1) {                           // last appointment in the list
                 appointments.endLastAppointment = timetable.data[i].endTime
-                appointments.contentHeight = (appointments.endLastAppointment
-                                              - appointments.startFirstAppointment)
+                appointments.contentHeight = (appointments.endLastAppointment.getTime()
+                                              - appointments.startFirstAppointment.getTime())
                         / 1000 * secondToPixelRatio
-
-                let currentLineTime = new Date()
-                currentLineTime.setTime(
-                            appointments.startFirstAppointment.getTime())
-                if (currentLineTime.getMinutes() !== 0
-                        || currentLineTime.getSeconds() !== 0) {
-                    currentLineTime.setHours(currentLineTime.getHours() + 1)
-                    currentLineTime.setMinutes(0, 0, 0)
-                }
-
-                for (currentLineTime; appointments.endLastAppointment.getTime(
-                         ) - currentLineTime.getTime(
-                         ) > 30 * 60 * 1000; currentLineTime.setHours(
-                         currentLineTime.getHours() + 1)) {
-                    let finishLineItem = function (timeLineItem) {
-                        if (timeLineItem.status === Component.Ready) {
-                            timeLineItem.incubateObject(timeLine, {
-                                                            "y": (currentLineTime - appointments.startFirstAppointment) / 1000 * secondToPixelRatio,
-                                                            "time": currentLineTime.getHours(
-                                                                        ).toString(
-                                                                        ) + ":" + (currentLineTime.getMinutes().toString() < 10 ? '0' : '') + currentLineTime.getMinutes()
-                                                        })
-                        } else if (timeLineItem.status === Component.Error) {
-                            console.log("Could not create lineItem:",
-                                        timeLineItem.errorString())
-                        }
-                    }
-
-                    let timeLineItem = Qt.createComponent(
-                            "DayViewTimeLineItem.qml")
-                    if (timeLineItem.status !== Component.Null
-                            && timeLineItem.status !== Component.Loading) {
-                        finishLineItem(timeLineItem)
-                    } else {
-                        timeLineItem.statusChanged.connect(finishLineItem)
-                    }
-                }
+                
+                fillTimeLine()
             }
 
             let finishCreation = function (appointment) {
@@ -84,6 +49,55 @@ Page {
                 appointment.statusChanged.connect(finishCreation)
             }
         }
+    }
+
+    function fillTimeLine() {
+        let currentLineTime = new Date()
+        currentLineTime.setTime(
+                    appointments.startFirstAppointment.getTime())
+        if (!currentLineTime.isFullHour()) {
+            currentLineTime.addHours(1)
+            currentLineTime.setMinutes(0, 0, 0)
+        }
+
+        for (currentLineTime; appointments.endLastAppointment.getTime(
+                    ) - currentLineTime.getTime(
+                    ) > 30 * 60 * 1000; currentLineTime.addHours(1)) {
+            let finishLineItem = function (timeLineItem) {
+                if (timeLineItem.status === Component.Ready) {
+                    timeLineItem.incubateObject(timeLine, {
+                                                    "y": (currentLineTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio,
+                                                    "time": currentLineTime.getHours(
+                                                                ).toString(
+                                                                ) + ":" + (currentLineTime.getMinutes().toString() < 10 ? '0' : '') + currentLineTime.getMinutes()
+                                                })
+                } else if (timeLineItem.status === Component.Error) {
+                    console.log("Could not create lineItem:",
+                                timeLineItem.errorString())
+                }
+            }
+
+            let timeLineItem = Qt.createComponent(
+                    "DayViewTimeLineItem.qml")
+            if (timeLineItem.status !== Component.Null
+                    && timeLineItem.status !== Component.Loading) {
+                finishLineItem(timeLineItem)
+            } else {
+                timeLineItem.statusChanged.connect(finishLineItem)
+            }
+        }
+    }
+
+    Date.prototype.addHours = function(h) {
+        this.setTime(this.getTime() + (h*60*60*1000));
+        return this;
+    }
+
+    Date.prototype.isFullHour = function() {
+        if (this.getMinutes() == 0 && this.getSeconds() == 0 && this.getMilliseconds() == 0) {
+            return true;
+        }
+        return false;
     }
 
     Rectangle {
