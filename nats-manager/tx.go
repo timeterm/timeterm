@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -21,7 +22,7 @@ type tx struct {
 	h   *handler
 }
 
-func newTx(nc *nats.Conn, log logr.Logger, h *handler) error {
+func newTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) error {
 	enc := nats.EncodedConn{
 		Conn: nc,
 		Enc:  natspb.NewEncoder(),
@@ -29,8 +30,15 @@ func newTx(nc *nats.Conn, log logr.Logger, h *handler) error {
 
 	tx := tx{enc: &enc, log: log, h: h}
 
-	_, err := enc.QueueSubscribe(topicProvisionNewDevice, topicProvisionNewDevice, tx.provisionNewDevice)
-	return err
+	sub, err := enc.QueueSubscribe(topicProvisionNewDevice, topicProvisionNewDevice, tx.provisionNewDevice)
+	if err != nil {
+		return err
+	}
+	
+	<-ctx.Done()
+	
+	_ = sub.Unsubscribe()
+	return nil
 }
 
 func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
