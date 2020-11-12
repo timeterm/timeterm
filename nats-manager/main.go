@@ -25,6 +25,12 @@ func main() {
 	if err != nil {
 		logFatal(log, err, "could not connect to NATS")
 	}
+	defer func() {
+		err = nc.Drain()
+		if err != nil {
+			log.Error(err, "error draining NATS connection on shutdown")
+		}
+	}()
 
 	dataDir := os.Getenv("NATS_MANAGER_DATA_DIR")
 	needsInit, err := needsInit(dataDir)
@@ -47,9 +53,9 @@ func main() {
 	ctx, cancel := contextWithShutdown(context.Background())
 	defer cancel()
 
-	err = newTx(ctx, nc, log, &hdlr)
+	err = runTx(ctx, nc, log, &hdlr)
 	if err != nil {
-		logFatal(log, err, "could not create transport")
+		logFatal(log, err, "could not run transport")
 	}
 }
 

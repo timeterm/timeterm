@@ -22,7 +22,7 @@ type tx struct {
 	h   *handler
 }
 
-func newTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) error {
+func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) error {
 	enc := nats.EncodedConn{
 		Conn: nc,
 		Enc:  natspb.NewEncoder(),
@@ -34,10 +34,15 @@ func newTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 	if err != nil {
 		return err
 	}
-	
+	defer func() {
+		err = sub.Drain()
+		if err != nil {
+			log.Error(err, "error draining subscription", "topic", sub.Subject)
+		}
+	}()
+
 	<-ctx.Done()
-	
-	_ = sub.Unsubscribe()
+
 	return nil
 }
 
