@@ -8,8 +8,8 @@ import (
 	"path"
 	"syscall"
 
-	"github.com/go-logr/zapr"
 	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		logFatal(log, err, "could not check if already initialized")
 	}
-	
+
 	if needsInit {
 		err = nscInitCmd(path.Join(dataDir, "store")).Run()
 		if err != nil {
@@ -44,7 +44,7 @@ func main() {
 		dataDir: dataDir,
 	}
 
-	ctx, cancel := contextWithShutdown(context.Background())	
+	ctx, cancel := contextWithShutdown(context.Background())
 	defer cancel()
 
 	err = newTx(ctx, nc, log, &hdlr)
@@ -54,7 +54,7 @@ func main() {
 }
 
 func logFatal(log logr.Logger, err error, msg string, keysAndValues ...interface{}) {
-	log.Error(err, "fatal: " + msg, keysAndValues...)
+	log.Error(err, "fatal: "+msg, keysAndValues...)
 	os.Exit(1)
 }
 
@@ -62,7 +62,7 @@ func contextWithShutdown(parent context.Context) (ctx context.Context, cancel fu
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGKILL)
 
-	ctx, cancel = context.WithCancel(ctx)
+	ctx, cancel = context.WithCancel(parent)
 
 	go func() {
 		defer signal.Stop(sigs)
