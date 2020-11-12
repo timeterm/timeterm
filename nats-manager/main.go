@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -45,6 +46,9 @@ func realMain(log logr.Logger) error {
 	nscConfig := &nscConfig{
 		dataDir: os.Getenv("NATS_MANAGER_DATA_DIR"),
 	}
+	if nscConfig.dataDir == "" {
+		return errors.New("environment variable NATS_MANAGER_DATA_DIR is not set")
+	}
 
 	needsInit, err := needsInit(nscConfig.dataDir)
 	if err != nil {
@@ -58,15 +62,13 @@ func realMain(log logr.Logger) error {
 		}
 	}
 
-	hdlr := handler{
-		nc:     nc,
-		nscCfg: nscConfig,
-	}
-
 	ctx, cancel := contextWithShutdown(context.Background())
 	defer cancel()
 
-	err = runTx(ctx, nc, log, &hdlr)
+	err = runTx(ctx, nc, log, &handler{
+		nc:     nc,
+		nscCfg: nscConfig,
+	})
 	if err != nil {
 		return fmt.Errorf("could not run transport: %w", err)
 	}

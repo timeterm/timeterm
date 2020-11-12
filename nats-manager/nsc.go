@@ -61,7 +61,7 @@ func streamConsumerACLs(c streamConsumer) []aclEntry {
 }
 
 func createNewDevUser(id uuid.UUID, c *nscConfig) (string, error) {
-	accountName := fmt.Sprintf("fedev-%s", id)
+	accountName := fmt.Sprintf("EMDEV-%s", id)
 	userName := accountName
 
 	if err := runNscCmd(nscAddAccountCmd(accountName), c); err != nil {
