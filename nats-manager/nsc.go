@@ -4,9 +4,33 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"path"
 
 	"github.com/google/uuid"
 )
+
+type nscConfig struct {
+	dataDir string
+}
+
+func (c *nscConfig) storeDir() string {
+	return path.Join(c.dataDir, "store")
+}
+
+func (c *nscConfig) nkeysPath() string {
+	return path.Join(c.dataDir, "nkeys")
+}
+
+func (c *nscConfig) nscHome() string {
+	return path.Join(c.dataDir, "nsc")
+}
+
+func (c *nscConfig) env() []string {
+	return []string{
+		"NKEYS_PATH=" + c.nkeysPath(),
+		"NSC_HOME=" + c.nscHome(),
+	}
+}
 
 type aclEntry struct {
 	op    topicOp
@@ -36,16 +60,16 @@ func streamConsumerACLs(c streamConsumer) []aclEntry {
 	}
 }
 
-func createNewDevUser(id uuid.UUID) (string, error) {
+func createNewDevUser(id uuid.UUID, c *nscConfig) (string, error) {
 	accountName := fmt.Sprintf("fedev-%s", id)
 	userName := accountName
 
-	if err := nscAddAccountCmd(accountName).Run(); err != nil {
+	if err := runNscCmd(nscAddAccountCmd(accountName), c); err != nil {
 		return "", fmt.Errorf("could not create account %q: %w", accountName, err)
 	}
 
 	userConfig := createDevUserConfig(id)
-	if err := nscAddUserCmd(accountName, userName, userConfig).Run(); err != nil {
+	if err := runNscCmd(nscAddUserCmd(accountName, userName, userConfig), c); err != nil {
 		return "", fmt.Errorf("could not create user %q for account %q: %w", userName, accountName, err)
 	}
 
@@ -117,4 +141,19 @@ func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 	}
 
 	return exec.Command("nsc", args...)
+}
+
+func nscInitCmd(storeDir string) *exec.Cmd {
+	return exec.Command("nsc", "init", "--name", "timeterm", "--dir", storeDir)
+}
+
+func runNscCmd(cmd *exec.Cmd, c *nscConfig) error {
+	envCmd := exec.Command("nsc", "env", "--store", c.storeDir(), "--operator", "timeterm")
+	envCmd.Env = c.env()
+	if err := envCmd.Run(); err != nil {
+		return err
+	}
+
+	cmd.Env = c.env()
+	return cmd.Run()
 }

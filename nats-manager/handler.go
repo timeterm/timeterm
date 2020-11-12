@@ -9,7 +9,8 @@ import (
 )
 
 type handler struct {
-	nc *nats.Conn
+	nc      *nats.Conn
+	dataDir string
 }
 
 func (h *handler) provisionNewDevice(id uuid.UUID) (natsCreds string, err error) {
@@ -23,7 +24,9 @@ func (h *handler) provisionNewDevice(id uuid.UUID) (natsCreds string, err error)
 		return "", fmt.Errorf("could not set up device consumers: %w", err)
 	}
 
-	natsCreds, err = createNewDevUser(id)
+	natsCreds, err = createNewDevUser(id, &nscConfig{
+		dataDir: h.dataDir,
+	})
 	if err != nil {
 		return "", fmt.Errorf("could not create new device user: %w", err)
 	}
