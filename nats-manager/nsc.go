@@ -37,7 +37,7 @@ type aclEntry struct {
 	topic string
 }
 
-func (e aclEntry) asAddUserArgs() []string {
+func (e aclEntry) asNscAddUserArgs() []string {
 	flag := "--allow-"
 	if e.op == topicOpNone {
 		return nil
@@ -137,7 +137,7 @@ func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 	}
 
 	for _, aclEntry := range acls {
-		args = append(args, aclEntry.asAddUserArgs()...)
+		args = append(args, aclEntry.asNscAddUserArgs()...)
 	}
 
 	return exec.Command("nsc", args...)

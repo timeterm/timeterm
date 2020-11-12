@@ -24,3 +24,7 @@ Streams:
 Topics:
 - Topic: `EMDEV.{deviceId}.REBOOT`  
   Makes for ACL entry: <kbd>sub</kbd> `EMDEV.{deviceId}.REBOOT`
+
+## Topics
+
+nats-manager listens on the topic `NATS-MANAGER.PROVISION-NEW-DEVICE` for provisioning requests for new devices. 

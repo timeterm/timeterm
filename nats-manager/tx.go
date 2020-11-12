@@ -12,9 +12,7 @@ import (
 	rpcpb "gitlab.com/timeterm/timeterm/proto/go/rpc"
 )
 
-const (
-	topicProvisionNewDevice = "provision-new-device"
-)
+const topicProvisionNewDevice = "NATS-MANAGER.PROVISION-NEW-DEVICE"
 
 type tx struct {
 	enc *nats.EncodedConn

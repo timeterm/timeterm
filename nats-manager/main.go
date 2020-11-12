@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
 
 	"github.com/go-logr/logr"
@@ -43,22 +42,25 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	dataDir := os.Getenv("NATS_MANAGER_DATA_DIR")
-	needsInit, err := needsInit(dataDir)
+	nscConfig := &nscConfig{
+		dataDir: os.Getenv("NATS_MANAGER_DATA_DIR"),
+	}
+
+	needsInit, err := needsInit(nscConfig.dataDir)
 	if err != nil {
 		return fmt.Errorf("could not check if already initialized: %w", err)
 	}
 
 	if needsInit {
-		err = nscInitCmd(path.Join(dataDir, "store")).Run()
+		err = nscInitCmd(nscConfig.dataDir).Run()
 		if err != nil {
 			return fmt.Errorf("could not init nsc: %w", err)
 		}
 	}
 
 	hdlr := handler{
-		nc:      nc,
-		dataDir: dataDir,
+		nc:     nc,
+		nscCfg: nscConfig,
 	}
 
 	ctx, cancel := contextWithShutdown(context.Background())
