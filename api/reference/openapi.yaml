@@ -669,6 +669,9 @@ components:
       required:
         - type
       properties:
+        id:
+          type: string
+          format: uuid
         type:
           type: string
           enum:
