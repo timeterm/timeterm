@@ -128,6 +128,7 @@ Page {
 
         contentWidth: width
         flickableDirection: Flickable.VerticalFlick
+        clip: true
 
         property var startFirstAppointment
         property var endLastAppointment

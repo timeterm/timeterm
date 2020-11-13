@@ -10,7 +10,7 @@ Item {
 
     property int textSize: height * 0.5
     property var textColor: "#e5e5e5"
-    property var title: "asdf"
+    property var title: ""
 
     Connections {
         target: header
@@ -32,7 +32,7 @@ Item {
             anchors.bottom: parent.bottom
             verticalAlignment: "AlignVCenter"
             color: textColor
-            text: "Timeterm-" + title
+            text: "Timeterm" + title
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
         }
