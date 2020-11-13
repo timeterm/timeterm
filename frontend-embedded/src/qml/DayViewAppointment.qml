@@ -5,12 +5,12 @@ Rectangle {
     property var startFirstAppointment
     property var secondToPixelRatio
 
-    y: (appointment.startTime.getHours(
-            ) * 3600 + appointment.startTime.getMinutes() * 60 + appointment.startTime.getSeconds(
-            ) - (startFirstAppointment.getHours(
-                     ) * 3600 + startFirstAppointment.getMinutes()
-                 * 60 + startFirstAppointment.getSeconds(
-                     ))) // time in seconds calculated from the first appointment of the day
+    y:   (appointment.startTime.getHours() * 3600
+        + appointment.startTime.getMinutes() * 60
+        + appointment.startTime.getSeconds()
+        - (startFirstAppointment.getHours() * 3600
+         + startFirstAppointment.getMinutes()* 60
+         + startFirstAppointment.getSeconds())) // time in seconds calculated from the first appointment of the day
        * secondToPixelRatio
     height: (appointment.endTime - appointment.startTime) / 1000 * secondToPixelRatio
 
