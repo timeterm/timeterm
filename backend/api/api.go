@@ -10,6 +10,7 @@ import (
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
 	"gitlab.com/timeterm/timeterm/backend/mq"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -18,6 +19,7 @@ type Server struct {
 	log  logr.Logger
 	echo *echo.Echo
 	mqw  *mq.Wrapper
+	secr *secrets.Wrapper
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -36,7 +38,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper, secr *secrets.Wrapper) (Server, error) {
 	e, err := newEcho(log)
 	if err != nil {
 		return Server{}, err
@@ -47,6 +49,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper) (Server, 
 		log:  log,
 		echo: e,
 		mqw:  mqw,
+		secr: secr,
 	}
 	server.registerRoutes()
 
@@ -76,7 +79,6 @@ func (s *Server) registerRoutes() {
 	devGroup.POST("/:id/restart", s.rebootDevice)
 	devGroup.PATCH("/:id", s.patchDevice)
 	devGroup.DELETE("/:id", s.deleteDevice)
-	devGroup.GET("/registrationconfig", s.getRegistrationConfig)
 
 	orgGroup := s.echo.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
@@ -88,6 +90,9 @@ func (s *Server) registerRoutes() {
 	stdGroup.GET("/", s.getStudents)
 	stdGroup.POST("/", s.createStudent)
 	stdGroup.DELETE("/", s.deleteStudents)
+
+	ethServGroup := s.echo.Group("/ethernet/service")
+	ethServGroup.GET("/:id", s.getEthernetService)
 }
 
 func (s *Server) Run(ctx context.Context) error {

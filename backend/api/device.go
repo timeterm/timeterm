@@ -165,8 +165,7 @@ func (s *Server) rebootDevices(c echo.Context) error {
 }
 
 type getDevicesParams struct {
-	Offset     *uint64 `query:"offset"`
-	MaxAmount  *uint64 `query:"maxAmount"`
+	paginationParams
 	SearchName *string `query:"searchName"`
 }
 

@@ -30,13 +30,8 @@ func (s *Server) getStudent(c echo.Context) error {
 	return c.JSON(http.StatusOK, apiStudent)
 }
 
-type getStudentsParams struct {
-	Offset    *uint64 `query:"offset"`
-	MaxAmount *uint64 `query:"maxAmount"`
-}
-
 func (s *Server) getStudents(c echo.Context) error {
-	var params getStudentsParams
+	var params paginationParams
 	err := c.Bind(&params)
 	if err != nil {
 		return err
