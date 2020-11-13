@@ -9,6 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
+type topicOp int
+
+const (
+	topicOpNone topicOp = 0
+	topicOpPub  topicOp = 1 << (iota - 1)
+	topicOpSub
+)
+
 type nscConfig struct {
 	dataDir string
 }
@@ -30,6 +38,15 @@ func (c *nscConfig) env() []string {
 		"NKEYS_PATH=" + c.nkeysPath(),
 		"NSC_HOME=" + c.nscHome(),
 	}
+}
+
+type streamConsumer struct {
+	stream, consumer string
+}
+
+type userConfig struct {
+	streams []streamConsumer
+	other   []aclEntry
 }
 
 type aclEntry struct {
@@ -73,19 +90,7 @@ func createNewDevUser(id uuid.UUID, c *nscConfig) (string, error) {
 		return "", fmt.Errorf("could not create user %q for account %q: %w", userName, accountName, err)
 	}
 
-	return nscGenerateUserCreds(accountName, userName)
-}
-
-func nscGenerateUserCreds(account, user string) (string, error) {
-	var buf bytes.Buffer
-
-	cmd := exec.Command("nsc", "generate", "creds", "--account", account, "--name", user)
-	cmd.Stdout = &buf
-
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+	return nscGenerateUserCreds(accountName, userName, c)
 }
 
 func createDevUserConfig(id uuid.UUID) userConfig {
@@ -105,27 +110,14 @@ func createDevUserConfig(id uuid.UUID) userConfig {
 	}
 }
 
-type streamConsumer struct {
-	stream, consumer string
+func nscInitCmd(storeDir string) *exec.Cmd {
+	return exec.Command("nsc", "init", "--name", "timeterm", "--dir", storeDir)
 }
 
 func nscAddAccountCmd(name string) *exec.Cmd {
 	args := []string{"add", "account", "--name", name}
 
 	return exec.Command("nsc", args...)
-}
-
-type topicOp int
-
-const (
-	topicOpNone topicOp = 0
-	topicOpPub  topicOp = 1 << (iota - 1)
-	topicOpSub
-)
-
-type userConfig struct {
-	streams []streamConsumer
-	other   []aclEntry
 }
 
 func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
@@ -143,8 +135,16 @@ func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 	return exec.Command("nsc", args...)
 }
 
-func nscInitCmd(storeDir string) *exec.Cmd {
-	return exec.Command("nsc", "init", "--name", "timeterm", "--dir", storeDir)
+func nscGenerateUserCreds(account, user string, c *nscConfig) (string, error) {
+	var buf bytes.Buffer
+
+	cmd := exec.Command("nsc", "generate", "creds", "--account", account, "--name", user)
+	cmd.Stdout = &buf
+
+	if err := runNscCmd(cmd, c); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func runNscCmd(cmd *exec.Cmd, c *nscConfig) error {
