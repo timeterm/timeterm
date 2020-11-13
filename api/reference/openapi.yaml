@@ -349,10 +349,6 @@ paths:
           schema:
             type: integer
             format: uint64
-        - name: searchName
-          in: query
-          schema:
-            type: string
       responses:
         "200":
           description: OK
