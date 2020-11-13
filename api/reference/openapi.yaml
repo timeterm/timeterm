@@ -176,8 +176,8 @@ paths:
 
   /zermelo/appointment:
     get:
-      operationId: getAppointments
-      summary: Get a list of appointments
+      operationId: getZermeloAppointments
+      summary: Get a list of (Zermelo) appointments
       parameters:
         - name: X-Card-Uid
           in: header
@@ -503,10 +503,6 @@ components:
           description: The teachers present in the appointment.
           items:
             type: string
-            example: asd
-        capacity:
-          type: integer
-          description: The amount of students that can at most be present.
         availableSpace:
           type: integer
           description: How many places are still open.
@@ -518,6 +514,17 @@ components:
           type: string
           format: date-time
           description: The time at which the appointment ends.
+        isAttendancePlanned:
+          type: boolean
+        content:
+          type: string
+          description: The contents of the lesson
+        isAttendanceOverruled:
+          type: boolean
+        alternatives:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
 
     Student:
       type: object
