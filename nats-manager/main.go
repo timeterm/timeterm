@@ -32,7 +32,13 @@ func main() {
 }
 
 func realMain(log logr.Logger) error {
-	nc, err := nats.Connect(os.Getenv("NATS_URL"))
+	cfg, err := loadConfig()
+	if err != nil {
+		return fmt.Errorf("could not load configuration: %w", err)
+	}
+
+	log.Info("connecting with NATS", "url", cfg.natsURL)
+	nc, err := nats.Connect(cfg.natsURL)
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -42,32 +48,38 @@ func realMain(log logr.Logger) error {
 			log.Error(err, "error draining NATS connection on shutdown")
 		}
 	}()
+	log.Info("connected to NATS")
 
-	nscConfig := &nscConfig{
-		dataDir: os.Getenv("NATS_MANAGER_DATA_DIR"),
+	nsc := &nsc{
+		dataDir: cfg.dataDir,
+		nscPath: cfg.nscPath,
 	}
-	if nscConfig.dataDir == "" {
+	if nsc.dataDir == "" {
 		return errors.New("environment variable NATS_MANAGER_DATA_DIR is not set")
 	}
 
-	needsInit, err := needsInit(nscConfig.dataDir)
+	needsInit, err := needsInit(nsc.dataDir)
 	if err != nil {
 		return fmt.Errorf("could not check if already initialized: %w", err)
 	}
 
 	if needsInit {
-		err = nscInitCmd(nscConfig.dataDir).Run()
+		log.Info("nsc initialization required, initializing")
+
+		err = nsc.runCmd(nsc.initCmd())
 		if err != nil {
 			return fmt.Errorf("could not init nsc: %w", err)
 		}
+
+		log.Info("nsc initialized")
 	}
 
 	ctx, cancel := contextWithShutdown(context.Background())
 	defer cancel()
 
 	err = runTx(ctx, nc, log, &handler{
-		nc:     nc,
-		nscCfg: nscConfig,
+		nc:  nc,
+		nsc: nsc,
 	})
 	if err != nil {
 		return fmt.Errorf("could not run transport: %w", err)
@@ -79,7 +91,7 @@ func realMain(log logr.Logger) error {
 
 func contextWithShutdown(parent context.Context) (ctx context.Context, cancel func()) {
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
 
 	ctx, cancel = context.WithCancel(parent)
 
@@ -101,5 +113,34 @@ func needsInit(dataDir string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return len(files) > 0, nil
+	return len(files) == 0, nil
+}
+
+type config struct {
+	nscPath string
+	natsURL string
+	dataDir string
+}
+
+func loadConfig() (*config, error) {
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		return nil, errors.New("environment variable NATS_URL is not set")
+	}
+
+	dataDir := os.Getenv("NATS_MANAGER_DATA_DIR")
+	if dataDir == "" {
+		return nil, errors.New("environment variable NATS_MANAGER_DATA_DIR is not set")
+	}
+
+	nscPath := os.Getenv("NSC_PATH")
+	if nscPath == "" {
+		nscPath = "nsc"
+	}
+
+	return &config{
+		natsURL: natsURL,
+		dataDir: dataDir,
+		nscPath: nscPath,
+	}, nil
 }

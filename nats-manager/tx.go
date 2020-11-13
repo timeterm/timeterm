@@ -28,7 +28,7 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 
 	tx := tx{enc: &enc, log: log, h: h}
 
-	sub, err := enc.QueueSubscribe(topicProvisionNewDevice, topicProvisionNewDevice, tx.provisionNewDevice)
+	sub, err := enc.QueueSubscribe(topicProvisionNewDevice, topicProvisionNewDevice, tx.handleProvisionNewDevice)
 	if err != nil {
 		return err
 	}
@@ -45,6 +45,21 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 }
 
 func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			if !ok {
+				err = nil
+			}
+
+			var args []interface{}
+			if err == nil {
+				args = []interface{}{"r", r}
+			}
+			t.log.Error(err, "recovered from a panic", args...)
+		}
+	}()
+
 	rsp := new(rpcpb.ProvisionNewDeviceResponse)
 
 	data, err := t.provisionNewDevice(msg)
@@ -72,6 +87,13 @@ func (t *tx) provisionNewDevice(msg *rpcpb.ProvisionNewDeviceRequest) (*rpcpb.Pr
 
 	natsCreds, err := t.h.provisionNewDevice(devID)
 	if err != nil {
+		var logArgs []interface{}
+		var nerr nscError
+		if errors.As(err, &nerr) {
+			logArgs = append(logArgs, "log", nerr.Log())
+		}
+		t.log.Error(err, "could not provision new device", logArgs...)
+
 		return nil, fmt.Errorf("could not provision new device: %w", err)
 	}
 

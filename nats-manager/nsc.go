@@ -3,11 +3,15 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path"
 
 	"github.com/google/uuid"
 )
+
+const nscOperatorAccount = "TIMETERM"
 
 type topicOp int
 
@@ -16,29 +20,6 @@ const (
 	topicOpPub  topicOp = 1 << (iota - 1)
 	topicOpSub
 )
-
-type nscConfig struct {
-	dataDir string
-}
-
-func (c *nscConfig) storeDir() string {
-	return path.Join(c.dataDir, "store")
-}
-
-func (c *nscConfig) nkeysPath() string {
-	return path.Join(c.dataDir, "nkeys")
-}
-
-func (c *nscConfig) nscHome() string {
-	return path.Join(c.dataDir, "nsc")
-}
-
-func (c *nscConfig) env() []string {
-	return []string{
-		"NKEYS_PATH=" + c.nkeysPath(),
-		"NSC_HOME=" + c.nscHome(),
-	}
-}
 
 type streamConsumer struct {
 	stream, consumer string
@@ -77,50 +58,57 @@ func streamConsumerACLs(c streamConsumer) []aclEntry {
 	}
 }
 
-func createNewDevUser(id uuid.UUID, c *nscConfig) (string, error) {
+type nsc struct {
+	dataDir string
+	nscPath string
+}
+
+func (n *nsc) storeDir() string {
+	return path.Join(n.dataDir, "store")
+}
+
+func (n *nsc) nkeysPath() string {
+	return path.Join(n.dataDir, "nkeys")
+}
+
+func (n *nsc) nscHome() string {
+	return path.Join(n.dataDir, "nsc")
+}
+
+func (n *nsc) env() []string {
+	return []string{
+		"NKEYS_PATH=" + n.nkeysPath(),
+		"NSC_HOME=" + n.nscHome(),
+	}
+}
+
+func (n *nsc) createNewDevUser(id uuid.UUID) (string, error) {
 	accountName := fmt.Sprintf("EMDEV-%s", id)
 	userName := accountName
 
-	if err := runNscCmd(nscAddAccountCmd(accountName), c); err != nil {
+	if err := n.runCmd(n.addAccountCmd(accountName)); err != nil {
 		return "", fmt.Errorf("could not create account %q: %w", accountName, err)
 	}
 
 	userConfig := createDevUserConfig(id)
-	if err := runNscCmd(nscAddUserCmd(accountName, userName, userConfig), c); err != nil {
+	if err := n.runCmd(n.addUserCmd(accountName, userName, userConfig)); err != nil {
 		return "", fmt.Errorf("could not create user %q for account %q: %w", userName, accountName, err)
 	}
 
-	return nscGenerateUserCreds(accountName, userName, c)
+	return n.generateUserCreds(accountName, userName)
 }
 
-func createDevUserConfig(id uuid.UUID) userConfig {
-	return userConfig{
-		streams: []streamConsumer{
-			{
-				stream:   "EMDEV-DISOWN-TOKEN",
-				consumer: fmt.Sprintf("EMDEV-%s-EMDEV-DISOWN-TOKEN", id),
-			},
-		},
-		other: []aclEntry{
-			{
-				topic: fmt.Sprintf("EMDEV.%s.REBOOT", id),
-				op:    topicOpSub,
-			},
-		},
-	}
+func (n *nsc) initCmd() *exec.Cmd {
+	return exec.Command(n.nscPath, "init", "--name", nscOperatorAccount, "--dir", n.storeDir())
 }
 
-func nscInitCmd(storeDir string) *exec.Cmd {
-	return exec.Command("nsc", "init", "--name", "timeterm", "--dir", storeDir)
-}
-
-func nscAddAccountCmd(name string) *exec.Cmd {
+func (n *nsc) addAccountCmd(name string) *exec.Cmd {
 	args := []string{"add", "account", "--name", name}
 
-	return exec.Command("nsc", args...)
+	return exec.Command(n.nscPath, args...)
 }
 
-func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
+func (n *nsc) addUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 	args := []string{"add", "user", "--name", name, "--account", account}
 
 	acls := cfg.other
@@ -132,28 +120,82 @@ func nscAddUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 		args = append(args, aclEntry.asNscAddUserArgs()...)
 	}
 
-	return exec.Command("nsc", args...)
+	return exec.Command(n.nscPath, args...)
 }
 
-func nscGenerateUserCreds(account, user string, c *nscConfig) (string, error) {
+func (n *nsc) generateUserCreds(account, user string) (string, error) {
 	var buf bytes.Buffer
 
-	cmd := exec.Command("nsc", "generate", "creds", "--account", account, "--name", user)
+	cmd := exec.Command(n.nscPath, "generate", "creds", "--account", account, "--name", user)
 	cmd.Stdout = &buf
 
-	if err := runNscCmd(cmd, c); err != nil {
+	if err := n.runCmd(cmd); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
-func runNscCmd(cmd *exec.Cmd, c *nscConfig) error {
-	envCmd := exec.Command("nsc", "env", "--store", c.storeDir(), "--operator", "timeterm")
-	envCmd.Env = c.env()
-	if err := envCmd.Run(); err != nil {
+func (n *nsc) runCmd(cmd *exec.Cmd) error {
+	envCmd := exec.Command(n.nscPath, "env", "--store", n.storeDir(), "--operator", nscOperatorAccount)
+	envCmd.Env = append(os.Environ(), append(envCmd.Env, n.env()...)...)
+	if err := runNscCmdWithLog(envCmd); err != nil {
 		return err
 	}
 
-	cmd.Env = c.env()
-	return cmd.Run()
+	cmd.Env = append(os.Environ(), append(cmd.Env, n.env()...)...)
+	return runNscCmdWithLog(cmd)
+}
+
+type teeWriter struct {
+	a, b io.Writer
+}
+
+func (t teeWriter) Write(p []byte) (n int, err error) {
+	n, err = t.a.Write(p)
+	if err != nil {
+		n, err = t.b.Write(p)
+	} else {
+		_, _ = t.b.Write(p)
+	}
+	return
+}
+
+func makeTeeWriter(a, b io.Writer) io.Writer {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return teeWriter{a, b}
+}
+
+func runNscCmdWithLog(cmd *exec.Cmd) error {
+	oldStderr, oldStdout := cmd.Stderr, cmd.Stdout
+
+	var buf bytes.Buffer
+	cmd.Stderr, cmd.Stdout = makeTeeWriter(&buf, oldStderr), makeTeeWriter(&buf, oldStdout)
+
+	err := cmd.Run()
+	if err != nil {
+		return nscError{err: err, log: buf.String()}
+	}
+	return nil
+}
+
+type nscError struct {
+	err error
+	log string
+}
+
+func (e nscError) Error() string {
+	return e.err.Error()
+}
+
+func (e nscError) Unwrap() error {
+	return e.err
+}
+
+func (e nscError) Log() string {
+	return e.log
 }

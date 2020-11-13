@@ -21,6 +21,11 @@ services:
     image: synadia/jsm:nightly-20200914
     restart: always
     command: server -sd /datastore
+    environment:
+      NATS_CONFIG: |
+        operator: /operator/TIMETERM.jwt
+        resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
+        system_account:
     ports:
       - "4222:4222"
   
@@ -33,7 +38,7 @@ services:
           }
         }
     volumes:
-      - ./nats-account-server/timeterm:/data
+      - ./nsc/TIMETERM:/data
     image: synadia/nats-account-server:0.8.4
     restart: always
     entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
