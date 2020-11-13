@@ -54,7 +54,8 @@ paths:
   /device:
     post:
       operationId: registerDevice
-      summary: |
+      summary: Register a new device
+      description: |
         Register a new device
 
         > NOTE: this API call can only be performed by devices.
@@ -402,6 +403,7 @@ paths:
         The integration will create a new token for itself and destroy the provided token.
         Tokens are automatically refreshed.
         The institution used is that of the organization.
+        
         > Note: if the organization's Zermelo institution is updated, the integration may very well break.
       requestBody:
         content:
