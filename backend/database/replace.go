@@ -33,8 +33,8 @@ func (w *Wrapper) ReplaceStudent(ctx context.Context, s Student) error {
 
 func (w *Wrapper) ReplaceUser(ctx context.Context, user User) error {
 	_, err := w.db.ExecContext(ctx,
-	`UPDATE "user" SET "organization_id"= $1, "email" = $2, "name" = $3 WHERE "id" = $4`,
-	user.OrganizationID, user.Email, user.Name, user.ID,
+		`UPDATE "user" SET "organization_id"= $1, "email" = $2, "name" = $3 WHERE "id" = $4`,
+		user.OrganizationID, user.Email, user.Name, user.ID,
 	)
 
 	return err

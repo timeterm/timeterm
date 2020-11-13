@@ -194,7 +194,7 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 		return user, err
 	}
 
-	err = tx.GetContext(ctx, &user.ID,`
+	err = tx.GetContext(ctx, &user.ID, `
 		INSERT INTO "user" (name, organization_id, email)
 		VALUES ($1, $2, $3)
 		RETURNING id
