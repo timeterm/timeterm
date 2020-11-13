@@ -258,6 +258,17 @@ paths:
     get:
       operationId: getEthernetServices
       summary: Get ethernet services
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            format: uint64
+        - name: maxAmount
+          in: query
+          schema:
+            type: integer
+            format: uint64
       responses:
         "200":
           description: OK
@@ -403,7 +414,7 @@ paths:
         The integration will create a new token for itself and destroy the provided token.
         Tokens are automatically refreshed.
         The institution used is that of the organization.
-        
+
         > Note: if the organization's Zermelo institution is updated, the integration may very well break.
       requestBody:
         content:
