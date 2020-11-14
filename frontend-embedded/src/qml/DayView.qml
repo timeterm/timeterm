@@ -3,6 +3,8 @@ import QtQuick.Controls 2.12
 import QtQml.Models 2.12
 import QtQuick.Layouts 1.12
 
+import "../js/TimeFunctions.js" as TimeFunction
+
 Page {
     id: dayPage
     anchors.fill: parent
@@ -22,8 +24,7 @@ Page {
             } else if (i === timetable.data.length - 1) {                           // last appointment in the list
                 appointments.endLastAppointment = timetable.data[i].endTime
                 appointments.contentHeight = (appointments.endLastAppointment.getTime()
-                                              - appointments.startFirstAppointment.getTime())
-                        / 1000 * secondToPixelRatio
+                                            - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio
                 
                 fillTimeLine()
             }
@@ -31,19 +32,17 @@ Page {
             let finishCreation = function (appointment) {
                 if (appointment.status === Component.Ready) {
                     appointment.incubateObject(appointments.contentItem, {
-                                                   "appointment": timetable.data[i],
-                                                   "startFirstAppointment": appointments.startFirstAppointment,
-                                                   "secondToPixelRatio": secondToPixelRatio
-                                               })
+                        appointment: timetable.data[i],
+                        startFirstAppointment: appointments.startFirstAppointment,
+                        secondToPixelRatio: secondToPixelRatio
+                    })
                 } else if (appointment.status === Component.Error) {
-                    console.log("Could not create appointment:",
-                                appointment.errorString())
+                    console.log("Could not create appointment:", appointment.errorString())
                 }
             }
 
             let appointment = Qt.createComponent("DayViewAppointment.qml")
-            if (appointment.status !== Component.Null
-                    && appointment.status !== Component.Loading) {
+            if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
                 finishCreation(appointment)
             } else {
                 appointment.statusChanged.connect(finishCreation)
@@ -53,51 +52,37 @@ Page {
 
     function fillTimeLine() {
         let currentLineTime = new Date()
-        currentLineTime.setTime(
-                    appointments.startFirstAppointment.getTime())
+        currentLineTime.setTime(appointments.startFirstAppointment.getTime())
+
         if (!currentLineTime.isFullHour()) {
             currentLineTime.addHours(1)
             currentLineTime.setMinutes(0, 0, 0)
         }
 
-        for (currentLineTime; appointments.endLastAppointment.getTime(
-                    ) - currentLineTime.getTime(
-                    ) > 30 * 60 * 1000; currentLineTime.addHours(1)) {
+        for (currentLineTime;
+             appointments.endLastAppointment.getTime() - currentLineTime.getTime() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before last appointment
+             currentLineTime.addHours(1)) {
             let finishLineItem = function (timeLineItem) {
                 if (timeLineItem.status === Component.Ready) {
                     timeLineItem.incubateObject(timeLine, {
-                                                    "y": (currentLineTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio,
-                                                    "time": currentLineTime.getHours(
-                                                                ).toString(
-                                                                ) + ":" + (currentLineTime.getMinutes().toString() < 10 ? '0' : '') + currentLineTime.getMinutes()
-                                                })
+                        y: (currentLineTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio,
+                        time: currentLineTime.getHours().toString() + ":"
+                              + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
+                              + currentLineTime.getMinutes()
+                    })
                 } else if (timeLineItem.status === Component.Error) {
                     console.log("Could not create lineItem:",
                                 timeLineItem.errorString())
                 }
             }
 
-            let timeLineItem = Qt.createComponent(
-                    "DayViewTimeLineItem.qml")
-            if (timeLineItem.status !== Component.Null
-                    && timeLineItem.status !== Component.Loading) {
+            let timeLineItem = Qt.createComponent("DayViewTimeLineItem.qml")
+            if (timeLineItem.status !== Component.Null && timeLineItem.status !== Component.Loading) {
                 finishLineItem(timeLineItem)
             } else {
                 timeLineItem.statusChanged.connect(finishLineItem)
             }
         }
-    }
-
-    Date.prototype.addHours = function(h) {
-        this.setTime(this.getTime() + (h*60*60*1000));
-        return this;
-    }
-
-    Date.prototype.isFullHour = function() {
-        if (this.getMinutes() == 0 && this.getSeconds() == 0 && this.getMilliseconds() == 0) {
-            return true;
-        }
-        return false;
     }
 
     Rectangle {
