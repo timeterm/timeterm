@@ -50,7 +50,7 @@ func realMain(log logr.Logger) error {
 	}()
 	log.Info("connected to NATS")
 
-	nsc := &nsc{
+	nsc := nsc{
 		dataDir: cfg.dataDir,
 		nscPath: cfg.nscPath,
 	}
@@ -79,7 +79,7 @@ func realMain(log logr.Logger) error {
 
 	err = runTx(ctx, nc, log, &handler{
 		nc:  nc,
-		nsc: nsc,
+		nsc: &nsc,
 	})
 	if err != nil {
 		return fmt.Errorf("could not run transport: %w", err)

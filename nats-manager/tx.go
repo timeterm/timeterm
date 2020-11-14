@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
@@ -44,21 +45,23 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 	return nil
 }
 
-func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			if !ok {
-				err = nil
-			}
-
-			var args []interface{}
-			if err == nil {
-				args = []interface{}{"r", r}
-			}
-			t.log.Error(err, "recovered from a panic", args...)
+func (t *tx) handlePanic() {
+	if r := recover(); r != nil {
+		err, ok := r.(error)
+		if !ok {
+			err = nil
 		}
-	}()
+
+		args := []interface{}{"stack", string(debug.Stack())}
+		if err == nil {
+			args = append(args, "r", r)
+		}
+		t.log.Error(err, "recovered from a panic", args...)
+	}
+}
+
+func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
+	defer t.handlePanic()
 
 	rsp := new(rpcpb.ProvisionNewDeviceResponse)
 
