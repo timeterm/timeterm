@@ -113,7 +113,7 @@ type Security string
 
 const (
 	SecurityPsk       Security = "Psk"
-	SecurityLeee8021x Security = "Leee8021x"
+	SecurityIeee8021x Security = "Ieee8021x"
 	SecurityNone      Security = "None"
 	SecurityWep       Security = "Wep"
 )
