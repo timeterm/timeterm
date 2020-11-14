@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 )
 
@@ -61,6 +62,31 @@ func streamConsumerACLs(c streamConsumer) []aclEntry {
 type nsc struct {
 	dataDir string
 	nscPath string
+}
+
+func newNsc(log logr.Logger, dataDir, nscPath string) (*nsc, error) {
+	n := nsc{
+		dataDir: dataDir,
+		nscPath: nscPath,
+	}
+
+	needsInit, err := needsInit(n.dataDir)
+	if err != nil {
+		return nil, fmt.Errorf("could not check if already initialized: %w", err)
+	}
+
+	if needsInit {
+		log.Info("nsc initialization required, initializing")
+
+		err = n.runCmd(n.initCmd())
+		if err != nil {
+			return nil, fmt.Errorf("could not init nsc: %w", err)
+		}
+
+		log.Info("nsc initialized")
+	}
+
+	return &n, nil
 }
 
 func (n *nsc) storeDir() string {

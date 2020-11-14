@@ -11,9 +11,9 @@ import (
 	"github.com/nats-io/nats.go"
 	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 	rpcpb "gitlab.com/timeterm/timeterm/proto/go/rpc"
-)
 
-const topicProvisionNewDevice = "NATS-MANAGER.PROVISION-NEW-DEVICE"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
+)
 
 type tx struct {
 	enc *nats.EncodedConn
@@ -29,7 +29,11 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 
 	tx := tx{enc: &enc, log: log, h: h}
 
-	sub, err := enc.QueueSubscribe(topicProvisionNewDevice, topicProvisionNewDevice, tx.handleProvisionNewDevice)
+	sub, err := enc.QueueSubscribe(
+		nmsdk.SubjectProvisionNewDevice,
+		nmsdk.SubjectProvisionNewDevice,
+		tx.handleProvisionNewDevice,
+	)
 	if err != nil {
 		return err
 	}

@@ -50,28 +50,9 @@ func realMain(log logr.Logger) error {
 	}()
 	log.Info("connected to NATS")
 
-	nsc := nsc{
-		dataDir: cfg.dataDir,
-		nscPath: cfg.nscPath,
-	}
-	if nsc.dataDir == "" {
-		return errors.New("environment variable NATS_MANAGER_DATA_DIR is not set")
-	}
-
-	needsInit, err := needsInit(nsc.dataDir)
+	nsc, err := newNsc(log, cfg.dataDir, cfg.nscPath)
 	if err != nil {
-		return fmt.Errorf("could not check if already initialized: %w", err)
-	}
-
-	if needsInit {
-		log.Info("nsc initialization required, initializing")
-
-		err = nsc.runCmd(nsc.initCmd())
-		if err != nil {
-			return fmt.Errorf("could not init nsc: %w", err)
-		}
-
-		log.Info("nsc initialized")
+		return err
 	}
 
 	ctx, cancel := contextWithShutdown(context.Background())
@@ -79,7 +60,7 @@ func realMain(log logr.Logger) error {
 
 	err = runTx(ctx, nc, log, &handler{
 		nc:  nc,
-		nsc: &nsc,
+		nsc: nsc,
 	})
 	if err != nil {
 		return fmt.Errorf("could not run transport: %w", err)
