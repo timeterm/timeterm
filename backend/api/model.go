@@ -79,7 +79,7 @@ type Ipv4Settings struct {
 
 type Ipv4Config struct {
 	Type     Ipv4ConfigType `json:"type"`
-	Settings Ipv4Settings   `json:"settings"`
+	Settings *Ipv4Settings  `json:"settings"`
 }
 
 type Ipv6ConfigType string
@@ -98,7 +98,7 @@ type Ipv6Settings struct {
 
 type Ipv6Config struct {
 	Type     Ipv6ConfigType `json:"type"`
-	Settings Ipv6Settings   `json:"settings"`
+	Settings *Ipv6Settings  `json:"settings"`
 }
 
 type Ipv6Privacy string
@@ -148,8 +148,8 @@ const PrivateKeyPassphraseTypeFsid PrivateKeyPassphraseType = "Fsid"
 type EthernetService struct {
 	ID                       uuid.UUID                `json:"id"`
 	Type                     EthernetServiceType      `json:"type"`
-	Ipv4Config               Ipv4Config               `json:"ipv4Config"`
-	Ipv6Config               Ipv6Config               `json:"ipv6Convig"`
+	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
+	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
 	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy`
 	Mac                      string                   `json:"mac"`
 	Nameservers              []string                 `json:"nameservers"`
@@ -188,11 +188,47 @@ func EthernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServi
 	}
 }
 
+func Ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
+	switch ipv4ConfigType {
+	case 1:
+		return Ipv4ConfigTypeOff
+	case 2:
+		return Ipv4ConfigTypeDhcp
+	case 3:
+		return Ipv4ConfigTypeCustom
+	default:
+		return ""
+	}
+}
+
+func Ipv4SettingsFrom(ipv4Settings *devcfgpb.Ipv4ConfigSettings) *Ipv4Settings {
+	if ipv4Settings == nil {
+		return nil
+	}
+
+	return &Ipv4Settings{
+		Network: ipv4Settings.GetNetwork(),
+		Netmask: ipv4Settings.GetNetmask(),
+		Gateway: ipv4Settings.GetGateway(),
+	}
+}
+
+func Ipv4ConfigFrom(ipv4Config *devcfgpb.Ipv4Config) *Ipv4Config {
+	if ipv4Config == nil {
+		return nil
+	}
+
+	return &Ipv4Config{
+		Type:     Ipv4ConfigTypeFrom(ipv4Config.GetType()),
+		Settings: Ipv4SettingsFrom(ipv4Config.GetSettings()),
+	}
+}
+
 func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
 	return EthernetService{
-		ID:   id,
-		Type: EthernetServiceTypeFrom(cfg.GetType()),
-		// Go on here
+		ID:         id,
+		Type:       EthernetServiceTypeFrom(cfg.GetType()),
+		Ipv4Config: Ipv4ConfigFrom(cfg.GetIpv4Config()),
 	}
 }
 
