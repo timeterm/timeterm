@@ -47,8 +47,8 @@ paths:
                       - services
                     properties:
                       services:
-                        type: object
-                        additionalProperties:
+                        type: array
+                        items:
                           $ref: "#/components/schemas/NetworkingService"
 
   /device:
@@ -165,6 +165,18 @@ paths:
       responses:
         "204":
           description: No content
+
+  /device/{id}/natscreds:
+    get:
+      operationId: getDeviceNatsCredentials
+      summary: Get NATS credentials for a device
+      responses:
+        "200":
+          description: NATS credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsCredentials"
 
   /device/{id}/reboot:
     post:
@@ -673,8 +685,6 @@ components:
           $ref: "#/components/schemas/Device"
         token:
           type: string
-        natsCredentials:
-          type: string
 
     NetworkingService:
       required:
@@ -683,6 +693,8 @@ components:
         id:
           type: string
           format: uuid
+        name:
+          type: string
         type:
           type: string
           enum:
@@ -742,7 +754,7 @@ components:
             type: string
         domain:
           type: string
-        name:
+        networkName:
           type: string
         ssid:
           type: string
@@ -800,6 +812,11 @@ components:
           type: string
         isPhase2EapBased:
           type: boolean
+    
+    NatsCredentials:
+      properties:
+        credentials:
+          type: string
 
   responses:
     ProblemResponse:
