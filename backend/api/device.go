@@ -266,10 +266,11 @@ func (s *Server) patchDevice(c echo.Context) error {
 	return c.JSON(http.StatusOK, newAPIDevice)
 }
 
+// TODO(rutgerbrf): should be authenticated using a device registration token, not a user token.
 func (s *Server) createDevice(c echo.Context) error {
 	user, ok := authn.UserFromContext(c)
 	if !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, "Not authenticated")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
 	}
 
 	var dev Device
@@ -288,4 +289,15 @@ func (s *Server) createDevice(c echo.Context) error {
 
 	rsp := CreateDeviceResponseFrom(dbDevice, token)
 	return c.JSON(http.StatusOK, rsp)
+}
+
+func (s *Server) getNATSCredentials(c echo.Context) error {
+	_, ok := authn.DeviceFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	// TODO(rutgerbrf): use Timeterm nats-manager to retrieve credentials
+
+	return nil
 }

@@ -25,20 +25,28 @@ services:
       NATS_CONFIG: |
         operator: /operator/TIMETERM.jwt
         resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
-        system_account:
+        system_account: ACMUG2BUXKAGPY56SVXJKDZF3RO4QJKJNPSYHBUJCLQRPIL7M2NRWAYS
+    volumes:
+      - ./nm/store/TIMETERM/TIMETERM.jwt:/operator/TIMETERM.jwt
+    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
     ports:
       - "4222:4222"
   
   nats-account-server:
     environment:
       NAS_CONFIG: |
-        {
-          store: {
-            nsc: /data
-          }
+        operatorjwtpath: /data/accounts/TIMETERM/TIMETERM.jwt
+
+        store: {
+          nsc: /data
+        }
+
+        http {
+          host: 0.0.0.0
+          port: 9090
         }
     volumes:
-      - ./nsc/TIMETERM:/data
+      - ./nm/store/TIMETERM:/data
     image: synadia/nats-account-server:0.8.4
     restart: always
     entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"

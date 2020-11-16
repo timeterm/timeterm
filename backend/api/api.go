@@ -61,28 +61,34 @@ func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper) (Server, 
 
 func (s *Server) registerRoutes() {
 	g := s.echo.Group("")
-	g.Use(authn.Middleware(s.db, s.log))
+	g.Use(authn.UserLoginMiddleware(s.db, s.log))
 
-	userGroup := s.echo.Group("/user")
+	userGroup := g.Group("/user")
 	userGroup.GET("/me", s.getCurrentUser)
 	userGroup.PATCH("/:id", s.patchUser)
 
-	devGroup := s.echo.Group("/device")
+	devGroup := g.Group("/device")
 	devGroup.GET("/", s.getDevices)
 	devGroup.DELETE("/", s.deleteDevices)
-	devGroup.POST("/", s.createDevice)
 	devGroup.POST("/restart", s.rebootDevices)
 	devGroup.GET("/:id", s.getDevice)
 	devGroup.POST("/:id/restart", s.rebootDevice)
 	devGroup.PATCH("/:id", s.patchDevice)
 	devGroup.DELETE("/:id", s.deleteDevice)
-	devGroup.GET("/registrationconfig", s.getRegistrationConfig)
 
-	orgGroup := s.echo.Group("/organization")
+	devCreateGroup := s.echo.Group("/device")
+	devCreateGroup.Use(authn.DeviceRegistrationLoginMiddleware(s.db, s.log))
+	devCreateGroup.POST("/", s.createDevice)
+
+	devConfigGroup := s.echo.Group("/device/:id/config")
+	devConfigGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
+	devConfigGroup.GET("/natscreds", s.getNATSCredentials)
+
+	orgGroup := g.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)
 
-	stdGroup := s.echo.Group("/student")
+	stdGroup := g.Group("/student")
 	stdGroup.GET("/:id", s.getStudent)
 	stdGroup.PATCH("/:id", s.patchStudent)
 	stdGroup.GET("/", s.getStudents)

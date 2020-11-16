@@ -299,7 +299,7 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("No user for login"))
 	}
 
-	token, err := a.dbw.CreateToken(c.Request().Context(), user.ID)
+	token, err := a.dbw.CreateUserToken(c.Request().Context(), user.ID)
 	if err != nil {
 		a.log.Error(err, "could not create token")
 		return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create token"))

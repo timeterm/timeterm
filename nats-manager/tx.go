@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 
 	"github.com/go-logr/logr"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
@@ -69,7 +70,7 @@ func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.Prov
 
 	rsp := new(rpcpb.ProvisionNewDeviceResponse)
 
-	data, err := t.provisionNewDevice(msg)
+	err := t.provisionNewDevice(msg)
 	if err != nil {
 		rsp.Response = &rpcpb.ProvisionNewDeviceResponse_Error{
 			Error: &rpcpb.Error{
@@ -77,7 +78,7 @@ func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.Prov
 			},
 		}
 	} else {
-		rsp.Response = &rpcpb.ProvisionNewDeviceResponse_Success{Success: data}
+		rsp.Response = &rpcpb.ProvisionNewDeviceResponse_Success{Success: &empty.Empty{}}
 	}
 
 	err = t.enc.Publish(reply, rsp)
@@ -86,13 +87,13 @@ func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.Prov
 	}
 }
 
-func (t *tx) provisionNewDevice(msg *rpcpb.ProvisionNewDeviceRequest) (*rpcpb.ProvisionNewDeviceResponseData, error) {
+func (t *tx) provisionNewDevice(msg *rpcpb.ProvisionNewDeviceRequest) error {
 	devID, err := uuid.Parse(msg.GetDeviceId())
 	if err != nil {
-		return nil, errors.New("invalid device ID")
+		return errors.New("invalid device ID")
 	}
 
-	natsCreds, err := t.h.provisionNewDevice(devID)
+	err = t.h.provisionNewDevice(devID)
 	if err != nil {
 		var logArgs []interface{}
 		var nerr nscError
@@ -101,10 +102,8 @@ func (t *tx) provisionNewDevice(msg *rpcpb.ProvisionNewDeviceRequest) (*rpcpb.Pr
 		}
 		t.log.Error(err, "could not provision new device", logArgs...)
 
-		return nil, fmt.Errorf("could not provision new device: %w", err)
+		return fmt.Errorf("could not provision new device: %w", err)
 	}
 
-	return &rpcpb.ProvisionNewDeviceResponseData{
-		NatsCreds: natsCreds,
-	}, nil
+	return nil
 }

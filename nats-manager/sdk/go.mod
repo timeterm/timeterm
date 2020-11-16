@@ -8,6 +8,7 @@ replace (
 )
 
 require (
+	github.com/google/uuid v1.1.2
 	github.com/nats-io/jwt v1.2.0 // indirect
 	github.com/nats-io/nats.go v1.10.1-0.20201013114232-5a33ce07522f
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb v0.0.0-20201110122546-fd086d39b6a5

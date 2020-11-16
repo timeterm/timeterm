@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 	rpcpb "gitlab.com/timeterm/timeterm/proto/go/rpc"
 )
 
-const SubjectProvisionNewDevice = "NATS-MANAGER.PROVISION-NEW-DEVICE"
+const (
+	SubjectProvisionNewDevice        = "NATS-MANAGER.PROVISION-NEW-DEVICE"
+	SubjectGenerateDeviceCredentials = "NATS-MANAGER.GENERATE-DEVICE-CREDENTIALS"
+)
 
 type ManagerError struct {
 	Data *rpcpb.Error
@@ -33,22 +37,42 @@ func NewClient(nc *nats.Conn) *Client {
 	}
 }
 
-func (c *Client) ProvisionNewDevice(ctx context.Context,
-	req *rpcpb.ProvisionNewDeviceRequest,
-) (*rpcpb.ProvisionNewDeviceResponseData, error) {
+func (c *Client) ProvisionNewDevice(ctx context.Context, id uuid.UUID) error {
 	var rsp rpcpb.ProvisionNewDeviceResponse
 
-	err := c.enc.RequestWithContext(ctx, SubjectProvisionNewDevice, req, &rsp)
+	err := c.enc.RequestWithContext(ctx, SubjectProvisionNewDevice, &rpcpb.ProvisionNewDeviceRequest{
+		DeviceId: id.String(),
+	}, &rsp)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	switch data := rsp.Response.(type) {
 	case *rpcpb.ProvisionNewDeviceResponse_Success:
-		return data.Success, nil
+		return nil
 	case *rpcpb.ProvisionNewDeviceResponse_Error:
-		return nil, ManagerError{data.Error}
+		return ManagerError{data.Error}
 	default:
-		return nil, errors.New("invalid response")
+		return errors.New("invalid response")
+	}
+}
+
+func (c *Client) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (string, error) {
+	var rsp rpcpb.GenerateDeviceCredentialsResponse
+
+	err := c.enc.RequestWithContext(ctx, SubjectGenerateDeviceCredentials, &rpcpb.GenerateDeviceCredentialsRequest{
+		DeviceId: id.String(),
+	}, &rsp)
+	if err != nil {
+		return "", err
+	}
+
+	switch data := rsp.Response.(type){
+	case *rpcpb.GenerateDeviceCredentialsResponse_Sucess:
+		return data.Sucess.GetNatsCreds(), nil
+	case *rpcpb.GenerateDeviceCredentialsResponse_Error:
+		return "", ManagerError{data.Error}
+	default:
+		return "", errors.New("invalid response")
 	}
 }

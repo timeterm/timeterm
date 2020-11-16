@@ -13,20 +13,20 @@ type handler struct {
 	nsc *nsc
 }
 
-func (h *handler) provisionNewDevice(id uuid.UUID) (natsCreds string, err error) {
+func (h *handler) provisionNewDevice(id uuid.UUID) (err error) {
 	mgr, err := jsm.New(h.nc)
 	if err != nil {
-		return "", fmt.Errorf("could not create JetStream manager: %w", err)
+		return fmt.Errorf("could not create JetStream manager: %w", err)
 	}
 
 	err = setUpDeviceConsumers(id, mgr)
 	if err != nil {
-		return "", fmt.Errorf("could not set up device consumers: %w", err)
+		return fmt.Errorf("could not set up device consumers: %w", err)
 	}
 
-	natsCreds, err = h.nsc.createNewDevUser(id)
+	err = h.nsc.createNewDevUser(id)
 	if err != nil {
-		return "", fmt.Errorf("could not create new device user: %w", err)
+		return fmt.Errorf("could not create new device user: %w", err)
 	}
-	return natsCreds, nil
+	return nil
 }

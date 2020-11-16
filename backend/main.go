@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 
@@ -20,19 +21,28 @@ import (
 )
 
 func main() {
+	exitCode := 0
+	defer os.Exit(exitCode)
+
 	logger, _ := zap.NewDevelopment()
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
 	defer log.Info("shutdown complete")
 
+	if err := realMain(log); err != nil {
+		log.Error(err, "error running backend")
+		exitCode = 1
+	}
+}
+
+func realMain(log logr.Logger) error {
 	log.Info("starting")
 	db, err := database.New(os.Getenv("DATABASE_URL"), log,
 		database.WithJanitor(true),
 	)
 	if err != nil {
-		log.Error(err, "could not open database")
-		os.Exit(1)
+		return fmt.Errorf("could not open database: %w", err)
 	}
 	defer func() {
 		if err = db.Close(); err != nil {
@@ -40,17 +50,20 @@ func main() {
 		}
 	}()
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"))
+	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(os.Getenv("NATS_CREDS_FILE")))
 	if err != nil {
-		log.Error(err, "could not connect to NATS")
-		os.Exit(1)
+		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
+	defer func() {
+		if err = nc.Drain(); err != nil {
+			log.Error(err, "could not drain NATS connection")
+		}
+	}()
 
 	mqw := mq.NewWrapper(nc)
 	server, err := api.NewServer(db, log, mqw)
 	if err != nil {
-		log.Error(err, "could not create API server")
-		os.Exit(1)
+		return fmt.Errorf("could not create API server: %w", err)
 	}
 
 	ctx, cancel := contextWithTermination(context.Background(), log)
@@ -58,9 +71,9 @@ func main() {
 
 	err = server.Run(ctx)
 	if !errors.Is(err, context.Canceled) {
-		log.Error(err, "error running API server")
-		os.Exit(1)
+		return fmt.Errorf("error running API server")
 	}
+	return nil
 }
 
 func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {

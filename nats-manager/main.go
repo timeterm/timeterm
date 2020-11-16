@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 
 	"github.com/go-logr/logr"
@@ -37,8 +38,15 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("could not load configuration: %w", err)
 	}
 
+	nsc, err := newNsc(log, cfg.dataDir, cfg.nscPath)
+	if err != nil {
+		return err
+	}
+
 	log.Info("connecting with NATS", "url", cfg.natsURL)
-	nc, err := nats.Connect(cfg.natsURL)
+	nc, err := nats.Connect(cfg.natsURL,
+		nats.UserCredentials(path.Join(nsc.nkeysPath(), "creds/TIMETERM/NATS-MANAGER/NATS-MANAGER.creds")),
+	)
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -49,11 +57,6 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 	log.Info("connected to NATS")
-
-	nsc, err := newNsc(log, cfg.dataDir, cfg.nscPath)
-	if err != nil {
-		return err
-	}
 
 	ctx, cancel := contextWithShutdown(context.Background())
 	defer cancel()

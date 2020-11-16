@@ -78,7 +78,7 @@ func newNsc(log logr.Logger, dataDir, nscPath string) (*nsc, error) {
 	if needsInit {
 		log.Info("nsc initialization required, initializing")
 
-		err = n.runCmd(n.initCmd())
+		err = n.init()
 		if err != nil {
 			return nil, fmt.Errorf("could not init nsc: %w", err)
 		}
@@ -86,7 +86,12 @@ func newNsc(log logr.Logger, dataDir, nscPath string) (*nsc, error) {
 		log.Info("nsc initialized")
 	}
 
-	return &n, nil
+	err = n.configureStaticUsers()
+	if err != nil {
+		return nil, fmt.Errorf("could not configure static users: %w", err)
+	}
+
+	return &n, err
 }
 
 func (n *nsc) storeDir() string {
@@ -108,24 +113,63 @@ func (n *nsc) env() []string {
 	}
 }
 
-func (n *nsc) createNewDevUser(id uuid.UUID) (string, error) {
+func (n *nsc) createNewDevUser(id uuid.UUID) error {
 	accountName := fmt.Sprintf("EMDEV-%s", id)
 	userName := accountName
 
 	if err := n.runCmd(n.addAccountCmd(accountName)); err != nil {
-		return "", fmt.Errorf("could not create account %q: %w", accountName, err)
+		return fmt.Errorf("could not create account %q: %w", accountName, err)
 	}
 
 	userConfig := createDevUserConfig(id)
 	if err := n.runCmd(n.addUserCmd(accountName, userName, userConfig)); err != nil {
-		return "", fmt.Errorf("could not create user %q for account %q: %w", userName, accountName, err)
+		return fmt.Errorf("could not create user %q for account %q: %w", userName, accountName, err)
 	}
 
-	return n.generateUserCreds(accountName, userName)
+	return nil
 }
 
-func (n *nsc) initCmd() *exec.Cmd {
-	return exec.Command(n.nscPath, "init", "--name", nscOperatorAccount, "--dir", n.storeDir())
+func (n *nsc) init() error {
+	return exec.Command(n.nscPath, "init", "--name", nscOperatorAccount, "--dir", n.storeDir()).Run()
+}
+
+func (n *nsc) configureStaticUsers() error {
+	staticUsers := map[string]userConfig{
+		"BACKEND": {
+			other: []aclEntry{
+				{
+					op:    topicOpSub | topicOpPub,
+					topic: ">",
+				},
+			},
+		},
+		"NATS-MANAGER": {
+			other: []aclEntry{
+				{
+					topic: "NATS-MANAGER.PROVISION-NEW-DEVICE",
+					op:    topicOpSub,
+				},
+				{
+					topic: "NATS-MANAGER.GENERATE-DEVICE-CREDENTIALS",
+					op:    topicOpSub,
+				},
+			},
+		},
+	}
+
+	for name, cfg := range staticUsers {
+		err := n.runCmd(n.addAccountCmd(name))
+		if err != nil {
+			return fmt.Errorf("could not create account for static user %s: %w", name, err)
+		}
+
+		err = n.runCmd(n.addUserCmd(name, name, cfg))
+		if err != nil {
+			return fmt.Errorf("could not create (nsc) user for static user %s: %w", name, err)
+		}
+	}
+
+	return nil
 }
 
 func (n *nsc) addAccountCmd(name string) *exec.Cmd {

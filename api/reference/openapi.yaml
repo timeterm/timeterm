@@ -166,7 +166,7 @@ paths:
         "204":
           description: No content
 
-  /device/{id}/natscreds:
+  /device/{id}/config/natscreds:
     get:
       operationId: getDeviceNatsCredentials
       summary: Get NATS credentials for a device
