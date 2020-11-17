@@ -51,7 +51,7 @@ interface StudentPatch {
 }
 
 const updateStudent = (patch: StudentPatch) =>
-  fetchAuthnd(`student/${patch.id}`, {
+  fetchAuthnd(`/student/${patch.id}`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
@@ -147,7 +147,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({ setSelectedItems }) => {
 
   const fetchData = (page: number, pageSize: number) => {
     return fetchAuthnd(
-      `student?offset=${page * pageSize}&maxAmount=${pageSize}`
+      `/student?offset=${page * pageSize}&maxAmount=${pageSize}`
     ).then((res) => res.json());
   };
 

@@ -55,7 +55,7 @@ interface DevicePatch {
 }
 
 const updateDevice = (patch: DevicePatch) =>
-  fetchAuthnd(`device/${patch.id}`, {
+  fetchAuthnd(`/device/${patch.id}`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });

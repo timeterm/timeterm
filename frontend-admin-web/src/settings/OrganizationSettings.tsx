@@ -15,7 +15,7 @@ interface OrganizationResponse {
 }
 
 const updateOrganization = (patch: OrganizationPatch) =>
-  fetchAuthnd(`organization/${patch.id}`, {
+  fetchAuthnd(`/organization/${patch.id}`, {
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -36,10 +36,10 @@ const OrganizationSettings = (props: OrganizationSettingProps) => {
       return original.name !== patch.name;
     },
     fetch(): Promise<OrganizationResponse> {
-      return fetchAuthnd("user/me")
+      return fetchAuthnd("/user/me")
         .then((res) => res.json())
         .then((user) =>
-          fetchAuthnd(`organization/${user.organizationId}`).then((res) =>
+          fetchAuthnd(`/organization/${user.organizationId}`).then((res) =>
             res.json()
           )
         );

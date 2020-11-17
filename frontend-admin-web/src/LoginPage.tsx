@@ -70,11 +70,12 @@ const LoginPage: React.FC = (props) => {
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
               onClick={() => {
-                window.location.href =
-                  process.env.REACT_APP_API_ENDPOINT +
-                  `oidc/login/microsoft?redirectTo=${encodeURIComponent(
+                window.location.href = new URL(
+                  `/oidc/login/microsoft?redirectTo=${encodeURIComponent(
                     window.location.href + "login/done"
-                  )}`;
+                  )}`,
+                  process.env.REACT_APP_API_ENDPOINT
+                );
               }}
             >
               Inloggen met Microsoft
@@ -113,11 +114,12 @@ const LoginPage: React.FC = (props) => {
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
               onClick={() => {
-                window.location.href =
-                  process.env.REACT_APP_API_ENDPOINT +
+                window.location.href = new URL(
                   `oidc/login/google?redirectTo=${encodeURIComponent(
                     window.location.href + "login/done"
-                  )}`;
+                  )}`,
+                  process.env.REACT_APP_API_ENDPOINT
+                );
               }}
             >
               Inloggen met Google

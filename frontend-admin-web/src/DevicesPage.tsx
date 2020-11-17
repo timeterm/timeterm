@@ -9,7 +9,7 @@ import { queryCache } from "./App";
 import { saveAs } from "file-saver";
 
 const exportConfiguration = () =>
-  fetchAuthnd(`device/registrationconfig`, {
+  fetchAuthnd(`/device/registrationconfig`, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -19,7 +19,7 @@ const exportConfiguration = () =>
     .then((blob) => saveAs(blob, "timeterm-config.json"));
 
 const removeDevice = (devices: Device[]) =>
-  fetchAuthnd(`device`, {
+  fetchAuthnd(`/device`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
@@ -31,7 +31,7 @@ const removeDevice = (devices: Device[]) =>
   });
 
 const restartDevices = (devices: Device[]) =>
-  fetchAuthnd(`device/restart`, {
+  fetchAuthnd(`/device/restart`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -49,7 +49,7 @@ export const fetchAuthnd = (path: string, init?: RequestInit) => {
     "X-Api-Key": session,
   };
 
-  return fetch(process.env.REACT_APP_API_ENDPOINT + path, {
+  return fetch(new URL(path, process.env.REACT_APP_API_ENDPOINT).toString(), {
     ...init,
     headers,
   });

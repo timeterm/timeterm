@@ -11,7 +11,7 @@ interface UserPatch {
 }
 
 const updateUser = (patch: UserPatch) =>
-  fetchAuthnd(`user/${patch.id}`, {
+  fetchAuthnd(`/user/${patch.id}`, {
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -29,7 +29,7 @@ const UserSettings = (props: UserSettingsProps) => {
       return original.name !== patch.name;
     },
     fetch(): Promise<UserResponse> {
-      return fetchAuthnd("user/me").then((res) => res.json());
+      return fetchAuthnd("/user/me").then((res) => res.json());
     },
     initPatch(original: UserResponse): UserPatch {
       return { id: original.id, name: original.name };
