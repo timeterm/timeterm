@@ -85,7 +85,7 @@ export interface UserResponse {
 
 const AppDrawer: React.FC = () => {
   const { isLoading, error, data: user } = useQuery<UserResponse>("user", () =>
-    fetchAuthnd("https://api.timeterm.nl/user/me").then((res) => res.json())
+    fetchAuthnd("user/me").then((res) => res.json())
   );
   const history = useHistory();
 

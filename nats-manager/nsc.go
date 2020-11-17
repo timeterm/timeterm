@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -27,8 +28,9 @@ type streamConsumer struct {
 }
 
 type userConfig struct {
-	streams []streamConsumer
-	other   []aclEntry
+	allowPubResponse bool
+	streams          []streamConsumer
+	other            []aclEntry
 }
 
 type aclEntry struct {
@@ -60,12 +62,14 @@ func streamConsumerACLs(c streamConsumer) []aclEntry {
 }
 
 type nsc struct {
+	log     logr.Logger
 	dataDir string
 	nscPath string
 }
 
 func newNsc(log logr.Logger, dataDir, nscPath string) (*nsc, error) {
 	n := nsc{
+		log:     log,
 		dataDir: dataDir,
 		nscPath: nscPath,
 	}
@@ -86,10 +90,7 @@ func newNsc(log logr.Logger, dataDir, nscPath string) (*nsc, error) {
 		log.Info("nsc initialized")
 	}
 
-	err = n.configureStaticUsers()
-	if err != nil {
-		return nil, fmt.Errorf("could not configure static users: %w", err)
-	}
+	n.configureStaticUsers()
 
 	return &n, err
 }
@@ -130,28 +131,20 @@ func (n *nsc) createNewDevUser(id uuid.UUID) error {
 }
 
 func (n *nsc) init() error {
-	return exec.Command(n.nscPath, "init", "--name", nscOperatorAccount, "--dir", n.storeDir()).Run()
+	cmd := exec.Command(n.nscPath, "init", "--name", nscOperatorAccount, "--dir", n.storeDir())
+	cmd.Env = append(os.Environ(), append(cmd.Env, n.env()...)...)
+
+	return runNscCmdWithLog(cmd)
 }
 
-func (n *nsc) configureStaticUsers() error {
+func (n *nsc) configureStaticUsers() {
 	staticUsers := map[string]userConfig{
 		"BACKEND": {
+			allowPubResponse: true,
 			other: []aclEntry{
 				{
 					op:    topicOpSub | topicOpPub,
 					topic: ">",
-				},
-			},
-		},
-		"NATS-MANAGER": {
-			other: []aclEntry{
-				{
-					topic: "NATS-MANAGER.PROVISION-NEW-DEVICE",
-					op:    topicOpSub,
-				},
-				{
-					topic: "NATS-MANAGER.GENERATE-DEVICE-CREDENTIALS",
-					op:    topicOpSub,
 				},
 			},
 		},
@@ -160,16 +153,24 @@ func (n *nsc) configureStaticUsers() error {
 	for name, cfg := range staticUsers {
 		err := n.runCmd(n.addAccountCmd(name))
 		if err != nil {
-			return fmt.Errorf("could not create account for static user %s: %w", name, err)
+			n.log.Error(err, "could not create account for static user", append(errorLogArgs(err), "name", name)...)
 		}
 
 		err = n.runCmd(n.addUserCmd(name, name, cfg))
 		if err != nil {
-			return fmt.Errorf("could not create (nsc) user for static user %s: %w", name, err)
+			n.log.Error(err, "could not create account for static user", append(errorLogArgs(err), "name", name)...)
+		}
+
+		err = n.runCmd(n.editUserCmd(name, name, cfg))
+		if err != nil {
+			n.log.Error(err, "could not edit static user", append(errorLogArgs(err), "name", name)...)
+		}
+
+		_, err = n.generateUserCreds(name, name)
+		if err != nil {
+			n.log.Error(err, "could not generate user creds")
 		}
 	}
-
-	return nil
 }
 
 func (n *nsc) addAccountCmd(name string) *exec.Cmd {
@@ -188,6 +189,29 @@ func (n *nsc) addUserCmd(account, name string, cfg userConfig) *exec.Cmd {
 
 	for _, aclEntry := range acls {
 		args = append(args, aclEntry.asNscAddUserArgs()...)
+	}
+
+	if cfg.allowPubResponse {
+		args = append(args, "--allow-pub-response")
+	}
+
+	return exec.Command(n.nscPath, args...)
+}
+
+func (n *nsc) editUserCmd(account, name string, cfg userConfig) *exec.Cmd {
+	args := []string{"edit", "user", "--name", name, "--account", account}
+
+	acls := cfg.other
+	for _, sc := range cfg.streams {
+		acls = append(acls, streamConsumerACLs(sc)...)
+	}
+
+	for _, aclEntry := range acls {
+		args = append(args, aclEntry.asNscAddUserArgs()...)
+	}
+
+	if cfg.allowPubResponse {
+		args = append(args, "--allow-pub-response")
 	}
 
 	return exec.Command(n.nscPath, args...)
@@ -268,4 +292,12 @@ func (e nscError) Unwrap() error {
 
 func (e nscError) Log() string {
 	return e.log
+}
+
+func errorLogArgs(err error) []interface{} {
+	var nerr nscError
+	if errors.As(err, &nerr) {
+		return []interface{}{"log", nerr.Log()}
+	}
+	return nil
 }

@@ -15,7 +15,7 @@ interface OrganizationResponse {
 }
 
 const updateOrganization = (patch: OrganizationPatch) =>
-  fetchAuthnd(`https://api.timeterm.nl/organization/${patch.id}`, {
+  fetchAuthnd(`organization/${patch.id}`, {
     method: "PATCH",
     headers: {
       Accept: "application/json",
@@ -36,12 +36,12 @@ const OrganizationSettings = (props: OrganizationSettingProps) => {
       return original.name !== patch.name;
     },
     fetch(): Promise<OrganizationResponse> {
-      return fetchAuthnd("https://api.timeterm.nl/user/me")
+      return fetchAuthnd("user/me")
         .then((res) => res.json())
         .then((user) =>
-          fetchAuthnd(
-            `https://api.timeterm.nl/organization/${user.organizationId}`
-          ).then((res) => res.json())
+          fetchAuthnd(`organization/${user.organizationId}`).then((res) =>
+            res.json()
+          )
         );
     },
     initPatch(original: OrganizationResponse): OrganizationPatch {

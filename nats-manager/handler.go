@@ -30,3 +30,12 @@ func (h *handler) provisionNewDevice(id uuid.UUID) (err error) {
 	}
 	return nil
 }
+
+func (h *handler) generateDeviceCredentials(id uuid.UUID) (creds string, err error) {
+	accountName := fmt.Sprintf("EMDEV-%s", id)
+	creds, err = h.nsc.generateUserCreds(accountName, accountName)
+	if err != nil {
+		return "", fmt.Errorf("could not generate credentials for device (user): %w", err)
+	}
+	return
+}

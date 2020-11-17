@@ -45,7 +45,7 @@ func realMain(log logr.Logger) error {
 
 	log.Info("connecting with NATS", "url", cfg.natsURL)
 	nc, err := nats.Connect(cfg.natsURL,
-		nats.UserCredentials(path.Join(nsc.nkeysPath(), "creds/TIMETERM/NATS-MANAGER/NATS-MANAGER.creds")),
+		nats.UserCredentials(path.Join(nsc.nkeysPath(), "creds/TIMETERM/BACKEND/BACKEND.creds")),
 	)
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)

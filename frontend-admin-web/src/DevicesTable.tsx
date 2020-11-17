@@ -55,7 +55,7 @@ interface DevicePatch {
 }
 
 const updateDevice = (patch: DevicePatch) =>
-  fetchAuthnd(`https://api.timeterm.nl/device/${patch.id}`, {
+  fetchAuthnd(`device/${patch.id}`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
@@ -110,7 +110,7 @@ const DevicesTable: React.FC<DevicesTableProps> = ({ setSelectedItems }) => {
 
   const fetchData = (page: number, pageSize: number) => {
     return fetchAuthnd(
-      `https://api.timeterm.nl/device?offset=${page * pageSize}&maxAmount=${pageSize}`
+      `device?offset=${page * pageSize}&maxAmount=${pageSize}`
     ).then((res) => res.json());
   };
 

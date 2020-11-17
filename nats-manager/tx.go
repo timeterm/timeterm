@@ -30,7 +30,7 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 
 	tx := tx{enc: &enc, log: log, h: h}
 
-	sub, err := enc.QueueSubscribe(
+	_, err := enc.QueueSubscribe(
 		nmsdk.SubjectProvisionNewDevice,
 		nmsdk.SubjectProvisionNewDevice,
 		tx.handleProvisionNewDevice,
@@ -38,12 +38,20 @@ func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) erro
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = sub.Drain()
-		if err != nil {
-			log.Error(err, "error draining subscription", "topic", sub.Subject)
-		}
-	}()
+
+	_, err = enc.QueueSubscribe(
+		nmsdk.SubjectGenerateDeviceCredentials,
+		nmsdk.SubjectGenerateDeviceCredentials,
+		tx.handleGenerateDeviceCredentials,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = nc.Flush()
+	if err != nil {
+		return err
+	}
 
 	<-ctx.Done()
 
@@ -83,7 +91,33 @@ func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.Prov
 
 	err = t.enc.Publish(reply, rsp)
 	if err != nil {
-		t.log.Error(err, "could not provisionNewDevice response")
+		t.log.Error(err, "could not publish provisionNewDevice response")
+	}
+}
+
+func (t *tx) handleGenerateDeviceCredentials(_ /* sub */, reply string, msg *rpcpb.GenerateDeviceCredentialsRequest) {
+	defer t.handlePanic()
+
+	rsp := new(rpcpb.GenerateDeviceCredentialsResponse)
+
+	creds, err := t.generateDeviceCredentials(msg)
+	if err != nil {
+		rsp.Response = &rpcpb.GenerateDeviceCredentialsResponse_Error{
+			Error: &rpcpb.Error{
+				Message: err.Error(),
+			},
+		}
+	} else {
+		rsp.Response = &rpcpb.GenerateDeviceCredentialsResponse_Sucess{
+			Sucess: &rpcpb.DeviceCredentials{
+				NatsCreds: creds,
+			},
+		}
+	}
+
+	err = t.enc.Publish(reply, rsp)
+	if err != nil {
+		t.log.Error(err, "could not publish generateDeviceCredentials response")
 	}
 }
 
@@ -95,15 +129,26 @@ func (t *tx) provisionNewDevice(msg *rpcpb.ProvisionNewDeviceRequest) error {
 
 	err = t.h.provisionNewDevice(devID)
 	if err != nil {
-		var logArgs []interface{}
-		var nerr nscError
-		if errors.As(err, &nerr) {
-			logArgs = append(logArgs, "log", nerr.Log())
-		}
-		t.log.Error(err, "could not provision new device", logArgs...)
+		t.log.Error(err, "could not provision new device", errorLogArgs(err)...)
 
 		return fmt.Errorf("could not provision new device: %w", err)
 	}
 
 	return nil
+}
+
+func (t *tx) generateDeviceCredentials(msg *rpcpb.GenerateDeviceCredentialsRequest) (string, error) {
+	devID, err := uuid.Parse(msg.GetDeviceId())
+	if err != nil {
+		return "", errors.New("invalid device ID")
+	}
+
+	creds, err := t.h.generateDeviceCredentials(devID)
+	if err != nil {
+		t.log.Error(err, "could not generate device credentials", errorLogArgs(err)...)
+
+		return "", fmt.Errorf("could not generate credentials for device: %w", err)
+	}
+
+	return creds, nil
 }

@@ -18,24 +18,23 @@ services:
       - "8432:8080"
 
   nats:
-    image: synadia/jsm:nightly-20200914
+    image: synadia/jsm:nightly-20201116
     restart: always
-    command: server -sd /datastore
     environment:
       NATS_CONFIG: |
         operator: /operator/TIMETERM.jwt
         resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
-        system_account: ACMUG2BUXKAGPY56SVXJKDZF3RO4QJKJNPSYHBUJCLQRPIL7M2NRWAYS
+        system_account: ADHWTMMB6WMKDGJOTIXLXV56DIHVPV46K7UTVUXJRQ2NHL6DWEOU35UG
     volumes:
       - ./nm/store/TIMETERM/TIMETERM.jwt:/operator/TIMETERM.jwt
-    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
+    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -js -sd datastore -c /nats.config"
     ports:
       - "4222:4222"
   
   nats-account-server:
     environment:
       NAS_CONFIG: |
-        operatorjwtpath: /data/accounts/TIMETERM/TIMETERM.jwt
+        operatorjwtpath: /data/TIMETERM.jwt
 
         store: {
           nsc: /data

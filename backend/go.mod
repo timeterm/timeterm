@@ -4,6 +4,7 @@ go 1.15
 
 replace (
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb => ./pkg/natspb
+	gitlab.com/timeterm/timeterm/nats-manager/sdk => ../nats-manager/sdk
 	gitlab.com/timeterm/timeterm/proto/go => ../proto/go
 )
 
@@ -27,8 +28,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.8.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/nats-io/jwt v1.2.0 // indirect
-	github.com/nats-io/nats.go v1.10.0
+	github.com/nats-io/nats.go v1.10.1-0.20201013114232-5a33ce07522f
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/pquerna/cachecontrol v0.0.0-20200921180117-858c6e7e6b7e // indirect
@@ -36,6 +36,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb v0.0.0-20201116065525-ea9cced58338
+	gitlab.com/timeterm/timeterm/nats-manager/sdk v0.0.0-00010101000000-000000000000
 	gitlab.com/timeterm/timeterm/proto/go v0.0.0-20201116065525-ea9cced58338
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0

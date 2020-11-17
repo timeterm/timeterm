@@ -16,7 +16,6 @@ import (
 
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
-	"gitlab.com/timeterm/timeterm/backend/mq"
 	_ "gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 )
 
@@ -60,8 +59,7 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	mqw := mq.NewWrapper(nc)
-	server, err := api.NewServer(db, log, mqw)
+	server, err := api.NewServer(db, log, nc)
 	if err != nil {
 		return fmt.Errorf("could not create API server: %w", err)
 	}
