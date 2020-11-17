@@ -17,6 +17,7 @@ import (
 	"gitlab.com/timeterm/timeterm/backend/database"
 	"gitlab.com/timeterm/timeterm/backend/mq"
 	_ "gitlab.com/timeterm/timeterm/backend/pkg/natspb"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 )
 
 func main() {
@@ -47,7 +48,14 @@ func main() {
 	}
 
 	mqw := mq.NewWrapper(nc)
-	server, err := api.NewServer(db, log, mqw)
+
+	secr, err := secrets.New()
+	if err != nil {
+		log.Error(err, "could not create a secret wrapper")
+		os.Exit(1)
+	}
+
+	server, err := api.NewServer(db, log, mqw, secr)
 	if err != nil {
 		log.Error(err, "could not create API server")
 		os.Exit(1)

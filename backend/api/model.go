@@ -92,7 +92,7 @@ const (
 
 type Ipv6Settings struct {
 	Network      string `json:"network"`
-	PrefixLength int    `json:"prefixLength"`
+	PrefixLength uint64 `json:"prefixLength"`
 	Gateway      string `json:"gateway"`
 }
 
@@ -156,7 +156,7 @@ type EthernetService struct {
 	SearchDomains            []string                 `json:"searchDomains"`
 	Timeservers              []string                 `json:"timeservers"`
 	Domain                   string                   `json:"domain"`
-	Name                     string                   `json:"name"`
+	NetworkName              string                   `json:"name"`
 	SSID                     string                   `json:"ssid"`
 	Passphrase               string                   `json:"passphrase"`
 	Security                 Security                 `json:"security"`
@@ -179,9 +179,9 @@ type EthernetService struct {
 
 func EthernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServiceType {
 	switch cfgType {
-	case 1:
+	case devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_ETHERNET:
 		return EthernetServiceTypeEthernet
-	case 2:
+	case devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_WIFI:
 		return EthernetServiceTypeWifi
 	default:
 		return ""
@@ -190,11 +190,11 @@ func EthernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServi
 
 func Ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
 	switch ipv4ConfigType {
-	case 1:
+	case devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_OFF:
 		return Ipv4ConfigTypeOff
-	case 2:
+	case devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_DHCP:
 		return Ipv4ConfigTypeDhcp
-	case 3:
+	case devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_CUSTOM:
 		return Ipv4ConfigTypeCustom
 	default:
 		return ""
@@ -224,11 +224,70 @@ func Ipv4ConfigFrom(ipv4Config *devcfgpb.Ipv4Config) *Ipv4Config {
 	}
 }
 
+func Ipv6ConfigTypeFrom(ipv6ConfigType devcfgpb.Ipv6ConfigType) Ipv6ConfigType {
+	switch ipv6ConfigType {
+	case devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_OFF:
+		return Ipv6ConfigTypeOff
+	case devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_AUTO:
+		return Ipv6ConfigTypeAuto
+	case devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_CUSTOM:
+		return Ipv6ConfigTypeCustom
+	default:
+		return ""
+	}
+}
+
+func Ipv6SettingsFrom(ipv6Settings *devcfgpb.Ipv6ConfigSettings) *Ipv6Settings {
+	if ipv6Settings == nil {
+		return nil
+	}
+
+	return &Ipv6Settings{
+		Network:      ipv6Settings.GetNetwork(),
+		PrefixLength: ipv6Settings.GetPrefixLength(),
+		Gateway:      ipv6Settings.GetGateway(),
+	}
+}
+
+func Ipv6ConfigFrom(ipv6Config *devcfgpb.Ipv6Config) *Ipv6Config {
+	if ipv6Config == nil {
+		return nil
+	}
+
+	return &Ipv6Config{
+		Type:     Ipv6ConfigTypeFrom(ipv6Config.GetType()),
+		Settings: Ipv6SettingsFrom(ipv6Config.GetSettings()),
+	}
+}
+
+func Ipv6PrivacyFrom(ipv6Privacy devcfgpb.Ipv6Privacy) Ipv6Privacy {
+	switch ipv6Privacy {
+	case devcfgpb.Ipv6Privacy_IPV6_PRIVACY_DISABLED:
+		return Ipv6PrivacyDisabled
+	case devcfgpb.Ipv6Privacy_IPV6_PRIVACY_ENABLED:
+		return Ipv6PrivacyEnabled
+	case devcfgpb.Ipv6Privacy_IPV6_PRIVACY_PREFERRED:
+		return Ipv6PrivacyPreferred
+	default:
+		return ""
+	}
+}
+
 func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
 	return EthernetService{
-		ID:         id,
-		Type:       EthernetServiceTypeFrom(cfg.GetType()),
-		Ipv4Config: Ipv4ConfigFrom(cfg.GetIpv4Config()),
+		ID:            id,
+		Type:          EthernetServiceTypeFrom(cfg.GetType()),
+		Ipv4Config:    Ipv4ConfigFrom(cfg.GetIpv4Config()),
+		Ipv6Config:    Ipv6ConfigFrom(cfg.GetIpv6Config()),
+		Ipv6Privacy:   Ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
+		Mac:           cfg.GetMac(),
+		Nameservers:   cfg.GetNameservers(),
+		SearchDomains: cfg.GetSearchDomains(),
+		Timeservers:   cfg.GetTimeservers(),
+		Domain:        cfg.GetDomain(),
+		NetworkName:   cfg.GetName(),
+		SSID:          cfg.GetSsid(),
+		Passphrase:    cfg.GetPassphrase(),
 	}
 }
 
