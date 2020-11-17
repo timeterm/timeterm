@@ -75,7 +75,7 @@ const LoginPage: React.FC = (props) => {
                     window.location.href + "login/done"
                   )}`,
                   process.env.REACT_APP_API_ENDPOINT
-                );
+                ).toString();
               }}
             >
               Inloggen met Microsoft
@@ -119,7 +119,7 @@ const LoginPage: React.FC = (props) => {
                     window.location.href + "login/done"
                   )}`,
                   process.env.REACT_APP_API_ENDPOINT
-                );
+                ).toString();
               }}
             >
               Inloggen met Google
