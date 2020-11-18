@@ -162,14 +162,14 @@ type EthernetService struct {
 	Security                 Security                 `json:"security"`
 	IsHidden                 bool                     `json:"isHidden"`
 	Eap                      Eap                      `json:"eap"`
-	CaCert                   byte                     `json:"caCert"`
-	caCertType               CaCertType               `json:"caCertType"`
-	PrivateKey               byte                     `json:"privateKey"`
+	CaCert                   []byte                     `json:"caCert"`
+	CaCertType               CaCertType               `json:"caCertType"`
+	PrivateKey               []byte                     `json:"privateKey"`
 	PrivateKeyType           PrivateKeyType           `json:"privateKeyType"`
 	PrivateKeyPassphrase     string                   `json:"privateKeyPassphrase"`
 	PrivateKeyPassphraseType PrivateKeyPassphraseType `json:"privateKeyPassphraseType"`
 	Identity                 string                   `json:"identity"`
-	AnonymousIdentify        string                   `json:"anonymousIdentify"`
+	AnonymousIdentity        string                   `json:"anonymousIdentify"`
 	SubjectMatch             string                   `json:"subjectMatch"`
 	AltSubjectMatch          string                   `json:"altSubjectMatch"`
 	DomainSuffixMatch        string                   `json:"domainSuffixMatch"`
@@ -177,7 +177,7 @@ type EthernetService struct {
 	IsPhase2EapBased         bool                     `json:"isPhase2EapBased"`
 }
 
-func EthernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServiceType {
+func ethernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServiceType {
 	switch cfgType {
 	case devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_ETHERNET:
 		return EthernetServiceTypeEthernet
@@ -188,7 +188,7 @@ func EthernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServi
 	}
 }
 
-func Ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
+func ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
 	switch ipv4ConfigType {
 	case devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_OFF:
 		return Ipv4ConfigTypeOff
@@ -201,7 +201,7 @@ func Ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
 	}
 }
 
-func Ipv4SettingsFrom(ipv4Settings *devcfgpb.Ipv4ConfigSettings) *Ipv4Settings {
+func ipv4SettingsFrom(ipv4Settings *devcfgpb.Ipv4ConfigSettings) *Ipv4Settings {
 	if ipv4Settings == nil {
 		return nil
 	}
@@ -213,18 +213,18 @@ func Ipv4SettingsFrom(ipv4Settings *devcfgpb.Ipv4ConfigSettings) *Ipv4Settings {
 	}
 }
 
-func Ipv4ConfigFrom(ipv4Config *devcfgpb.Ipv4Config) *Ipv4Config {
+func ipv4ConfigFrom(ipv4Config *devcfgpb.Ipv4Config) *Ipv4Config {
 	if ipv4Config == nil {
 		return nil
 	}
 
 	return &Ipv4Config{
-		Type:     Ipv4ConfigTypeFrom(ipv4Config.GetType()),
-		Settings: Ipv4SettingsFrom(ipv4Config.GetSettings()),
+		Type:     ipv4ConfigTypeFrom(ipv4Config.GetType()),
+		Settings: ipv4SettingsFrom(ipv4Config.GetSettings()),
 	}
 }
 
-func Ipv6ConfigTypeFrom(ipv6ConfigType devcfgpb.Ipv6ConfigType) Ipv6ConfigType {
+func ipv6ConfigTypeFrom(ipv6ConfigType devcfgpb.Ipv6ConfigType) Ipv6ConfigType {
 	switch ipv6ConfigType {
 	case devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_OFF:
 		return Ipv6ConfigTypeOff
@@ -237,7 +237,7 @@ func Ipv6ConfigTypeFrom(ipv6ConfigType devcfgpb.Ipv6ConfigType) Ipv6ConfigType {
 	}
 }
 
-func Ipv6SettingsFrom(ipv6Settings *devcfgpb.Ipv6ConfigSettings) *Ipv6Settings {
+func ipv6SettingsFrom(ipv6Settings *devcfgpb.Ipv6ConfigSettings) *Ipv6Settings {
 	if ipv6Settings == nil {
 		return nil
 	}
@@ -249,18 +249,18 @@ func Ipv6SettingsFrom(ipv6Settings *devcfgpb.Ipv6ConfigSettings) *Ipv6Settings {
 	}
 }
 
-func Ipv6ConfigFrom(ipv6Config *devcfgpb.Ipv6Config) *Ipv6Config {
+func ipv6ConfigFrom(ipv6Config *devcfgpb.Ipv6Config) *Ipv6Config {
 	if ipv6Config == nil {
 		return nil
 	}
 
 	return &Ipv6Config{
-		Type:     Ipv6ConfigTypeFrom(ipv6Config.GetType()),
-		Settings: Ipv6SettingsFrom(ipv6Config.GetSettings()),
+		Type:     ipv6ConfigTypeFrom(ipv6Config.GetType()),
+		Settings: ipv6SettingsFrom(ipv6Config.GetSettings()),
 	}
 }
 
-func Ipv6PrivacyFrom(ipv6Privacy devcfgpb.Ipv6Privacy) Ipv6Privacy {
+func ipv6PrivacyFrom(ipv6Privacy devcfgpb.Ipv6Privacy) Ipv6Privacy {
 	switch ipv6Privacy {
 	case devcfgpb.Ipv6Privacy_IPV6_PRIVACY_DISABLED:
 		return Ipv6PrivacyDisabled
@@ -273,7 +273,7 @@ func Ipv6PrivacyFrom(ipv6Privacy devcfgpb.Ipv6Privacy) Ipv6Privacy {
 	}
 }
 
-func SecurityFrom(secr devcfgpb.Security) Security {
+func securityFrom(secr devcfgpb.Security) Security {
 	switch secr {
 	case devcfgpb.Security_SECURITY_PSK:
 		return SecurityPsk
@@ -288,7 +288,7 @@ func SecurityFrom(secr devcfgpb.Security) Security {
 	}
 }
 
-func EapFrom(eap devcfgpb.Eap) Eap {
+func eapFrom(eap devcfgpb.Eap) Eap {
 	switch eap {
 	case devcfgpb.Eap_EAP_TLS:
 		return EapTls
@@ -301,13 +301,45 @@ func EapFrom(eap devcfgpb.Eap) Eap {
 	}
 }
 
+func caCertTypeFrom(ccType devcfgpb.CaCertType) CaCertType {
+	switch ccType {
+	case devcfgpb.CaCertType_CA_CERT_TYPE_PEM:
+		return CaCertTypePem
+	case devcfgpb.CaCertType_CA_CERT_TYPE_DER:
+		return CaCertTypeDer
+	default:
+		return ""
+	}
+}
+
+func privateKeyTypeFrom(pkType devcfgpb.PrivateKeyType) PrivateKeyType {
+	switch pkType {
+	case devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_PEM:
+		return PrivateKeyTypePem
+	case devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_DER:
+		return PrivateKeyTypeDer
+	case devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_PFX:
+		return PrivateKeyTypePfx
+	default:
+		return ""
+	}
+}
+
+func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphraseType) PrivateKeyPassphraseType {
+	switch pkPassphraseType {
+	case devcfgpb.PrivateKeyPassphraseType_PRIVATE_KEY_PASSPHRASE_TYPE_FSID:
+		return PrivateKeyPassphraseTypeFsid
+	default:
+		return ""
+	}
+}
 func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
 	return EthernetService{
 		ID:            id,
-		Type:          EthernetServiceTypeFrom(cfg.GetType()),
-		Ipv4Config:    Ipv4ConfigFrom(cfg.GetIpv4Config()),
-		Ipv6Config:    Ipv6ConfigFrom(cfg.GetIpv6Config()),
-		Ipv6Privacy:   Ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
+		Type:          ethernetServiceTypeFrom(cfg.GetType()),
+		Ipv4Config:    ipv4ConfigFrom(cfg.GetIpv4Config()),
+		Ipv6Config:    ipv6ConfigFrom(cfg.GetIpv6Config()),
+		Ipv6Privacy:   ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
 		Mac:           cfg.GetMac(),
 		Nameservers:   cfg.GetNameservers(),
 		SearchDomains: cfg.GetSearchDomains(),
@@ -316,9 +348,22 @@ func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetSer
 		NetworkName:   cfg.GetName(),
 		SSID:          cfg.GetSsid(),
 		Passphrase:    cfg.GetPassphrase(),
-		Security: SecurityFrom(cfg.GetSecurity()),
+		Security: securityFrom(cfg.GetSecurity()),
 		IsHidden: cfg.GetIsHidden(),
-		Eap: EapFrom(cfg.GetEap()),
+		Eap: eapFrom(cfg.GetEap()),
+		CaCert: cfg.GetCaCert(),
+		CaCertType: caCertTypeFrom(cfg.GetCaCertType()),
+		PrivateKey: cfg.GetPrivateKey(),
+		PrivateKeyType: privateKeyTypeFrom(cfg.GetPrivateKeyType()),
+		PrivateKeyPassphrase: cfg.GetPrivateKeyPassphrase(),
+		PrivateKeyPassphraseType: privateKeyPassphraseTypeFrom(cfg.GetPrivateKeyPassphraseType()),
+		Identity: cfg.GetIdentity(),
+		AnonymousIdentity: cfg.GetAnonymousIdentity(),
+		SubjectMatch: cfg.GetSubjectMatch(),
+		AltSubjectMatch: cfg.GetAltSubjectMatch(),
+		DomainSuffixMatch: cfg.GetDomainSuffixMatch(),
+		DomainMatch: cfg.GetDomainMatch(),
+		IsPhase2EapBased: cfg.GetIsPhase_2EapBased(),		
 	}
 }
 
