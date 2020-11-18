@@ -64,9 +64,10 @@ enum Security {
 }
 
 enum Eap {
-  EAP_TLS = 0;
-  EAP_TTLS = 1;
-  EAP_PEAP = 2;
+  EAP_UNSPECIFIED = 0;
+  EAP_TLS = 1;
+  EAP_TTLS = 2;
+  EAP_PEAP = 3;
 }
 
 enum CaCertType {
