@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQml.Models 2.12
 import QtQuick.Layouts 1.12
+import QtGraphicalEffects 1.0
 
 import "../js/TimeFunctions.js" as TimeFunction
 
@@ -24,7 +25,8 @@ Page {
             } else if (i === timetable.data.length - 1) {                           // last appointment in the list
                 appointments.endLastAppointment = timetable.data[i].endTime
                 appointments.contentHeight = (appointments.endLastAppointment.getTime()
-                                            - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio
+                                            - appointments.startFirstAppointment.getTime())
+                                            / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between appointments
                 
                 fillTimeLine()
             }
@@ -94,7 +96,6 @@ Page {
         anchors.margins: parent.height * 0.02
         color: "#b5b5b5"
         radius: 5
-        z: 1
         Text {
             text: new Date().toLocaleString(Qt.locale("nl_NL"), "dddd")
             anchors.verticalCenter: parent.verticalCenter
@@ -118,14 +119,56 @@ Page {
         property var startFirstAppointment
         property var endLastAppointment
 
+//        Rectangle {
+//            id: appointmentsBackground
+//            anchors.fill: parent
+//            color: "#FFFFFF"
+//        }
+
+//        InnerShadow {
+//            anchors.fill: appointmentsBackground
+//            radius: 16
+//            samples: 24
+//            horizontalOffset: -5
+//            verticalOffset: -5
+//            color: "#ff0000"
+//            spread: 0.5
+//        }
+
         Rectangle {
             id: timeLine
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
             width: parent.width - dayHeader.width - dayHeader.anchors.margins
-            color: "#7bb0ff"
+            color: "#D6E6FF"
             radius: 5
+
+            Rectangle { // The red line
+                property var secToPixRatio
+                id: currentTime
+                anchors.left: parent.left
+                width: parent.width
+                height: 2
+                color: "#FF0000"
+                function setCurrentTimeLine() {
+                    let currTime = new Date()
+                    let offset = (currTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000
+                    offset *= secToPixRatio
+                    currentTime.y = offset
+                }
+            }
+
+            Timer {
+                id: timeLineTimer
+                interval: 1000 // 60 seconds
+                repeat: true
+                running: true
+                triggeredOnStart: true
+                onTriggered: currentTime.setCurrentTimeLine()
+            }
+
+            Component.onCompleted: currentTime.secToPixRatio = secondToPixelRatio
         }
     }
 }

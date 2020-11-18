@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 
 option go_package = "gitlab.com/timeterm/timeterm/proto/go/rpc;rpcpb";
 
@@ -11,7 +11,8 @@ message ProvisionNewDeviceRequest { string device_id = 1; }
 message ProvisionNewDeviceResponse {
   oneof response {
     Error error = 1;
-    google.protobuf.Empty success = 2;
+    //google.protobuf.Empty success = 2;
+    Empty success = 2;
   }
 }
 
@@ -27,3 +28,5 @@ message GenerateDeviceCredentialsResponse {
 message DeviceCredentials { string nats_creds = 1; }
 
 message Error { string message = 1; }
+
+message Empty {}

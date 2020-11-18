@@ -12,7 +12,7 @@ Rectangle {
          + startFirstAppointment.getMinutes()* 60
          + startFirstAppointment.getSeconds())) // time in seconds calculated from the first appointment of the day
        * secondToPixelRatio
-    height: (appointment.endTime - appointment.startTime) / 1000 * secondToPixelRatio
+    height: (appointment.endTime - appointment.startTime)/ 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments
 
     width: dayHeader.width
     anchors.right: parent.right
