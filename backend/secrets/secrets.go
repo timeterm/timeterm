@@ -54,6 +54,12 @@ func (w *Wrapper) GetEthernetServiceConfig(id uuid.UUID) (*devcfgpb.EthernetServ
 	return &ethernetService, nil
 }
 
+func (w *Wrapper) DeleteNetworkingService(id uuid.UUID) error {
+	secretPath := createEthernetServiceConfigSecretPath(id)
+	_, err := w.c.Logical().Delete(secretPath)
+	return err
+}
+
 func (w *Wrapper) UpsertEthernetConfig(id uuid.UUID, cfg *devcfgpb.EthernetService) error {
 	bytes, err := proto.Marshal(cfg)
 	if err != nil {

@@ -91,8 +91,9 @@ func (s *Server) registerRoutes() {
 	stdGroup.POST("/", s.createStudent)
 	stdGroup.DELETE("/", s.deleteStudents)
 
-	ethServGroup := s.echo.Group("/ethernet/service")
-	ethServGroup.GET("/:id", s.getEthernetService)
+	netServGroup := s.echo.Group("/networking/service")
+	netServGroup.GET("/:id", s.getEthernetService)
+	netServGroup.DELETE("/:id", s.deleteNetworkingService)
 }
 
 func (s *Server) Run(ctx context.Context) error {

@@ -23,3 +23,20 @@ func (s *Server) getEthernetService(c echo.Context) error {
 	apiEthernetConfig := EthernetConfigFrom(secretEthernetConfig, uid)
 	return c.JSON(http.StatusOK, apiEthernetConfig)
 }
+
+func (s *Server) deleteNetworkingService(c echo.Context) error {
+	id := c.Param("id")
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	err = s.secr.DeleteNetworkingService(uid)
+	if err != nil {
+		s.log.Error(err, "could not delete networking service")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not delete networking service")
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
