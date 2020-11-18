@@ -322,14 +322,15 @@ paths:
     put:
       operationId: replaceNetworkingService
       summary: Replace a networking service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NetworkingService"
       responses:
-        "200":
-          description: Networking service updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NetworkingService"
-
+        "204":
+          description: No content
+  
   /student:
     post:
       operationId: createStudent
