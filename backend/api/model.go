@@ -273,6 +273,34 @@ func Ipv6PrivacyFrom(ipv6Privacy devcfgpb.Ipv6Privacy) Ipv6Privacy {
 	}
 }
 
+func SecurityFrom(secr devcfgpb.Security) Security {
+	switch secr {
+	case devcfgpb.Security_SECURITY_PSK:
+		return SecurityPsk
+	case devcfgpb.Security_SECURITY_IEEE8021X:
+		return SecurityIeee8021x
+	case devcfgpb.Security_SECURITY_NONE:
+		return SecurityNone
+	case devcfgpb.Security_SECURITY_WEP:
+		return SecurityWep
+	default:
+		return ""
+	}
+}
+
+func EapFrom(eap devcfgpb.Eap) Eap {
+	switch eap {
+	case devcfgpb.Eap_EAP_TLS:
+		return EapTls
+	case devcfgpb.Eap_EAP_TTLS:
+		return EapTtls
+	case devcfgpb.Eap_EAP_PEAP:
+		return EapPeap
+	default:
+		return ""
+	}
+}
+
 func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
 	return EthernetService{
 		ID:            id,
@@ -288,6 +316,9 @@ func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetSer
 		NetworkName:   cfg.GetName(),
 		SSID:          cfg.GetSsid(),
 		Passphrase:    cfg.GetPassphrase(),
+		Security: SecurityFrom(cfg.GetSecurity()),
+		IsHidden: cfg.GetIsHidden(),
+		Eap: EapFrom(cfg.GetEap()),
 	}
 }
 
