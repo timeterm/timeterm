@@ -15,7 +15,9 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/nats-io/jsm.go v0.0.19
+	github.com/nats-io/jwt/v2 v2.0.0-20201006231922-e00ffcea7738
 	github.com/nats-io/nats.go v1.10.1-0.20201013114232-5a33ce07522f
+	github.com/nats-io/nkeys v0.2.0
 	github.com/stretchr/testify v1.6.1
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb v0.0.0-20201110122546-fd086d39b6a5
 	gitlab.com/timeterm/timeterm/nats-manager/sdk v0.0.0-00010101000000-000000000000
