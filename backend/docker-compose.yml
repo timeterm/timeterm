@@ -25,9 +25,13 @@ services:
         operator: /operator/TIMETERM.jwt
         resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
         system_account: ADHWTMMB6WMKDGJOTIXLXV56DIHVPV46K7UTVUXJRQ2NHL6DWEOU35UG
+
+        jetstream {
+          store_dir: datastore
+        }
     volumes:
       - ./nm/store/TIMETERM/TIMETERM.jwt:/operator/TIMETERM.jwt
-    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -js -sd datastore -c /nats.config"
+    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
     ports:
       - "4222:4222"
   
@@ -35,6 +39,7 @@ services:
     environment:
       NAS_CONFIG: |
         operatorjwtpath: /data/TIMETERM.jwt
+        systemaccountjwtpath: /data/accounts/SYS/SYS.jwt
 
         store: {
           nsc: /data
