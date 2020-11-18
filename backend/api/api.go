@@ -93,6 +93,7 @@ func (s *Server) registerRoutes() {
 
 	netServGroup := s.echo.Group("/networking/service")
 	netServGroup.GET("/:id", s.getEthernetService)
+	netServGroup.PUT("/:id", s.upsertNetworkingService)
 	netServGroup.DELETE("/:id", s.deleteNetworkingService)
 }
 

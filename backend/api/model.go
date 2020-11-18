@@ -367,6 +367,12 @@ func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetSer
 	}
 }
 
+func NetworkingServiceToProto(ethServ EthernetService) *devcfgpb.EthernetService {
+	return &devcfgpb.EthernetService{
+		// Go on here
+	}
+}
+
 type Pagination struct {
 	Offset    uint64 `json:"offset"`
 	MaxAmount uint64 `json:"maxAmount"`
