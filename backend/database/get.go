@@ -279,3 +279,11 @@ func (w *Wrapper) AreStudentsInOrganization(ctx context.Context,
 
 	return amountInOrganization == len(ids), err
 }
+
+func (w *Wrapper) GetNetworkingService(ctx context.Context, id uuid.UUID) (NetworkingService, error) {
+	var networkingService NetworkingService
+
+	err := w.db.GetContext(ctx, &networkingService, `SELECT * FROM "networking_service" WHERE "id" = $1`, id)
+
+	return networkingService, err
+}

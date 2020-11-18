@@ -58,6 +58,12 @@ type Device struct {
 	LastHeartbeat  sql.NullTime
 }
 
+type NetworkingService struct {
+	ID             uuid.UUID
+	OrganizationID uuid.UUID
+	Name           string
+}
+
 func (w *Wrapper) CreateOrganization(ctx context.Context,
 	name string,
 	zermeloInstitution string,
