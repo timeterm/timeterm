@@ -162,9 +162,9 @@ type EthernetService struct {
 	Security                 Security                 `json:"security"`
 	IsHidden                 bool                     `json:"isHidden"`
 	Eap                      Eap                      `json:"eap"`
-	CaCert                   []byte                     `json:"caCert"`
+	CaCert                   []byte                   `json:"caCert"`
 	CaCertType               CaCertType               `json:"caCertType"`
-	PrivateKey               []byte                     `json:"privateKey"`
+	PrivateKey               []byte                   `json:"privateKey"`
 	PrivateKeyType           PrivateKeyType           `json:"privateKeyType"`
 	PrivateKeyPassphrase     string                   `json:"privateKeyPassphrase"`
 	PrivateKeyPassphraseType PrivateKeyPassphraseType `json:"privateKeyPassphraseType"`
@@ -335,35 +335,35 @@ func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphrase
 }
 func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
 	return EthernetService{
-		ID:            id,
-		Type:          ethernetServiceTypeFrom(cfg.GetType()),
-		Ipv4Config:    ipv4ConfigFrom(cfg.GetIpv4Config()),
-		Ipv6Config:    ipv6ConfigFrom(cfg.GetIpv6Config()),
-		Ipv6Privacy:   ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
-		Mac:           cfg.GetMac(),
-		Nameservers:   cfg.GetNameservers(),
-		SearchDomains: cfg.GetSearchDomains(),
-		Timeservers:   cfg.GetTimeservers(),
-		Domain:        cfg.GetDomain(),
-		NetworkName:   cfg.GetName(),
-		SSID:          cfg.GetSsid(),
-		Passphrase:    cfg.GetPassphrase(),
-		Security: securityFrom(cfg.GetSecurity()),
-		IsHidden: cfg.GetIsHidden(),
-		Eap: eapFrom(cfg.GetEap()),
-		CaCert: cfg.GetCaCert(),
-		CaCertType: caCertTypeFrom(cfg.GetCaCertType()),
-		PrivateKey: cfg.GetPrivateKey(),
-		PrivateKeyType: privateKeyTypeFrom(cfg.GetPrivateKeyType()),
-		PrivateKeyPassphrase: cfg.GetPrivateKeyPassphrase(),
+		ID:                       id,
+		Type:                     ethernetServiceTypeFrom(cfg.GetType()),
+		Ipv4Config:               ipv4ConfigFrom(cfg.GetIpv4Config()),
+		Ipv6Config:               ipv6ConfigFrom(cfg.GetIpv6Config()),
+		Ipv6Privacy:              ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
+		Mac:                      cfg.GetMac(),
+		Nameservers:              cfg.GetNameservers(),
+		SearchDomains:            cfg.GetSearchDomains(),
+		Timeservers:              cfg.GetTimeservers(),
+		Domain:                   cfg.GetDomain(),
+		NetworkName:              cfg.GetName(),
+		SSID:                     cfg.GetSsid(),
+		Passphrase:               cfg.GetPassphrase(),
+		Security:                 securityFrom(cfg.GetSecurity()),
+		IsHidden:                 cfg.GetIsHidden(),
+		Eap:                      eapFrom(cfg.GetEap()),
+		CaCert:                   cfg.GetCaCert(),
+		CaCertType:               caCertTypeFrom(cfg.GetCaCertType()),
+		PrivateKey:               cfg.GetPrivateKey(),
+		PrivateKeyType:           privateKeyTypeFrom(cfg.GetPrivateKeyType()),
+		PrivateKeyPassphrase:     cfg.GetPrivateKeyPassphrase(),
 		PrivateKeyPassphraseType: privateKeyPassphraseTypeFrom(cfg.GetPrivateKeyPassphraseType()),
-		Identity: cfg.GetIdentity(),
-		AnonymousIdentity: cfg.GetAnonymousIdentity(),
-		SubjectMatch: cfg.GetSubjectMatch(),
-		AltSubjectMatch: cfg.GetAltSubjectMatch(),
-		DomainSuffixMatch: cfg.GetDomainSuffixMatch(),
-		DomainMatch: cfg.GetDomainMatch(),
-		IsPhase2EapBased: cfg.GetIsPhase_2EapBased(),		
+		Identity:                 cfg.GetIdentity(),
+		AnonymousIdentity:        cfg.GetAnonymousIdentity(),
+		SubjectMatch:             cfg.GetSubjectMatch(),
+		AltSubjectMatch:          cfg.GetAltSubjectMatch(),
+		DomainSuffixMatch:        cfg.GetDomainSuffixMatch(),
+		DomainMatch:              cfg.GetDomainMatch(),
+		IsPhase2EapBased:         cfg.GetIsPhase_2EapBased(),
 	}
 }
 
