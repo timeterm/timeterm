@@ -28,7 +28,7 @@ func (s *Server) getEthernetService(c echo.Context) error {
 	return c.JSON(http.StatusOK, apiEthernetConfig)
 }
 
-func (s *Server) upsertNetworkingService(c echo.Context) error {
+func (s *Server) replaceNetworkingService(c echo.Context) error {
 	id := c.Param("id")
 
 	uid, err := uuid.Parse(id)
@@ -70,11 +70,46 @@ func (s *Server) upsertNetworkingService(c echo.Context) error {
 
 	err = s.secr.UpsertEthernetConfig(uid, oldProtoNetworkingService)
 	if err != nil {
-		s.log.Error(err, "could not update networking service from database")
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update networking service from database")
+		s.log.Error(err, "could not update secret networking service")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update secret networking service")
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (s *Server) createNetworkingService(c echo.Context) error {
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusBadRequest, "Not authenticated")
+	}
+
+	var ns EthernetService
+	err := c.Bind(&ns)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
+	}
+
+	dbNetworkingService, err := s.db.CreateNetworkingService(c.Request().Context(),
+		user.OrganizationID, ns.Name,
+	)
+	if err != nil {
+		s.log.Error(err, "could not create database networking service")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create database networking service")
+	}
+
+	ns.ID = dbNetworkingService.ID
+	ns.OrganizationID = dbNetworkingService.OrganizationID
+	ns.Name = dbNetworkingService.Name
+
+	secretNS := NetworkingServiceToProto(ns)
+
+	err = s.secr.UpsertEthernetConfig(ns.ID, secretNS)
+	if err != nil {
+		s.log.Error(err, "could not create new secret networking service")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create new secret networking service")
+	}
+
+	return c.JSON(http.StatusOK, ns)
 }
 
 func (s *Server) deleteNetworkingService(c echo.Context) error {

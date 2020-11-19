@@ -147,6 +147,8 @@ const PrivateKeyPassphraseTypeFsid PrivateKeyPassphraseType = "Fsid"
 
 type EthernetService struct {
 	ID                       uuid.UUID                `json:"id"`
+	OrganizationID           uuid.UUID                `json:"organizationId"`
+	Name                     string                   `json:"name"`
 	Type                     EthernetServiceType      `json:"type"`
 	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
 	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
