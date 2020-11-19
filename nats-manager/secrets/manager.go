@@ -58,28 +58,91 @@ func (d *Manager) newUserKeys() (nkeys.KeyPair, error) {
 }
 
 func (d *Manager) newOperator(systemAccountPubKey string) (string, error) {
-	opkp, err := d.newOperatorKeys()
+	kp, err := d.newOperatorKeys()
 	if err != nil {
 		return "", fmt.Errorf("could not create operator keys: %w", err)
 	}
 
-	oppk, err := opkp.PublicKey()
+	pk, err := kp.PublicKey()
 	if err != nil {
 		return "", fmt.Errorf("could not create operator public key: %w", err)
 	}
 
-	oclaims := jwt.NewOperatorClaims(oppk)
-	oclaims.Name = d.operatorName
-	oclaims.Issuer = oppk
-	oclaims.IssuedAt = time.Now().Unix()
-	oclaims.SystemAccount = systemAccountPubKey
+	claims := jwt.NewOperatorClaims(pk)
+	claims.Name = d.operatorName
+	claims.Issuer = pk
+	claims.IssuedAt = time.Now().Unix()
+	claims.SystemAccount = systemAccountPubKey
+	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err = d.safe.WriteOperatorJWT(oclaims, oppk)
+	err = d.safe.WriteOperatorJWT(claims, pk)
 	if err != nil {
-		return oppk, fmt.Errorf("could not write operator JWT: %w", err)
+		return pk, fmt.Errorf("could not write operator JWT: %w", err)
 	}
 
-	return oppk, nil
+	return pk, nil
+}
+
+func (d *Manager) newAccount(name, operatorPubKey string) (string, error) {
+	kp, err := d.newAccountKeys()
+	if err != nil {
+		return "", fmt.Errorf("could not create account keys: %w", err)
+	}
+
+	pk, err := kp.PublicKey()
+	if err != nil {
+		return "", fmt.Errorf("could not create account public key: %w", err)
+	}
+
+	if err = d.newAccountWithPubKey(name, pk, operatorPubKey); err != nil {
+		return "", err
+	}
+
+	return pk, nil
+}
+
+func (d *Manager) newAccountWithPubKey(name, pubKey, operatorPubKey string) error {
+	claims := jwt.NewAccountClaims(pubKey)
+	claims.Name = name
+	claims.Issuer = operatorPubKey
+	claims.IssuedAt = time.Now().Unix()
+	claims.Limits.JetStreamLimits = jwt.JetStreamLimits{
+		Consumer:      jwt.NoLimit,
+		DiskStorage:   jwt.NoLimit,
+		MemoryStorage: jwt.NoLimit,
+		Streams:       jwt.NoLimit,
+	}
+
+	err := d.safe.WriteAccountJWT(claims, operatorPubKey)
+	if err != nil {
+		return fmt.Errorf("could not write account JWT: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Manager) newUser(userName, accountName, accountPubKey string) (string, error) {
+	kp, err := d.newUserKeys()
+	if err != nil {
+		return "", fmt.Errorf("could not create user keys: %w", err)
+	}
+
+	pk, err := kp.PublicKey()
+	if err != nil {
+		return "", fmt.Errorf("could not create user public key: %w", err)
+	}
+
+	claims := jwt.NewUserClaims(pk)
+	claims.Name = userName
+	claims.Issuer = accountPubKey
+	claims.IssuedAt = time.Now().Unix()
+
+	err = d.safe.WriteUserJWT(claims, accountName, accountPubKey)
+	if err != nil {
+		return pk, fmt.Errorf("could not write user JWT: %w", err)
+	}
+
+	return pk, nil
 }
 
 func (d *Manager) InitKeys() error {
@@ -98,74 +161,21 @@ func (d *Manager) InitKeys() error {
 		return fmt.Errorf("could not create operator: %w", err)
 	}
 
-	oakp, err := d.newAccountKeys()
+	oapk, err := d.newAccount(d.operatorName, oppk)
 	if err != nil {
-		return fmt.Errorf("could not create operator account keys: %w", err)
+		return fmt.Errorf("could not create operator account: %w", err)
 	}
 
-	oapk, err := oakp.PublicKey()
-	if err != nil {
-		return fmt.Errorf("could not create operator account public key: %w", err)
+	if _, err = d.newUser(d.operatorName, d.operatorName, oapk); err != nil {
+		return fmt.Errorf("could not create operator user: %w", err)
 	}
 
-	oaclaims := jwt.NewAccountClaims(oapk)
-	oaclaims.Name = d.operatorName
-	oaclaims.Issuer = oppk
-	oaclaims.IssuedAt = time.Now().Unix()
-
-	err = d.safe.WriteAccountJWT(oaclaims, oppk)
-	if err != nil {
-		return fmt.Errorf("could not write operator account JWT: %w", err)
+	if err = d.newAccountWithPubKey("SYS", sapk, oppk); err != nil {
+		return fmt.Errorf("could not create system account: %w", err)
 	}
 
-	oukp, err := d.newUserKeys()
-	if err != nil {
-		return fmt.Errorf("could not create operator user keys: %w", err)
-	}
-
-	oupk, err := oukp.PublicKey()
-	if err != nil {
-		return fmt.Errorf("could not create operator user public key: %w", err)
-	}
-
-	ouclaims := jwt.NewUserClaims(oupk)
-	ouclaims.Name = d.operatorName
-	ouclaims.Issuer = oapk
-	ouclaims.IssuedAt = time.Now().Unix()
-
-	err = d.safe.WriteUserJWT(ouclaims, d.operatorName, oapk)
-	if err != nil {
-		return fmt.Errorf("could not write operator user JWT: %w", err)
-	}
-
-	saclaims := jwt.NewAccountClaims(sapk)
-	saclaims.Name = "SYS"
-	saclaims.Issuer = oppk
-	saclaims.IssuedAt = time.Now().Unix()
-
-	err = d.safe.WriteAccountJWT(saclaims, oppk)
-	if err != nil {
-		return fmt.Errorf("could not write system account JWT: %w", err)
-	}
-
-	sukp, err := d.newUserKeys()
-	if err != nil {
-		return fmt.Errorf("could not create system user keys: %w", err)
-	}
-
-	supk, err := sukp.PublicKey()
-	if err != nil {
-		return fmt.Errorf("could not create system user public key: %w", err)
-	}
-
-	suclaims := jwt.NewUserClaims(supk)
-	suclaims.Name = "SYS"
-	suclaims.Issuer = sapk
-	suclaims.IssuedAt = time.Now().Unix()
-
-	err = d.safe.WriteUserJWT(suclaims, saclaims.Name, sapk)
-	if err != nil {
-		return fmt.Errorf("could not write system user JWT: %w", err)
+	if _, err = d.newUser("SYS", "SYS", sapk); err != nil {
+		return fmt.Errorf("could not create system user: %w", err)
 	}
 
 	return nil

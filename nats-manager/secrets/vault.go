@@ -135,6 +135,61 @@ func (c *VaultClient) writeJWT(pat string, claims jwt.Claims, kp nkeys.KeyPair) 
 	return err
 }
 
+func (c *VaultClient) readJWT(pat string) (string, error) {
+	secret, err := c.vault.Logical().Read(pat)
+	if err != nil {
+		return "", err
+	}
+
+	token, ok := secret.Data["jwt"].(string)
+	if !ok {
+		return "", fmt.Errorf("jwt not present in secret at path %s", pat)
+	}
+	return token, nil
+}
+
+func (c *VaultClient) ReadOperatorJWT(name string) (*jwt.OperatorClaims, error) {
+	pat := c.operatorJWTPath(name)
+	token, err := c.readJWT(pat)
+	if err != nil {
+		return nil, fmt.Errorf("could not read operator JWT at path %s from Vault: %w", pat, err)
+	}
+
+	claims, err := jwt.DecodeOperatorClaims(token)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode operator claims: %w", err)
+	}
+	return claims, nil
+}
+
+func (c *VaultClient) ReadAccountJWT(name string) (*jwt.AccountClaims, error) {
+	pat := c.accountJWTPath(name)
+	token, err := c.readJWT(pat)
+	if err != nil {
+		return nil, fmt.Errorf("could not read account JWT at path %s from Vault: %w", pat, err)
+	}
+
+	claims, err := jwt.DecodeAccountClaims(token)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode account claims: %w", err)
+	}
+	return claims, nil
+}
+
+func (c *VaultClient) ReadUserJWT(accountName, userName string) (*jwt.UserClaims, error) {
+	pat := c.userJWTPath(accountName, userName)
+	token, err := c.readJWT(pat)
+	if err != nil {
+		return nil, fmt.Errorf("could not read user JWT at path %s from Vault: %w", pat, err)
+	}
+
+	claims, err := jwt.DecodeUserClaims(token)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode user claims: %w", err)
+	}
+	return claims, nil
+}
+
 func (c *VaultClient) ReadOperatorSeed(pubKey string) (nkeys.KeyPair, error) {
 	pat := c.operatorSeedPath(pubKey)
 	kp, err := c.readSeed(pat)
