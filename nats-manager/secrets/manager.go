@@ -123,7 +123,7 @@ func (d *Manager) newAccountWithPubKey(name, pubKey, operatorPubKey string) erro
 	return nil
 }
 
-func (d *Manager) newUser(userName, accountName, accountPubKey string) (string, error) {
+func (d *Manager) newUser(userName, accountPubKey string) (string, error) {
 	kp, err := d.newUserKeys()
 	if err != nil {
 		return "", fmt.Errorf("could not create user keys: %w", err)
@@ -140,7 +140,7 @@ func (d *Manager) newUser(userName, accountName, accountPubKey string) (string, 
 	claims.IssuedAt = time.Now().Unix()
 	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err = d.safe.WriteUserJWT(claims, accountName, accountPubKey)
+	err = d.safe.WriteUserJWT(claims, accountPubKey)
 	if err != nil {
 		return pk, fmt.Errorf("could not write user JWT: %w", err)
 	}
@@ -169,7 +169,7 @@ func (d *Manager) InitKeys() error {
 		return fmt.Errorf("could not create operator account: %w", err)
 	}
 
-	if _, err = d.newUser(d.operatorName, d.operatorName, oapk); err != nil {
+	if _, err = d.newUser(d.operatorName, oapk); err != nil {
 		return fmt.Errorf("could not create operator user: %w", err)
 	}
 
@@ -177,7 +177,7 @@ func (d *Manager) InitKeys() error {
 		return fmt.Errorf("could not create system account: %w", err)
 	}
 
-	if _, err = d.newUser("sys", "SYS", sapk); err != nil {
+	if _, err = d.newUser("sys", sapk); err != nil {
 		return fmt.Errorf("could not create system user: %w", err)
 	}
 

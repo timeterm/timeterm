@@ -34,16 +34,8 @@ func (c *VaultClient) userSeedPath(pubKey string) string {
 	return path.Join(c.prefix, "/keys/user/", pubKey)
 }
 
-func (c *VaultClient) operatorJWTPath(name string) string {
-	return path.Join(c.prefix, "/jwts/operator/", name)
-}
-
-func (c *VaultClient) accountJWTPath(name string) string {
-	return path.Join(c.prefix, "/jwts/account/", name)
-}
-
-func (c *VaultClient) userJWTPath(accountName, userName string) string {
-	return path.Join(c.prefix, "/jwts/account/", accountName, "/user/", userName)
+func (c *VaultClient) jwtPath(subject string) string {
+	return path.Join(c.prefix, "/jwts/", subject)
 }
 
 func (c *VaultClient) WriteOperatorSeed(kp nkeys.KeyPair) error {
@@ -97,23 +89,20 @@ func (c *VaultClient) WriteOperatorJWT(claims *jwt.OperatorClaims, operatorPubKe
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
-	pat := c.operatorJWTPath(claims.Name)
+	pat := c.jwtPath(claims.Subject)
 	return c.writeJWT(pat, claims, kp)
 }
 
-func (c *VaultClient) WriteUserJWT(claims *jwt.UserClaims, accountName string, accountPubKey string) error {
+func (c *VaultClient) WriteUserJWT(claims *jwt.UserClaims, accountPubKey string) error {
 	if claims.Name == "" {
 		return errors.New("user name may not be empty")
-	}
-	if accountName == "" {
-		return errors.New("account name may not be empty")
 	}
 	kp, err := c.ReadAccountSeed(accountPubKey)
 	if err != nil {
 		return fmt.Errorf("could not read account seed: %w", err)
 	}
 
-	pat := c.userJWTPath(accountName, claims.Name)
+	pat := c.jwtPath(claims.Subject)
 	return c.writeJWT(pat, claims, kp)
 }
 
@@ -126,7 +115,7 @@ func (c *VaultClient) WriteAccountJWT(claims *jwt.AccountClaims, operatorPubKey 
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
-	pat := c.accountJWTPath(claims.Name)
+	pat := c.jwtPath(claims.Subject)
 	return c.writeJWT(pat, claims, kp)
 }
 
@@ -155,8 +144,22 @@ func (c *VaultClient) readJWT(pat string) (string, error) {
 	return token, nil
 }
 
-func (c *VaultClient) ReadOperatorJWT(name string) (*jwt.OperatorClaims, error) {
-	pat := c.operatorJWTPath(name)
+func (c *VaultClient) ReadJWT(subject string) (jwt.Claims, error) {
+	pat := c.jwtPath(subject)
+	token, err := c.readJWT(pat)
+	if err != nil {
+		return nil, fmt.Errorf("could not read JWT at path %s from Vault: %w", pat, err)
+	}
+
+	claims, err := jwt.Decode(token)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode claims: %w", err)
+	}
+	return claims, nil
+}
+
+func (c *VaultClient) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, error) {
+	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
 		return nil, fmt.Errorf("could not read operator JWT at path %s from Vault: %w", pat, err)
@@ -169,8 +172,8 @@ func (c *VaultClient) ReadOperatorJWT(name string) (*jwt.OperatorClaims, error) 
 	return claims, nil
 }
 
-func (c *VaultClient) ReadAccountJWT(name string) (*jwt.AccountClaims, error) {
-	pat := c.accountJWTPath(name)
+func (c *VaultClient) ReadAccountJWT(subject string) (*jwt.AccountClaims, error) {
+	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
 		return nil, fmt.Errorf("could not read account JWT at path %s from Vault: %w", pat, err)
@@ -183,8 +186,8 @@ func (c *VaultClient) ReadAccountJWT(name string) (*jwt.AccountClaims, error) {
 	return claims, nil
 }
 
-func (c *VaultClient) ReadUserJWT(accountName, userName string) (*jwt.UserClaims, error) {
-	pat := c.userJWTPath(accountName, userName)
+func (c *VaultClient) ReadUserJWT(subject string) (*jwt.UserClaims, error) {
+	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
 		return nil, fmt.Errorf("could not read user JWT at path %s from Vault: %w", pat, err)

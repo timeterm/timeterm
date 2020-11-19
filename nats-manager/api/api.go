@@ -16,9 +16,11 @@ type Server struct {
 }
 
 func (s *Server) registerRoutes() {
-	s.r.GET("/jwt/v1/accounts/:id", s.GetJWT)
+	s.r.GET("/jwt/v1/accounts", func(_ http.ResponseWriter, _ *http.Request, _ vla.Route, _ vla.Params) {})
+	s.r.GET("/jwt/v1/accounts/", func(_ http.ResponseWriter, _ *http.Request, _ vla.Route, _ vla.Params) {})
+	s.r.GET("/jwt/v1/accounts/:pubkey", s.GetJWT)
 }
 
 func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, vr vla.Route, p vla.Params) {
-	s.vault.ReadU
+	s.vault.ReadJWT(p.ByName("pubkey"))
 }
