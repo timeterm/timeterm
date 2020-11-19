@@ -299,6 +299,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PaginatedNetworkingServices"
+    post:
+      operationId: createNetworkingService
+      summary: Create a networking service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NetworkingService"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkingService"
 
   /networking/service/{serviceId}:
     get:
