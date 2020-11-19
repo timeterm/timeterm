@@ -7,13 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-	"github.com/nats-io/nats.go"
+	vault "github.com/hashicorp/vault/api"
 	"go.uber.org/zap"
+
+	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 )
 
 func main() {
@@ -38,37 +39,15 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("could not load configuration: %w", err)
 	}
 
-	nsc, err := newNsc(log, cfg.dataDir, cfg.nscPath)
+	vc, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create Vault client: %w", err)
 	}
 
-	log.Info("connecting with NATS", "url", cfg.natsURL)
-	nc, err := nats.Connect(cfg.natsURL,
-		nats.UserCredentials(path.Join(nsc.nkeysPath(), "creds/TIMETERM/BACKEND/BACKEND.creds")),
-	)
-	if err != nil {
-		return fmt.Errorf("could not connect to NATS: %w", err)
+	mgr := secrets.NewManager(secrets.NewVaultClient(cfg.vaultPrefix, vc), cfg.operatorName)
+	if err = mgr.Init(); err != nil {
+		return fmt.Errorf("could not init secrets manager: %w", err)
 	}
-	defer func() {
-		err = nc.Drain()
-		if err != nil {
-			log.Error(err, "error draining NATS connection on shutdown")
-		}
-	}()
-	log.Info("connected to NATS")
-
-	ctx, cancel := contextWithShutdown(context.Background())
-	defer cancel()
-
-	err = runTx(ctx, nc, log, &handler{
-		nc:  nc,
-		nsc: nsc,
-	})
-	if err != nil {
-		return fmt.Errorf("could not run transport: %w", err)
-	}
-	log.Info("shutting down")
 
 	return nil
 }
@@ -101,9 +80,9 @@ func needsInit(dataDir string) (bool, error) {
 }
 
 type config struct {
-	nscPath string
-	natsURL string
-	dataDir string
+	natsURL      string
+	vaultPrefix  string
+	operatorName string
 }
 
 func loadConfig() (*config, error) {
@@ -112,19 +91,19 @@ func loadConfig() (*config, error) {
 		return nil, errors.New("environment variable NATS_URL is not set")
 	}
 
-	dataDir := os.Getenv("NATS_MANAGER_DATA_DIR")
-	if dataDir == "" {
-		return nil, errors.New("environment variable NATS_MANAGER_DATA_DIR is not set")
+	vaultPrefix := os.Getenv("VAULT_PREFIX")
+	if vaultPrefix == "" {
+		return nil, errors.New("environment variable VAULT_PREFIX is not set")
 	}
 
-	nscPath := os.Getenv("NSC_PATH")
-	if nscPath == "" {
-		nscPath = "nsc"
+	operatorName := os.Getenv("OPERATOR_NAME")
+	if operatorName == "" {
+		return nil, errors.New("environment variable OPERATOR_NAME is not set")
 	}
 
 	return &config{
-		natsURL: natsURL,
-		dataDir: dataDir,
-		nscPath: nscPath,
+		natsURL:      natsURL,
+		vaultPrefix:  vaultPrefix,
+		operatorName: operatorName,
 	}, nil
 }

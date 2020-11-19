@@ -15,6 +15,13 @@ type VaultClient struct {
 	vault  *vault.Client
 }
 
+func NewVaultClient(prefix string, c *vault.Client) *VaultClient {
+	return &VaultClient{
+		prefix: prefix,
+		vault:  c,
+	}
+}
+
 func (c *VaultClient) operatorSeedPath(pubKey string) string {
 	return path.Join(c.prefix, "/keys/operator/", pubKey)
 }
@@ -192,29 +199,17 @@ func (c *VaultClient) ReadUserJWT(accountName, userName string) (*jwt.UserClaims
 
 func (c *VaultClient) ReadOperatorSeed(pubKey string) (nkeys.KeyPair, error) {
 	pat := c.operatorSeedPath(pubKey)
-	kp, err := c.readSeed(pat)
-	if err != nil {
-		return kp, fmt.Errorf("could not read operator seed: %w", err)
-	}
-	return kp, nil
+	return c.readSeed(pat)
 }
 
 func (c *VaultClient) ReadUserSeed(pubKey string) (nkeys.KeyPair, error) {
 	pat := c.userSeedPath(pubKey)
-	kp, err := c.readSeed(pat)
-	if err != nil {
-		return kp, fmt.Errorf("could not read user seed: %w", err)
-	}
-	return kp, nil
+	return c.readSeed(pat)
 }
 
 func (c *VaultClient) ReadAccountSeed(pubKey string) (nkeys.KeyPair, error) {
 	pat := c.accountSeedPath(pubKey)
-	kp, err := c.readSeed(pat)
-	if err != nil {
-		return kp, fmt.Errorf("could not read account seed: %w", err)
-	}
-	return kp, nil
+	return c.readSeed(pat)
 }
 
 func (c *VaultClient) writeSeed(path string, kp nkeys.KeyPair) error {
@@ -224,7 +219,7 @@ func (c *VaultClient) writeSeed(path string, kp nkeys.KeyPair) error {
 	}
 
 	_, err = c.vault.Logical().Write(path, map[string]interface{}{
-		"seed": seed,
+		"seed": string(seed),
 	})
 	return err
 }

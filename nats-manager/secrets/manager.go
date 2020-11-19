@@ -14,6 +14,13 @@ type Manager struct {
 	operatorName string
 }
 
+func NewManager(c *VaultClient, operatorName string) *Manager {
+	return &Manager{
+		safe:         c,
+		operatorName: operatorName,
+	}
+}
+
 func (d *Manager) Init() error {
 	return d.InitKeys()
 }
