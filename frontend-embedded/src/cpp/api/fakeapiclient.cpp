@@ -102,10 +102,10 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("7");
-    appointment.setEndTimeSlot("7");
+    appointment.setEndTimeSlot("8");
     testTime = testTime.addSecs(15*60);
     appointment.setStartTime(testTime);
-    testTime = testTime.addSecs(45*90);
+    testTime = testTime.addSecs(90*60);
     appointment.setEndTime(testTime);
     appointment.setSubjects({"wisb"});
     appointment.setGroups({"gv6.wisb6"});

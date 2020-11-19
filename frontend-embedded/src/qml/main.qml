@@ -212,6 +212,8 @@ ApplicationWindow {
             Layout.fillHeight: true
             DayView {
                 id: dayView
+                startOfDay: new Date().setHours(0, 0, 0, 0)
+                endOfDay: new Date().setHours(24, 0, 0, 0)
             }
         }
         Item {

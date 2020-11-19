@@ -11,3 +11,11 @@ Date.prototype.isFullHour = function() {
     }
     return false;
 }
+
+Date.prototype.getMillisecondsInDay = function() {
+    let seconds = this.getHours() * 3600 * 1000
+                + this.getMinutes() * 60 * 1000
+                + this.getSeconds() * 1000
+                + this.getMilliseconds();
+    return seconds
+}

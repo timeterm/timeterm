@@ -5,14 +5,11 @@ Rectangle {
     property var startFirstAppointment
     property var secondToPixelRatio
 
-    y:   (appointment.startTime.getHours() * 3600
-        + appointment.startTime.getMinutes() * 60
-        + appointment.startTime.getSeconds()
-        - (startFirstAppointment.getHours() * 3600
-         + startFirstAppointment.getMinutes()* 60
-         + startFirstAppointment.getSeconds())) // time in seconds calculated from the start of the first appointment of the day
+    y: (appointment.startTime.getMillisecondsInDay()
+       - startFirstAppointment.getMillisecondsInDay()) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
-    height: (appointment.endTime - appointment.startTime)/ 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments
+    height: (appointment.endTime.getMillisecondsInDay() - appointment.startTime.getMillisecondsInDay())
+            / 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments
 
     width: dayHeader.width
     anchors.right: parent.right
@@ -27,12 +24,12 @@ Rectangle {
         anchors.leftMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
-        text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + "-" + appointment.endTimeSlot)
+        text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + " - " + appointment.endTimeSlot)
     }
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width * 0.375
+        anchors.horizontalCenterOffset: -parent.width * 0.3125
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
         text: appointment.subjects.join(", ")
@@ -46,6 +43,7 @@ Rectangle {
         color: "#666666"
         text: appointment.teachers.join(", ")
     }
+
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: parent.width * 0.125
@@ -54,6 +52,7 @@ Rectangle {
         color: "#666666"
         text: appointment.groups.join(", ")
     }
+
     Text {
         anchors.right: parent.right
         anchors.rightMargin: dayPage.customMargin

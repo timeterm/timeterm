@@ -13,6 +13,8 @@ Page {
     property int textSize: dayPage.height * 0.04
     property int customMargin: dayPage.height * 0.05
     property var secondToPixelRatio: appointments.height * 0.000037
+    property var startOfDay
+    property var endOfDay
 
     background: Rectangle {
         color: "#FFFFFF"
@@ -20,34 +22,42 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (i === 0) {                                                          // first appointment in the list
-                appointments.startFirstAppointment = timetable.data[i].startTime
-            } else if (i === timetable.data.length - 1) {                           // last appointment in the list
-                appointments.endLastAppointment = timetable.data[i].endTime
-                appointments.contentHeight = (appointments.endLastAppointment.getTime()
-                                            - appointments.startFirstAppointment.getTime())
-                                            / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between appointments
-                
-                fillTimeLine()
+            if (typeof startOfDay === 'undefined' || typeof endOfDay === 'undefined') {
+                startOfDay = new Date().setHours(0, 0, 0, 0)
+                endOfDay = new Date().setHours(24, 0, 0, 0)
             }
 
-            let finishCreation = function (appointment) {
-                if (appointment.status === Component.Ready) {
-                    appointment.incubateObject(appointments.contentItem, {
-                        appointment: timetable.data[i],
-                        startFirstAppointment: appointments.startFirstAppointment,
-                        secondToPixelRatio: secondToPixelRatio
-                    })
-                } else if (appointment.status === Component.Error) {
-                    console.log("Could not create appointment:", appointment.errorString())
+            if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
+                if (typeof appointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < appointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first appointment in the list
+                    appointments.startFirstAppointment = timetable.data[i].startTime
                 }
-            }
+                if (typeof appointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > appointments.endLastAppointment.getMillisecondsInDay()) {
+                    appointments.endLastAppointment = timetable.data[i].endTime
+                    appointments.contentHeight = (appointments.endLastAppointment.getMillisecondsInDay()
+                                                - appointments.startFirstAppointment.getMillisecondsInDay())
+                                                / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between appointments
 
-            let appointment = Qt.createComponent("DayViewAppointment.qml")
-            if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
-                finishCreation(appointment)
-            } else {
-                appointment.statusChanged.connect(finishCreation)
+                    fillTimeLine()
+                }
+
+                let finishCreation = function (appointment) {
+                    if (appointment.status === Component.Ready) {
+                        appointment.incubateObject(appointments.contentItem, {
+                            appointment: timetable.data[i],
+                            startFirstAppointment: appointments.startFirstAppointment,
+                            secondToPixelRatio: secondToPixelRatio
+                        })
+                    } else if (appointment.status === Component.Error) {
+                        console.log("Could not create appointment:", appointment.errorString())
+                    }
+                }
+
+                let appointment = Qt.createComponent("DayViewAppointment.qml")
+                if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
+                    finishCreation(appointment)
+                } else {
+                    appointment.statusChanged.connect(finishCreation)
+                }
             }
         }
     }
@@ -62,12 +72,12 @@ Page {
         }
 
         for (currentLineTime;
-             appointments.endLastAppointment.getTime() - currentLineTime.getTime() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before the end of the last appointment
+             appointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before the end of the last appointment
              currentLineTime.addHours(1)) {
             let finishLineItem = function (timeLineItem) {
                 if (timeLineItem.status === Component.Ready) {
                     timeLineItem.incubateObject(timeLine, {
-                        y: (currentLineTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio,
+                        y: (currentLineTime.getMillisecondsInDay() - appointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
                               + currentLineTime.getMinutes()
@@ -119,22 +129,6 @@ Page {
         property var startFirstAppointment
         property var endLastAppointment
 
-//        Rectangle {
-//            id: appointmentsBackground
-//            anchors.fill: parent
-//            color: "#FFFFFF"
-//        }
-
-//        InnerShadow {
-//            anchors.fill: appointmentsBackground
-//            radius: 16
-//            samples: 24
-//            horizontalOffset: -5
-//            verticalOffset: -5
-//            color: "#ff0000"
-//            spread: 0.5
-//        }
-
         Rectangle {
             id: timeLine
             anchors.top: parent.top
@@ -151,11 +145,17 @@ Page {
                 width: parent.width
                 height: 2
                 color: "#FF0000"
+
                 function setCurrentTimeLine() {
                     let currTime = new Date()
-                    let offset = (currTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000
-                    offset *= secToPixRatio
-                    currentTime.y = offset
+                    if (typeof appointments.startFirstAppointment !== 'undefined' && currTime.getTime() > appointments.startFirstAppointment.getTime() && currTime.getTime() < appointments.endLastAppointment.getTime()) {
+                        let offset = (currTime.getMillisecondsInDay() - appointments.startFirstAppointment.getMillisecondsInDay()) / 1000
+                        offset *= secToPixRatio
+                        currentTime.y = offset
+                        currentTime.visible = true
+                    } else {
+                        currentTime.visible = false
+                    }
                 }
             }
 
@@ -170,5 +170,7 @@ Page {
 
             Component.onCompleted: currentTime.secToPixRatio = secondToPixelRatio
         }
+
+        Component.onCompleted: appointments.visible = typeof appointments.startFirstAppointment !== 'undefined' // If there are no appointments, don't show the appointments and timeLine
     }
 }
