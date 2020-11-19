@@ -71,15 +71,15 @@ const (
 	Ipv4ConfigTypeCustom Ipv4ConfigType = "Custom"
 )
 
-type Ipv4Settings struct {
+type Ipv4ConfigSettings struct {
 	Network string `json:"network"`
 	Netmask string `json:"netmask"`
 	Gateway string `json:"gateway"`
 }
 
 type Ipv4Config struct {
-	Type     Ipv4ConfigType `json:"type"`
-	Settings *Ipv4Settings  `json:"settings"`
+	Type     Ipv4ConfigType      `json:"type"`
+	Settings *Ipv4ConfigSettings `json:"settings"`
 }
 
 type Ipv6ConfigType string
@@ -90,15 +90,15 @@ const (
 	Ipv6ConfigTypeCustom Ipv6ConfigType = "Custom"
 )
 
-type Ipv6Settings struct {
+type Ipv6ConfigSettings struct {
 	Network      string `json:"network"`
 	PrefixLength uint64 `json:"prefixLength"`
 	Gateway      string `json:"gateway"`
 }
 
 type Ipv6Config struct {
-	Type     Ipv6ConfigType `json:"type"`
-	Settings *Ipv6Settings  `json:"settings"`
+	Type     Ipv6ConfigType      `json:"type"`
+	Settings *Ipv6ConfigSettings `json:"settings"`
 }
 
 type Ipv6Privacy string
@@ -203,15 +203,15 @@ func ipv4ConfigTypeFrom(ipv4ConfigType devcfgpb.Ipv4ConfigType) Ipv4ConfigType {
 	}
 }
 
-func ipv4SettingsFrom(ipv4Settings *devcfgpb.Ipv4ConfigSettings) *Ipv4Settings {
-	if ipv4Settings == nil {
+func ipv4ConfigSettingsFrom(ipv4ConfigSettings *devcfgpb.Ipv4ConfigSettings) *Ipv4ConfigSettings {
+	if ipv4ConfigSettings == nil {
 		return nil
 	}
 
-	return &Ipv4Settings{
-		Network: ipv4Settings.GetNetwork(),
-		Netmask: ipv4Settings.GetNetmask(),
-		Gateway: ipv4Settings.GetGateway(),
+	return &Ipv4ConfigSettings{
+		Network: ipv4ConfigSettings.GetNetwork(),
+		Netmask: ipv4ConfigSettings.GetNetmask(),
+		Gateway: ipv4ConfigSettings.GetGateway(),
 	}
 }
 
@@ -222,7 +222,7 @@ func ipv4ConfigFrom(ipv4Config *devcfgpb.Ipv4Config) *Ipv4Config {
 
 	return &Ipv4Config{
 		Type:     ipv4ConfigTypeFrom(ipv4Config.GetType()),
-		Settings: ipv4SettingsFrom(ipv4Config.GetSettings()),
+		Settings: ipv4ConfigSettingsFrom(ipv4Config.GetSettings()),
 	}
 }
 
@@ -239,15 +239,15 @@ func ipv6ConfigTypeFrom(ipv6ConfigType devcfgpb.Ipv6ConfigType) Ipv6ConfigType {
 	}
 }
 
-func ipv6SettingsFrom(ipv6Settings *devcfgpb.Ipv6ConfigSettings) *Ipv6Settings {
-	if ipv6Settings == nil {
+func ipv6ConfigSettingsFrom(ipv6ConfigSettings *devcfgpb.Ipv6ConfigSettings) *Ipv6ConfigSettings {
+	if ipv6ConfigSettings == nil {
 		return nil
 	}
 
-	return &Ipv6Settings{
-		Network:      ipv6Settings.GetNetwork(),
-		PrefixLength: ipv6Settings.GetPrefixLength(),
-		Gateway:      ipv6Settings.GetGateway(),
+	return &Ipv6ConfigSettings{
+		Network:      ipv6ConfigSettings.GetNetwork(),
+		PrefixLength: ipv6ConfigSettings.GetPrefixLength(),
+		Gateway:      ipv6ConfigSettings.GetGateway(),
 	}
 }
 
@@ -258,7 +258,7 @@ func ipv6ConfigFrom(ipv6Config *devcfgpb.Ipv6Config) *Ipv6Config {
 
 	return &Ipv6Config{
 		Type:     ipv6ConfigTypeFrom(ipv6Config.GetType()),
-		Settings: ipv6SettingsFrom(ipv6Config.GetSettings()),
+		Settings: ipv6ConfigSettingsFrom(ipv6Config.GetSettings()),
 	}
 }
 
@@ -369,9 +369,193 @@ func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetSer
 	}
 }
 
-func NetworkingServiceToProto(ethServ EthernetService) *devcfgpb.EthernetService {
+func networkingServiceTypeToProto(t EthernetServiceType) devcfgpb.EthernetServiceType {
+	switch t {
+	case EthernetServiceTypeEthernet:
+		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_ETHERNET
+	case EthernetServiceTypeWifi:
+		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_WIFI
+	default:
+		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_UNSPECIFIED
+	}
+}
+
+func ipv4ConfigTypeToProto(ipv4CfgType Ipv4ConfigType) devcfgpb.Ipv4ConfigType {
+	switch ipv4CfgType {
+	case Ipv4ConfigTypeOff:
+		return devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_OFF
+	case Ipv4ConfigTypeDhcp:
+		return devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_DHCP
+	case Ipv4ConfigTypeCustom:
+		return devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_CUSTOM
+	default:
+		return devcfgpb.Ipv4ConfigType_IPV4_CONFIG_TYPE_UNSPECIFIED
+	}
+}
+
+func ipv4ConfigSettingsToProto(ipv4CfgSet *Ipv4ConfigSettings) *devcfgpb.Ipv4ConfigSettings {
+	if ipv4CfgSet == nil {
+		return nil
+	}
+
+	return &devcfgpb.Ipv4ConfigSettings{
+		Network: ipv4CfgSet.Network,
+		Netmask: ipv4CfgSet.Netmask,
+		Gateway: ipv4CfgSet.Gateway,
+	}
+}
+
+func ipv4ConfigToProto(ipv4Cfg *Ipv4Config) *devcfgpb.Ipv4Config {
+	if ipv4Cfg == nil {
+		return nil
+	}
+
+	return &devcfgpb.Ipv4Config{
+		Type:     ipv4ConfigTypeToProto(ipv4Cfg.Type),
+		Settings: ipv4ConfigSettingsToProto(ipv4Cfg.Settings),
+	}
+}
+
+func ipv6ConfigTypeToProto(ipv6CfgType Ipv6ConfigType) devcfgpb.Ipv6ConfigType {
+	switch ipv6CfgType {
+	case Ipv6ConfigTypeOff:
+		return devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_OFF
+	case Ipv6ConfigTypeAuto:
+		return devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_AUTO
+	case Ipv6ConfigTypeCustom:
+		return devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_CUSTOM
+	default:
+		return devcfgpb.Ipv6ConfigType_IPV6_CONFIG_TYPE_UNSPECIFIED
+	}
+}
+
+func ipv6ConfigSettingsToProto(ipv6CfgSet *Ipv6ConfigSettings) *devcfgpb.Ipv6ConfigSettings {
+	if ipv6CfgSet == nil {
+		return nil
+	}
+
+	return &devcfgpb.Ipv6ConfigSettings{
+		Network:      ipv6CfgSet.Network,
+		PrefixLength: ipv6CfgSet.PrefixLength,
+		Gateway:      ipv6CfgSet.Gateway,
+	}
+}
+
+func ipv6ConfigToProto(ipv6Cfg *Ipv6Config) *devcfgpb.Ipv6Config {
+	if ipv6Cfg == nil {
+		return nil
+	}
+
+	return &devcfgpb.Ipv6Config{
+		Type:     ipv6ConfigTypeToProto(ipv6Cfg.Type),
+		Settings: ipv6ConfigSettingsToProto(ipv6Cfg.Settings),
+	}
+}
+
+func ipv6PrivacyToProto(ipv6Privacy Ipv6Privacy) devcfgpb.Ipv6Privacy {
+	switch ipv6Privacy {
+	case Ipv6PrivacyDisabled:
+		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_DISABLED
+	case Ipv6PrivacyEnabled:
+		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_ENABLED
+	case Ipv6PrivacyPreferred:
+		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_PREFERRED
+	default:
+		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_PREFERRED
+	}
+}
+
+func securityToProto(security Security) devcfgpb.Security {
+	switch security {
+	case SecurityPsk:
+		return devcfgpb.Security_SECURITY_PSK
+	case SecurityIeee8021x:
+		return devcfgpb.Security_SECURITY_IEEE8021X
+	case SecurityNone:
+		return devcfgpb.Security_SECURITY_NONE
+	case SecurityWep:
+		return devcfgpb.Security_SECURITY_WEP
+	default:
+		return devcfgpb.Security_SECURITY_UNSPECIFIED
+	}
+}
+
+func eapToProto(eap Eap) devcfgpb.Eap {
+	switch eap {
+	case EapTls:
+		return devcfgpb.Eap_EAP_TLS
+	case EapTtls:
+		return devcfgpb.Eap_EAP_TTLS
+	case EapPeap:
+		return devcfgpb.Eap_EAP_PEAP
+	default:
+		return devcfgpb.Eap_EAP_UNSPECIFIED
+	}
+}
+
+func caCertTypeToProto(caCertType CaCertType) devcfgpb.CaCertType {
+	switch caCertType {
+	case CaCertTypePem:
+		return devcfgpb.CaCertType_CA_CERT_TYPE_PEM
+	case CaCertTypeDer:
+		return devcfgpb.CaCertType_CA_CERT_TYPE_DER
+	default:
+		return devcfgpb.CaCertType_CA_CERT_TYPE_UNSPECIFIED
+	}
+}
+
+func privateKeyTypeToProto(pkType PrivateKeyType) devcfgpb.PrivateKeyType {
+	switch pkType {
+	case PrivateKeyTypePem:
+		return devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_PEM
+	case PrivateKeyTypeDer:
+		return devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_DER
+	case PrivateKeyTypePfx:
+		return devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_PFX
+	default:
+		return devcfgpb.PrivateKeyType_PRIVATE_KEY_TYPE_UNSPECIFIED
+	}
+}
+
+func privateKeyPassphraseTypeToProto(pkPassphraseType PrivateKeyPassphraseType) devcfgpb.PrivateKeyPassphraseType {
+	switch pkPassphraseType {
+	case PrivateKeyPassphraseTypeFsid:
+		return devcfgpb.PrivateKeyPassphraseType_PRIVATE_KEY_PASSPHRASE_TYPE_FSID
+	default:
+		return devcfgpb.PrivateKeyPassphraseType_PRIVATE_KEY_PASSPHRASE_TYPE_UNSPECIFIED
+	}
+}
+
+func NetworkingServiceToProto(netServ EthernetService) *devcfgpb.EthernetService {
 	return &devcfgpb.EthernetService{
-		// Go on here
+		Type:                     networkingServiceTypeToProto(netServ.Type),
+		Ipv4Config:               ipv4ConfigToProto(netServ.Ipv4Config),
+		Ipv6Config:               ipv6ConfigToProto(netServ.Ipv6Config),
+		Ipv6Privacy:              ipv6PrivacyToProto(netServ.Ipv6Privacy),
+		Mac:                      netServ.Mac,
+		Nameservers:              netServ.Nameservers,
+		SearchDomains:            netServ.SearchDomains,
+		Timeservers:              netServ.Timeservers,
+		Domain:                   netServ.Domain,
+		Name:                     netServ.NetworkName,
+		Ssid:                     netServ.SSID,
+		Passphrase:               netServ.Passphrase,
+		Security:                 securityToProto(netServ.Security),
+		IsHidden:                 netServ.IsHidden,
+		Eap:                      eapToProto(netServ.Eap),
+		CaCert:                   netServ.CaCert,
+		CaCertType:               caCertTypeToProto(netServ.CaCertType),
+		PrivateKey:               netServ.PrivateKey,
+		PrivateKeyType:           privateKeyTypeToProto(netServ.PrivateKeyType),
+		PrivateKeyPassphrase:     netServ.PrivateKeyPassphrase,
+		PrivateKeyPassphraseType: privateKeyPassphraseTypeToProto(netServ.PrivateKeyPassphraseType),
+		Identity:                 netServ.Identity,
+		AnonymousIdentity:        netServ.AnonymousIdentity,
+		SubjectMatch:             netServ.SubjectMatch,
+		AltSubjectMatch:          netServ.AltSubjectMatch,
+		DomainSuffixMatch:        netServ.DomainSuffixMatch,
+		DomainMatch:              netServ.DomainMatch,
+		IsPhase_2EapBased:        netServ.IsPhase2EapBased,
 	}
 }
 
