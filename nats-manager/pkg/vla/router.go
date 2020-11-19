@@ -1,8 +1,6 @@
 package vla
 
-import (
-	"net/http"
-)
+import "net/http"
 
 type Handle func(w http.ResponseWriter, r *http.Request, vr Route, p Params)
 
