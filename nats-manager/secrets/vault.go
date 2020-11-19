@@ -218,8 +218,11 @@ func (c *VaultClient) writeSeed(path string, kp nkeys.KeyPair) error {
 		return err
 	}
 
+	// Converting seed to a string is safe (or should really be safe)
+	// because it should be in Base 32.
+	seedStr := string(seed)
 	_, err = c.vault.Logical().Write(path, map[string]interface{}{
-		"seed": string(seed),
+		"seed": seedStr,
 	})
 	return err
 }
