@@ -106,6 +106,7 @@ func (d *Manager) newAccountWithPubKey(name, pubKey, operatorPubKey string) erro
 	claims.Name = name
 	claims.Issuer = operatorPubKey
 	claims.IssuedAt = time.Now().Unix()
+	// TODO(rutgerbrf): set some more claims to the correct values.
 
 	err := d.safe.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
@@ -130,6 +131,7 @@ func (d *Manager) newUser(userName, accountName, accountPubKey string) (string, 
 	claims.Name = userName
 	claims.Issuer = accountPubKey
 	claims.IssuedAt = time.Now().Unix()
+	// TODO(rutgerbrf): set some more claims to the correct values.
 
 	err = d.safe.WriteUserJWT(claims, accountName, accountPubKey)
 	if err != nil {
