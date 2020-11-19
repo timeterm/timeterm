@@ -17,7 +17,6 @@ type Server struct {
 
 func (s *Server) registerRoutes() {
 	s.r.GET("/jwt/v1/accounts", func(_ http.ResponseWriter, _ *http.Request, _ vla.Route, _ vla.Params) {})
-	s.r.GET("/jwt/v1/accounts/", func(_ http.ResponseWriter, _ *http.Request, _ vla.Route, _ vla.Params) {})
 	s.r.GET("/jwt/v1/accounts/:pubkey", s.GetJWT)
 }
 
