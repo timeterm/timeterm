@@ -106,12 +106,6 @@ func (d *Manager) newAccountWithPubKey(name, pubKey, operatorPubKey string) erro
 	claims.Name = name
 	claims.Issuer = operatorPubKey
 	claims.IssuedAt = time.Now().Unix()
-	claims.Limits.JetStreamLimits = jwt.JetStreamLimits{
-		Consumer:      jwt.NoLimit,
-		DiskStorage:   jwt.NoLimit,
-		MemoryStorage: jwt.NoLimit,
-		Streams:       jwt.NoLimit,
-	}
 
 	err := d.safe.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
@@ -174,7 +168,7 @@ func (d *Manager) InitKeys() error {
 		return fmt.Errorf("could not create system account: %w", err)
 	}
 
-	if _, err = d.newUser("SYS", "SYS", sapk); err != nil {
+	if _, err = d.newUser("sys", "SYS", sapk); err != nil {
 		return fmt.Errorf("could not create system user: %w", err)
 	}
 
