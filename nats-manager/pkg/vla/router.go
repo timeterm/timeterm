@@ -23,13 +23,7 @@ type Group interface {
 	Group(prefix string) Group
 	Use(m Middleware) Group
 
-	DELETE(path string, handle Handle) Route
-	GET(path string, handle Handle) Route
-	HEAD(path string, handle Handle) Route
-	OPTIONS(path string, handle Handle) Route
-	PATCH(path string, handle Handle) Route
-	POST(path string, handle Handle) Route
-	PUT(path string, handle Handle) Route
+	Handle(method, path string, handle Handle) Route
 }
 
 type Route interface {
@@ -56,4 +50,32 @@ func (p Params) ByName(name string) string {
 		}
 	}
 	return ""
+}
+
+func DELETE(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodDelete, path, h)
+}
+
+func GET(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodGet, path, h)
+}
+
+func HEAD(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodHead, path, h)
+}
+
+func OPTIONS(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodOptions, path, h)
+}
+
+func PATCH(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodPatch, path, h)
+}
+
+func POST(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodPost, path, h)
+}
+
+func PUT(r Router, path string, h Handle) Route {
+	return r.Handle(http.MethodPut, path, h)
 }

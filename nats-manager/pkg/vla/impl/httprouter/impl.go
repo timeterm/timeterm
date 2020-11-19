@@ -56,45 +56,9 @@ func (r *Router) Use(m vla.Middleware) vla.Group {
 	return r
 }
 
-func (r *Router) DELETE(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodDelete, path)
-	r.router.DELETE(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) GET(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodGet, path)
-	r.router.GET(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) HEAD(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodHead, path)
-	r.router.HEAD(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) OPTIONS(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodOptions, path)
-	r.router.OPTIONS(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) PATCH(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodPatch, path)
-	r.router.PATCH(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) POST(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodPost, path)
-	r.router.POST(path, newRouteHandle(route, handle))
-	return route
-}
-
-func (r *Router) PUT(path string, handle vla.Handle) vla.Route {
-	route := r.newRoute(http.MethodPut, path)
-	r.router.PUT(path, newRouteHandle(route, handle))
+func (r *Router) Handle(method, path string, handle vla.Handle) vla.Route {
+	route := r.newRoute(method, path)
+	r.router.Handle(method, path, newRouteHandle(route, handle))
 	return route
 }
 
@@ -132,45 +96,9 @@ func (g *Group) Use(m vla.Middleware) vla.Group {
 	return g
 }
 
-func (g *Group) DELETE(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodDelete, path)
-	g.router.router.DELETE(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) GET(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodGet, path)
-	g.router.router.GET(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) HEAD(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodHead, path)
-	g.router.router.HEAD(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) OPTIONS(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodOptions, path)
-	g.router.router.OPTIONS(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) PATCH(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodPatch, path)
-	g.router.router.PATCH(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) POST(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodPost, path)
-	g.router.router.POST(joinPaths(g.prefix, path), newRouteHandle(route, handle))
-	return route
-}
-
-func (g *Group) PUT(path string, handle vla.Handle) vla.Route {
-	route := g.newRoute(http.MethodPut, path)
-	g.router.router.PUT(joinPaths(g.prefix, path), newRouteHandle(route, handle))
+func (g *Group) Handle(method, path string, handle vla.Handle) vla.Route {
+	route := g.newRoute(method, path)
+	g.router.router.Handle(method, joinPaths(g.prefix, path), newRouteHandle(route, handle))
 	return route
 }
 
