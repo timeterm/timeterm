@@ -10,7 +10,7 @@ Rectangle {
         + appointment.startTime.getSeconds()
         - (startFirstAppointment.getHours() * 3600
          + startFirstAppointment.getMinutes()* 60
-         + startFirstAppointment.getSeconds())) // time in seconds calculated from the first appointment of the day
+         + startFirstAppointment.getSeconds())) // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
     height: (appointment.endTime - appointment.startTime)/ 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments
 
@@ -27,8 +27,17 @@ Rectangle {
         anchors.leftMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
+        text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + "-" + appointment.endTimeSlot)
+    }
+
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -parent.width * 0.375
+        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: dayPage.textSize
         text: appointment.subjects.join(", ")
     }
+    
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -parent.width * 0.125

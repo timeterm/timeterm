@@ -62,7 +62,7 @@ Page {
         }
 
         for (currentLineTime;
-             appointments.endLastAppointment.getTime() - currentLineTime.getTime() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before last appointment
+             appointments.endLastAppointment.getTime() - currentLineTime.getTime() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before the end of the last appointment
              currentLineTime.addHours(1)) {
             let finishLineItem = function (timeLineItem) {
                 if (timeLineItem.status === Component.Ready) {
