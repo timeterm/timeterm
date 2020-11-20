@@ -172,6 +172,7 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 
 			nc, err := nats.Connect(url, opts...)
 			if err == nil {
+				log.Info("connected to NATS")
 				connected <- nc
 				return
 			} else {
