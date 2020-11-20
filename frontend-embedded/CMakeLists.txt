@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(QT_COMPONENTS Core Quick QuickControls2 LinguistTools)
 if(TIMETERMOS)
-    list(APPEND TIMETERMOS DBus NetworkSettings)
+  list(APPEND QT_COMPONENTS DBus NetworkSettings)
 endif()
 
 set(QT_LINK_TARGETS ${QT_COMPONENTS})
