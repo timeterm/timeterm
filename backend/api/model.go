@@ -56,11 +56,11 @@ type User struct {
 	Email          string    `json:"email"`
 }
 
-type EthernetServiceType string
+type NetworkingServiceType string
 
 const (
-	EthernetServiceTypeEthernet EthernetServiceType = "Ethernet"
-	EthernetServiceTypeWifi     EthernetServiceType = "Wifi"
+	NetworkingServiceTypeEthernet NetworkingServiceType = "Ethernet"
+	NetworkingServiceTypeWifi     NetworkingServiceType = "Wifi"
 )
 
 type Ipv4ConfigType string
@@ -145,11 +145,11 @@ type PrivateKeyPassphraseType string
 
 const PrivateKeyPassphraseTypeFsid PrivateKeyPassphraseType = "Fsid"
 
-type EthernetService struct {
+type NetworkingService struct {
 	ID                       uuid.UUID                `json:"id"`
 	OrganizationID           uuid.UUID                `json:"organizationId"`
 	Name                     string                   `json:"name"`
-	Type                     EthernetServiceType      `json:"type"`
+	Type                     NetworkingServiceType      `json:"type"`
 	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
 	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
 	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy`
@@ -179,12 +179,12 @@ type EthernetService struct {
 	IsPhase2EapBased         bool                     `json:"isPhase2EapBased"`
 }
 
-func ethernetServiceTypeFrom(cfgType devcfgpb.EthernetServiceType) EthernetServiceType {
+func networkingServiceTypeFrom(cfgType devcfgpb.NetworkingServiceType) NetworkingServiceType {
 	switch cfgType {
-	case devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_ETHERNET:
-		return EthernetServiceTypeEthernet
-	case devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_WIFI:
-		return EthernetServiceTypeWifi
+	case devcfgpb.NetworkingServiceType_NETWORKING_SERVICE_TYPE_ETHERNET:
+		return NetworkingServiceTypeEthernet
+	case devcfgpb.NetworkingServiceType_NETWORKING_SERVICE_TYPE_WIFI:
+		return NetworkingServiceTypeWifi
 	default:
 		return ""
 	}
@@ -335,10 +335,10 @@ func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphrase
 		return ""
 	}
 }
-func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetService {
-	return EthernetService{
+func EthernetConfigFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
+	return NetworkingService{
 		ID:                       id,
-		Type:                     ethernetServiceTypeFrom(cfg.GetType()),
+		Type:                     networkingServiceTypeFrom(cfg.GetType()),
 		Ipv4Config:               ipv4ConfigFrom(cfg.GetIpv4Config()),
 		Ipv6Config:               ipv6ConfigFrom(cfg.GetIpv6Config()),
 		Ipv6Privacy:              ipv6PrivacyFrom(cfg.GetIpv6Privacy()),
@@ -369,14 +369,14 @@ func EthernetConfigFrom(cfg *devcfgpb.EthernetService, id uuid.UUID) EthernetSer
 	}
 }
 
-func networkingServiceTypeToProto(t EthernetServiceType) devcfgpb.EthernetServiceType {
+func networkingServiceTypeToProto(t NetworkingServiceType) devcfgpb.NetworkingServiceType {
 	switch t {
-	case EthernetServiceTypeEthernet:
-		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_ETHERNET
-	case EthernetServiceTypeWifi:
-		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_WIFI
+	case NetworkingServiceTypeEthernet:
+		return devcfgpb.NetworkingServiceType_NETWORKING_SERVICE_TYPE_ETHERNET
+	case NetworkingServiceTypeWifi:
+		return devcfgpb.NetworkingServiceType_NETWORKING_SERVICE_TYPE_WIFI
 	default:
-		return devcfgpb.EthernetServiceType_ETHERNET_SERVICE_TYPE_UNSPECIFIED
+		return devcfgpb.NetworkingServiceType_NETWORKING_SERVICE_TYPE_UNSPECIFIED
 	}
 }
 
@@ -526,8 +526,8 @@ func privateKeyPassphraseTypeToProto(pkPassphraseType PrivateKeyPassphraseType) 
 	}
 }
 
-func NetworkingServiceToProto(netServ EthernetService) *devcfgpb.EthernetService {
-	return &devcfgpb.EthernetService{
+func NetworkingServiceToProto(netServ NetworkingService) *devcfgpb.NetworkingService {
+	return &devcfgpb.NetworkingService{
 		Type:                     networkingServiceTypeToProto(netServ.Type),
 		Ipv4Config:               ipv4ConfigToProto(netServ.Ipv4Config),
 		Ipv6Config:               ipv6ConfigToProto(netServ.Ipv6Config),

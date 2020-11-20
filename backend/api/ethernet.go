@@ -11,7 +11,7 @@ import (
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 )
 
-func (s *Server) getEthernetService(c echo.Context) error {
+func (s *Server) getNetworkingService(c echo.Context) error {
 	id := c.Param("id")
 
 	uid, err := uuid.Parse(id)
@@ -19,7 +19,7 @@ func (s *Server) getEthernetService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
-	secretEthernetConfig, err := s.secr.GetEthernetServiceConfig(uid)
+	secretEthernetConfig, err := s.secr.GetNetworkingServiceConfig(uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret ethernet service")
 	}
@@ -58,7 +58,7 @@ func (s *Server) replaceNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Networking service does not belong to user's organization")
 	}
 
-	var oldNetworkingService EthernetService
+	var oldNetworkingService NetworkingService
 
 	err = json.Unmarshal(reqBody, &oldNetworkingService)
 	if err != nil {
@@ -83,7 +83,7 @@ func (s *Server) createNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Not authenticated")
 	}
 
-	var ns EthernetService
+	var ns NetworkingService
 	err := c.Bind(&ns)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
