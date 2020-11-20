@@ -45,7 +45,7 @@ func realMain(log logr.Logger) error {
 	}
 
 	mgr := secrets.NewManager(secrets.NewVaultClient(cfg.vaultPrefix, vc), cfg.operatorName)
-	if err = mgr.Init(); err != nil {
+	if err = mgr.Init(context.Background()); err != nil {
 		return fmt.Errorf("could not init secrets manager: %w", err)
 	}
 

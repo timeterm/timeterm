@@ -2,29 +2,26 @@ BEGIN;
 
 CREATE TABLE operator
 (
-    name    text PRIMARY KEY,
-    subject text NOT NULL
+    subject text PRIMARY KEY,
+    name    text NOT NULL UNIQUE
 );
 
 CREATE TABLE account
 (
-    name          text NOT NULL,
-    subject       text NOT NULL,
-    operator_name text NOT NULL,
+    subject          text PRIMARY KEY,
+    name             text NOT NULL UNIQUE,
+    operator_subject text NOT NULL,
 
-    PRIMARY KEY (name, operator_name),
-    FOREIGN KEY (operator_name) REFERENCES operator (name) ON DELETE RESTRICT
+    FOREIGN KEY (operator_subject) REFERENCES operator (subject) ON DELETE RESTRICT
 );
 
 CREATE TABLE "user"
 (
-    name          text NOT NULL,
-    subject       text NOT NULL,
-    account_name  text NOT NULL,
-    operator_name text NOT NULL,
+    subject         text PRIMARY KEY,
+    name            text NOT NULL UNIQUE,
+    account_subject text NOT NULL,
 
-    PRIMARY KEY (name, account_name, operator_name),
-    FOREIGN KEY (account_name, operator_name) REFERENCES account (name, operator_name) ON DELETE RESTRICT
+    FOREIGN KEY (account_subject) REFERENCES account (subject)
 );
 
 COMMIT;
