@@ -287,3 +287,19 @@ func (w *Wrapper) GetNetworkingService(ctx context.Context, id uuid.UUID) (Netwo
 
 	return networkingService, err
 }
+
+type GetNetworkingServicesOpts struct {
+	OrganizationID uuid.UUID
+	Name		   *string
+	Limit          *uint64
+	Offset         *uint64
+}
+
+type PaginatedNetworkingServices struct {
+	Pagination
+	Students []NetworkingServices
+}
+
+func (w *Wrapper) GetNetworkingServices(ctx contex.Context, opts GetNetworkingServicesOpts) (PaginatedNetworkingServices, error) {
+
+}
