@@ -28,6 +28,11 @@ type txBeginner interface {
 	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
 }
 
+type txBeginnerCloser interface {
+	txBeginner
+	io.Closer
+}
+
 type tx interface {
 	Commit() error
 	Rollback() error
@@ -41,11 +46,11 @@ type bareWrapper struct {
 
 type Wrapper struct {
 	bareWrapper
-	txb txBeginner
+	txbc txBeginnerCloser
 }
 
 func (w *Wrapper) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*TxWrapper, error) {
-	tx, err := w.txb.BeginTxx(ctx, opts)
+	tx, err := w.txbc.BeginTxx(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -117,17 +122,14 @@ func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 
 	wrapper := &Wrapper{
 		bareWrapper: bareWrapper{db: db, logger: log},
-		txb:         db,
+		txbc:        db,
 	}
 
 	return wrapper, nil
 }
 
 func (w *Wrapper) Close() error {
-	if closer, ok := w.db.(io.Closer); ok {
-		return closer.Close()
-	}
-	return nil
+	return w.txbc.Close()
 }
 
 func connect(url string) (*sqlx.DB, error) {
