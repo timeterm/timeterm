@@ -145,10 +145,9 @@ func (c *VaultClient) readJWT(pat string) (string, error) {
 }
 
 func (c *VaultClient) ReadJWT(subject string) (jwt.Claims, error) {
-	pat := c.jwtPath(subject)
-	token, err := c.readJWT(pat)
+	token, err := c.ReadJWTLiteral(subject)
 	if err != nil {
-		return nil, fmt.Errorf("could not read JWT at path %s from Vault: %w", pat, err)
+		return nil, err
 	}
 
 	claims, err := jwt.Decode(token)
@@ -158,11 +157,19 @@ func (c *VaultClient) ReadJWT(subject string) (jwt.Claims, error) {
 	return claims, nil
 }
 
-func (c *VaultClient) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, error) {
+func (c *VaultClient) ReadJWTLiteral(subject string) (string, error) {
 	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
-		return nil, fmt.Errorf("could not read operator JWT at path %s from Vault: %w", pat, err)
+		return "", fmt.Errorf("could not read JWT at path %s from Vault: %w", pat, err)
+	}
+	return token, nil
+}
+
+func (c *VaultClient) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, error) {
+	token, err := c.ReadJWTLiteral(subject)
+	if err != nil {
+		return nil, err
 	}
 
 	claims, err := jwt.DecodeOperatorClaims(token)
@@ -176,7 +183,7 @@ func (c *VaultClient) ReadAccountJWT(subject string) (*jwt.AccountClaims, error)
 	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
-		return nil, fmt.Errorf("could not read account JWT at path %s from Vault: %w", pat, err)
+		return nil, err
 	}
 
 	claims, err := jwt.DecodeAccountClaims(token)
@@ -190,7 +197,7 @@ func (c *VaultClient) ReadUserJWT(subject string) (*jwt.UserClaims, error) {
 	pat := c.jwtPath(subject)
 	token, err := c.readJWT(pat)
 	if err != nil {
-		return nil, fmt.Errorf("could not read user JWT at path %s from Vault: %w", pat, err)
+		return nil, err
 	}
 
 	claims, err := jwt.DecodeUserClaims(token)

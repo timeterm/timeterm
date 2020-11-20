@@ -78,7 +78,15 @@ func (w *TxWrapper) Rollback() error {
 }
 
 type wrapperOpts struct {
-	migrationsURL string
+	migrationsURL  string
+	migrationHooks MigrationHooks
+}
+
+type MigrationHook func(from, to uint) error
+
+type MigrationHooks struct {
+	Before []MigrationHook
+	After  []MigrationHook
 }
 
 func newWrapperOpts() wrapperOpts {
@@ -104,6 +112,14 @@ func WithMigrationsURL(url string) WrapperOpt {
 	}
 }
 
+func WithMigrationHooks(h MigrationHooks) WrapperOpt {
+	return func(w wrapperOpts) wrapperOpts {
+		w.migrationHooks.Before = append(w.migrationHooks.Before, h.Before...)
+		w.migrationHooks.After = append(w.migrationHooks.After, h.After...)
+		return w
+	}
+}
+
 // New opens the database and creates a new database wrapper.
 func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 	options := createWrapperOpts(opts)
@@ -115,7 +131,7 @@ func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 
 	db.MapperFunc(nameMapper)
 
-	err = migrate(db, options.migrationsURL)
+	err = migrate(db, options.migrationsURL, options.migrationHooks)
 	if err != nil {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
@@ -136,7 +152,7 @@ func connect(url string) (*sqlx.DB, error) {
 	return sqlx.Connect("postgres", url)
 }
 
-func migrate(db *sqlx.DB, sourceURL string) error {
+func migrate(db *sqlx.DB, sourceURL string, hooks MigrationHooks) error {
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{
 		MigrationsTable: "migrations",
 		DatabaseName:    "nats-manager",
@@ -150,15 +166,47 @@ func migrate(db *sqlx.DB, sourceURL string) error {
 		return err
 	}
 
-	return doMigrate(migrate)
+	return doMigrate(migrate, hooks)
 }
 
-func doMigrate(migrate *gomigrate.Migrate) error {
+func doMigrate(migrate *gomigrate.Migrate, hooks MigrationHooks) error {
 	currentVersion, isDirty, err := migrate.Version()
 	if (err == nil && (isDirty || currentVersion != version)) || errors.Is(err, gomigrate.ErrNilVersion) {
-		err = migrate.Migrate(version)
+		return walkDelta(currentVersion, version, func(cur, ver uint) error {
+			for _, hook := range hooks.Before {
+				if err = hook(cur, ver); err != nil {
+					return fmt.Errorf("error running pre-migration hook: %w", err)
+				}
+			}
+			if err = migrate.Migrate(ver); err != nil {
+				return err
+			}
+			for _, hook := range hooks.After {
+				if err = hook(cur, ver); err != nil {
+					return fmt.Errorf("error running post-migration hook: %w", err)
+				}
+			}
+			return nil
+		})
 	}
 	return err
+}
+
+func walkDelta(from, to uint, f func(from, to uint) error) error {
+	if from < to {
+		for x := from; x < to; x++ {
+			if err := f(x, x+1); err != nil {
+				return err
+			}
+		}
+	} else {
+		for x := from; x > to; x-- {
+			if err := f(x, x-1); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // nameMapper maps Golang struct field names to table columns.

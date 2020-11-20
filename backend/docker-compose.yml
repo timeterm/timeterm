@@ -22,42 +22,43 @@ services:
   nats:
     image: synadia/jsm:nightly-20201116
     restart: always
+    network_mode: host
     environment:
       NATS_CONFIG: |
-        operator: /operator/TIMETERM.jwt
-        resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
-        system_account: ADHWTMMB6WMKDGJOTIXLXV56DIHVPV46K7UTVUXJRQ2NHL6DWEOU35UG
+        operator: /operator/OP.jwt
+        resolver: URL(http://localhost:8086/jwt/v1/accounts/)
+        system_account: AA5U2BSCKUM7XKAFLTEVJZY7JIWE2BRS6UTR7KEDU6AS6PIBCSAEOILZ
 
         jetstream {
           store_dir: datastore
         }
     volumes:
-      - ./nm/store/TIMETERM/TIMETERM.jwt:/operator/TIMETERM.jwt
+      - ./OP.jwt:/operator/OP.jwt
     entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
     ports:
       - "4222:4222"
   
-  nats-account-server:
-    environment:
-      NAS_CONFIG: |
-        operatorjwtpath: /data/TIMETERM.jwt
-        systemaccountjwtpath: /data/accounts/SYS/SYS.jwt
+  # nats-account-server:
+  #   environment:
+  #     NAS_CONFIG: |
+  #       operatorjwtpath: /data/TIMETERM.jwt
+  #       systemaccountjwtpath: /data/accounts/SYS/SYS.jwt
 
-        store: {
-          nsc: /data
-        }
+  #       store: {
+  #         nsc: /data
+  #       }
 
-        http {
-          host: 0.0.0.0
-          port: 9090
-        }
-    volumes:
-      - ./nm/store/TIMETERM:/data
-    image: synadia/nats-account-server:0.8.4
-    restart: always
-    entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
-    ports:
-      - "9090:9090"
+  #       http {
+  #         host: 0.0.0.0
+  #         port: 9090
+  #       }
+  #   volumes:
+  #     - ./nm/store/TIMETERM:/data
+  #   image: synadia/nats-account-server:0.8.4
+  #   restart: always
+  #   entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
+  #   ports:
+  #     - "9090:9090"
   
   vault:
     image: vault
