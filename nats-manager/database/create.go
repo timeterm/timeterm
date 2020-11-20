@@ -2,7 +2,7 @@ package database
 
 import "context"
 
-func (w *Wrapper) CreateOperator(ctx context.Context, name, subject string) error {
+func (w *bareWrapper) CreateOperator(ctx context.Context, name, subject string) error {
 	_, err := w.db.ExecContext(ctx, `
 		INSERT INTO operator (name, subject)
 		VALUES ($1, $2)
@@ -10,7 +10,7 @@ func (w *Wrapper) CreateOperator(ctx context.Context, name, subject string) erro
 	return err
 }
 
-func (w *Wrapper) CreateAccount(ctx context.Context, name, subject, operatorSubject string) error {
+func (w *bareWrapper) CreateAccount(ctx context.Context, name, subject, operatorSubject string) error {
 	_, err := w.db.ExecContext(ctx, `
 		INSERT INTO account (name, subject, operator_subject)
 		VALUES ($1, $2, $3)
@@ -18,10 +18,10 @@ func (w *Wrapper) CreateAccount(ctx context.Context, name, subject, operatorSubj
 	return err
 }
 
-func (w *Wrapper) CreateUser(ctx context.Context, name, subject, accountSubject string) error {
+func (w *bareWrapper) CreateUser(ctx context.Context, name, subject, accountSubject string) error {
 	_, err := w.db.ExecContext(ctx, `
-		INSERT INTO user (name, subject, account_subject)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO "user" (name, subject, account_subject)
+		VALUES ($1, $2, $3)
 	`, name, subject, accountSubject)
 	return err
 }

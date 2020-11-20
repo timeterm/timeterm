@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/nats-io/jsm.go v0.0.19
 	github.com/nats-io/jwt/v2 v2.0.0-20201006231922-e00ffcea7738

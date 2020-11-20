@@ -1,8 +1,11 @@
 package database
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"unicode"
 
@@ -16,10 +19,57 @@ import (
 
 const version = 1
 
-// Wrapper wraps the PostgreSQL database.
-type Wrapper struct {
-	db     *sqlx.DB
+type querier interface {
+	sqlx.ExtContext
+	sqlx.PreparerContext
+}
+
+type txBeginner interface {
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+}
+
+type tx interface {
+	Commit() error
+	Rollback() error
+}
+
+// bareWrapper wraps the PostgreSQL database.
+type bareWrapper struct {
+	db     querier
 	logger logr.Logger
+}
+
+type Wrapper struct {
+	bareWrapper
+	txb txBeginner
+}
+
+func (w *Wrapper) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*TxWrapper, error) {
+	tx, err := w.txb.BeginTxx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TxWrapper{
+		bareWrapper: bareWrapper{
+			logger: w.logger,
+			db:     tx,
+		},
+		tx: tx,
+	}, nil
+}
+
+type TxWrapper struct {
+	bareWrapper
+	tx tx
+}
+
+func (w *TxWrapper) Commit() error {
+	return w.tx.Commit()
+}
+
+func (w *TxWrapper) Rollback() error {
+	return w.tx.Rollback()
 }
 
 type wrapperOpts struct {
@@ -65,13 +115,19 @@ func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	wrapper := &Wrapper{db: db, logger: log}
+	wrapper := &Wrapper{
+		bareWrapper: bareWrapper{db: db, logger: log},
+		txb:         db,
+	}
 
 	return wrapper, nil
 }
 
 func (w *Wrapper) Close() error {
-	return w.db.Close()
+	if closer, ok := w.db.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
 }
 
 func connect(url string) (*sqlx.DB, error) {

@@ -8,8 +8,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: timeterm
+      POSTGRES_DB: postgres
     restart: on-failure
+    volumes:
+      - ./docker/postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 
   adminer:
     image: adminer:latest

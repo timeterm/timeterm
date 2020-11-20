@@ -18,9 +18,10 @@ type Manager struct {
 	operatorName string
 }
 
-func NewManager(c *VaultClient, operatorName string) *Manager {
+func NewManager(c *VaultClient, dbw *database.Wrapper, operatorName string) *Manager {
 	return &Manager{
 		safe:         c,
+		dbw:          dbw,
 		operatorName: operatorName,
 	}
 }
