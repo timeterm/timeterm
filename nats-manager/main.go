@@ -30,24 +30,6 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/transport"
 )
 
-const ttMsg = `
-   ╭──────────────╮
-   ╰─────╮ ╭────╮ │
-         │ │  ╭─╯ ╰─╮
-         │ │  ╰─╮ ╭─╯   
-         │ │    │ ╰─╮
-         ╰─╯    ╰───╯
-         nats-manager
-
-`
-
-func logArt(l logr.Logger, s string) {
-	scan := bufio.NewScanner(strings.NewReader(s))
-	for scan.Scan() {
-		l.Info(scan.Text())
-	}
-}
-
 func main() {
 	exitCode := 0
 	defer os.Exit(exitCode)
@@ -288,4 +270,22 @@ func loadConfig() (*config, error) {
 		vaultPrefix:  vaultPrefix,
 		operatorName: operatorName,
 	}, nil
+}
+
+const ttMsg = `
+ ╭──────────────╮
+ ╰─────╮ ╭────╮ │
+       │ │  ╭─╯ ╰─╮
+       │ │  ╰─╮ ╭─╯   
+       │ │    │ ╰─╮
+       ╰─╯    ╰───╯
+       nats-manager
+
+`
+
+func logArt(l logr.Logger, s string) {
+	scan := bufio.NewScanner(strings.NewReader(s))
+	for scan.Scan() {
+		l.Info(scan.Text())
+	}
 }
