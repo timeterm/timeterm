@@ -22,10 +22,10 @@ import (
 type Server struct {
 	r     vla.Router
 	log   logr.Logger
-	vault *secrets.VaultClient
+	vault *secrets.Store
 }
 
-func NewServer(log logr.Logger, vc *secrets.VaultClient) *Server {
+func NewServer(log logr.Logger, vc *secrets.Store) *Server {
 	s := Server{
 		r:     vlahttprouter.New(),
 		log:   log,

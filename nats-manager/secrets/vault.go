@@ -10,129 +10,129 @@ import (
 	"github.com/nats-io/nkeys"
 )
 
-type VaultClient struct {
+type Store struct {
 	prefix string
 	vault  *vault.Client
 }
 
-func NewVaultClient(prefix string, c *vault.Client) *VaultClient {
-	return &VaultClient{
+func NewStore(prefix string, c *vault.Client) *Store {
+	return &Store{
 		prefix: prefix,
 		vault:  c,
 	}
 }
 
-func (c *VaultClient) operatorSeedPath(pubKey string) string {
-	return path.Join(c.prefix, "/keys/operator/", pubKey)
+func (s *Store) operatorSeedPath(pubKey string) string {
+	return path.Join(s.prefix, "/keys/operator/", pubKey)
 }
 
-func (c *VaultClient) accountSeedPath(pubKey string) string {
-	return path.Join(c.prefix, "/keys/account/", pubKey)
+func (s *Store) accountSeedPath(pubKey string) string {
+	return path.Join(s.prefix, "/keys/account/", pubKey)
 }
 
-func (c *VaultClient) userSeedPath(pubKey string) string {
-	return path.Join(c.prefix, "/keys/user/", pubKey)
+func (s *Store) userSeedPath(pubKey string) string {
+	return path.Join(s.prefix, "/keys/user/", pubKey)
 }
 
-func (c *VaultClient) jwtPath(subject string) string {
-	return path.Join(c.prefix, "/jwts/", subject)
+func (s *Store) jwtPath(subject string) string {
+	return path.Join(s.prefix, "/jwts/", subject)
 }
 
-func (c *VaultClient) WriteOperatorSeed(kp nkeys.KeyPair) error {
+func (s *Store) WriteOperatorSeed(kp nkeys.KeyPair) error {
 	pubKey, err := kp.PublicKey()
 	if err != nil {
 		return err
 	}
 
-	pat := c.operatorSeedPath(pubKey)
-	err = c.writeSeed(pat, kp)
+	pat := s.operatorSeedPath(pubKey)
+	err = s.writeSeed(pat, kp)
 	if err != nil {
 		return fmt.Errorf("could not write operator seed: %w", err)
 	}
 	return nil
 }
 
-func (c *VaultClient) WriteAccountSeed(kp nkeys.KeyPair) error {
+func (s *Store) WriteAccountSeed(kp nkeys.KeyPair) error {
 	pubKey, err := kp.PublicKey()
 	if err != nil {
 		return err
 	}
 
-	pat := c.accountSeedPath(pubKey)
-	err = c.writeSeed(pat, kp)
+	pat := s.accountSeedPath(pubKey)
+	err = s.writeSeed(pat, kp)
 	if err != nil {
 		return fmt.Errorf("could not write account seed: %w", err)
 	}
 	return nil
 }
 
-func (c *VaultClient) WriteUserSeed(kp nkeys.KeyPair) error {
+func (s *Store) WriteUserSeed(kp nkeys.KeyPair) error {
 	pubKey, err := kp.PublicKey()
 	if err != nil {
 		return err
 	}
 
-	pat := c.userSeedPath(pubKey)
-	err = c.writeSeed(pat, kp)
+	pat := s.userSeedPath(pubKey)
+	err = s.writeSeed(pat, kp)
 	if err != nil {
 		return fmt.Errorf("could not write user seed: %w", err)
 	}
 	return nil
 }
 
-func (c *VaultClient) WriteOperatorJWT(claims *jwt.OperatorClaims, operatorPubKey string) error {
+func (s *Store) WriteOperatorJWT(claims *jwt.OperatorClaims, operatorPubKey string) error {
 	if claims.Name == "" {
 		return errors.New("operator name may not be empty")
 	}
-	kp, err := c.ReadOperatorSeed(operatorPubKey)
+	kp, err := s.ReadOperatorSeed(operatorPubKey)
 	if err != nil {
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
-	pat := c.jwtPath(claims.Subject)
-	return c.writeJWT(pat, claims, kp)
+	pat := s.jwtPath(claims.Subject)
+	return s.writeJWT(pat, claims, kp)
 }
 
-func (c *VaultClient) WriteUserJWT(claims *jwt.UserClaims, accountPubKey string) error {
+func (s *Store) WriteUserJWT(claims *jwt.UserClaims, accountPubKey string) error {
 	if claims.Name == "" {
 		return errors.New("user name may not be empty")
 	}
-	kp, err := c.ReadAccountSeed(accountPubKey)
+	kp, err := s.ReadAccountSeed(accountPubKey)
 	if err != nil {
 		return fmt.Errorf("could not read account seed: %w", err)
 	}
 
-	pat := c.jwtPath(claims.Subject)
-	return c.writeJWT(pat, claims, kp)
+	pat := s.jwtPath(claims.Subject)
+	return s.writeJWT(pat, claims, kp)
 }
 
-func (c *VaultClient) WriteAccountJWT(claims *jwt.AccountClaims, operatorPubKey string) error {
+func (s *Store) WriteAccountJWT(claims *jwt.AccountClaims, operatorPubKey string) error {
 	if claims.Name == "" {
 		return errors.New("account name may not be empty")
 	}
-	kp, err := c.ReadOperatorSeed(operatorPubKey)
+	kp, err := s.ReadOperatorSeed(operatorPubKey)
 	if err != nil {
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
-	pat := c.jwtPath(claims.Subject)
-	return c.writeJWT(pat, claims, kp)
+	pat := s.jwtPath(claims.Subject)
+	return s.writeJWT(pat, claims, kp)
 }
 
-func (c *VaultClient) writeJWT(pat string, claims jwt.Claims, kp nkeys.KeyPair) error {
+func (s *Store) writeJWT(pat string, claims jwt.Claims, kp nkeys.KeyPair) error {
 	encoded, err := claims.Encode(kp)
 	if err != nil {
 		return fmt.Errorf("could not encode operator claims: %w", err)
 	}
 
-	_, err = c.vault.Logical().Write(pat, map[string]interface{}{
+	_, err = s.vault.Logical().Write(pat, map[string]interface{}{
 		"jwt": encoded,
 	})
 	return err
 }
 
-func (c *VaultClient) readJWT(pat string) (string, error) {
-	secret, err := c.vault.Logical().Read(pat)
+func (s *Store) readJWT(pat string) (string, error) {
+	secret, err := s.vault.Logical().Read(pat)
 	if err != nil {
 		return "", err
 	}
@@ -144,8 +144,8 @@ func (c *VaultClient) readJWT(pat string) (string, error) {
 	return token, nil
 }
 
-func (c *VaultClient) ReadJWT(subject string) (jwt.Claims, error) {
-	token, err := c.ReadJWTLiteral(subject)
+func (s *Store) ReadJWT(subject string) (jwt.Claims, error) {
+	token, err := s.ReadJWTLiteral(subject)
 	if err != nil {
 		return nil, err
 	}
@@ -157,17 +157,17 @@ func (c *VaultClient) ReadJWT(subject string) (jwt.Claims, error) {
 	return claims, nil
 }
 
-func (c *VaultClient) ReadJWTLiteral(subject string) (string, error) {
-	pat := c.jwtPath(subject)
-	token, err := c.readJWT(pat)
+func (s *Store) ReadJWTLiteral(subject string) (string, error) {
+	pat := s.jwtPath(subject)
+	token, err := s.readJWT(pat)
 	if err != nil {
 		return "", fmt.Errorf("could not read JWT at path %s from Vault: %w", pat, err)
 	}
 	return token, nil
 }
 
-func (c *VaultClient) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, error) {
-	token, err := c.ReadJWTLiteral(subject)
+func (s *Store) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, error) {
+	token, err := s.ReadJWTLiteral(subject)
 	if err != nil {
 		return nil, err
 	}
@@ -179,9 +179,9 @@ func (c *VaultClient) ReadOperatorJWT(subject string) (*jwt.OperatorClaims, erro
 	return claims, nil
 }
 
-func (c *VaultClient) ReadAccountJWT(subject string) (*jwt.AccountClaims, error) {
-	pat := c.jwtPath(subject)
-	token, err := c.readJWT(pat)
+func (s *Store) ReadAccountJWT(subject string) (*jwt.AccountClaims, error) {
+	pat := s.jwtPath(subject)
+	token, err := s.readJWT(pat)
 	if err != nil {
 		return nil, err
 	}
@@ -193,9 +193,9 @@ func (c *VaultClient) ReadAccountJWT(subject string) (*jwt.AccountClaims, error)
 	return claims, nil
 }
 
-func (c *VaultClient) ReadUserJWT(subject string) (*jwt.UserClaims, error) {
-	pat := c.jwtPath(subject)
-	token, err := c.readJWT(pat)
+func (s *Store) ReadUserJWT(subject string) (*jwt.UserClaims, error) {
+	pat := s.jwtPath(subject)
+	token, err := s.readJWT(pat)
 	if err != nil {
 		return nil, err
 	}
@@ -207,22 +207,22 @@ func (c *VaultClient) ReadUserJWT(subject string) (*jwt.UserClaims, error) {
 	return claims, nil
 }
 
-func (c *VaultClient) ReadOperatorSeed(pubKey string) (nkeys.KeyPair, error) {
-	pat := c.operatorSeedPath(pubKey)
-	return c.readSeed(pat)
+func (s *Store) ReadOperatorSeed(pubKey string) (nkeys.KeyPair, error) {
+	pat := s.operatorSeedPath(pubKey)
+	return s.readSeed(pat)
 }
 
-func (c *VaultClient) ReadUserSeed(pubKey string) (nkeys.KeyPair, error) {
-	pat := c.userSeedPath(pubKey)
-	return c.readSeed(pat)
+func (s *Store) ReadUserSeed(pubKey string) (nkeys.KeyPair, error) {
+	pat := s.userSeedPath(pubKey)
+	return s.readSeed(pat)
 }
 
-func (c *VaultClient) ReadAccountSeed(pubKey string) (nkeys.KeyPair, error) {
-	pat := c.accountSeedPath(pubKey)
-	return c.readSeed(pat)
+func (s *Store) ReadAccountSeed(pubKey string) (nkeys.KeyPair, error) {
+	pat := s.accountSeedPath(pubKey)
+	return s.readSeed(pat)
 }
 
-func (c *VaultClient) writeSeed(path string, kp nkeys.KeyPair) error {
+func (s *Store) writeSeed(path string, kp nkeys.KeyPair) error {
 	seed, err := kp.Seed()
 	if err != nil {
 		return err
@@ -231,16 +231,16 @@ func (c *VaultClient) writeSeed(path string, kp nkeys.KeyPair) error {
 	// Converting seed to a string is safe (or should really be safe)
 	// because it should be in Base 32.
 	seedStr := string(seed)
-	_, err = c.vault.Logical().Write(path, map[string]interface{}{
+	_, err = s.vault.Logical().Write(path, map[string]interface{}{
 		"seed": seedStr,
 	})
 	return err
 }
 
-func (c *VaultClient) readSeed(path string) (nkeys.KeyPair, error) {
+func (s *Store) readSeed(path string) (nkeys.KeyPair, error) {
 	var kp nkeys.KeyPair
 
-	secret, err := c.vault.Logical().Read(path)
+	secret, err := s.vault.Logical().Read(path)
 	if err != nil {
 		return kp, err
 	}

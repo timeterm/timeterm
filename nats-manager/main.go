@@ -21,8 +21,11 @@ import (
 
 	"gitlab.com/timeterm/timeterm/nats-manager/api"
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
+	"gitlab.com/timeterm/timeterm/nats-manager/handler"
+	"gitlab.com/timeterm/timeterm/nats-manager/manager"
+	"gitlab.com/timeterm/timeterm/nats-manager/manager/static"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
-	"gitlab.com/timeterm/timeterm/nats-manager/secrets/static"
+	"gitlab.com/timeterm/timeterm/nats-manager/transport"
 )
 
 func main() {
@@ -53,20 +56,7 @@ func realMain(log logr.Logger) error {
 	}
 
 	firstRun := false
-	dbw, err := database.New(
-		cfg.databaseURL,
-		log,
-		database.WithMigrationHooks(database.MigrationHooks{
-			After: []database.MigrationHook{
-				func(from, to uint) error {
-					if from == 0 {
-						firstRun = true
-					}
-					return nil
-				},
-			},
-		}),
-	)
+	dbw, err := database.New(cfg.databaseURL, log, isFirstRunDatabaseOpt(&firstRun))
 	if err != nil {
 		return fmt.Errorf("could not connect to database: %w", err)
 	}
@@ -76,8 +66,8 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	vcc := secrets.NewVaultClient(cfg.vaultPrefix, vc)
-	mgr, err := secrets.NewManager(log, vcc, dbw, secrets.DefaultOperatorConfig())
+	vcc := secrets.NewStore(cfg.vaultPrefix, vc)
+	mgr, err := manager.New(log, vcc, dbw, manager.DefaultOperatorConfig())
 	if err != nil {
 		return fmt.Errorf("could not create secrets manager: %w", err)
 	}
@@ -109,17 +99,39 @@ func realMain(log logr.Logger) error {
 		return nil
 	})
 	eg.Go(func() error {
-		transport, err := setUpTransport(ctx, cfg, mgr, log)
+		tx, err := setUpTransport(ctx, log, cfg, mgr)
 		if err != nil {
 			return fmt.Errorf("could not set up transport: %w", err)
 		}
 
-		return transport.run(ctx)
+		return tx.Run(ctx)
 	})
 	return eg.Wait()
 }
 
-func setUpTransport(ctx context.Context, cfg *config, mgr *secrets.Manager, log logr.Logger) (*transport, error) {
+func isFirstRunDatabaseOpt(isFirstRun *bool) database.WrapperOpt {
+	return database.WithMigrationHooks(database.MigrationHooks{
+		After: []database.MigrationHook{
+			isFirstRunMigrationHook(isFirstRun),
+		},
+	})
+}
+
+func isFirstRunMigrationHook(isFirstRun *bool) database.MigrationHook {
+	return func(from, to uint) error {
+		if from == 0 {
+			*isFirstRun = true
+		}
+		return nil
+	}
+}
+
+func setUpTransport(
+	ctx context.Context,
+	log logr.Logger,
+	cfg *config,
+	mgr *manager.Manager,
+) (*transport.Transport, error) {
 	creds, err := mgr.GenerateUserCredentials(ctx, "backend", "BACKEND")
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate backend user credentials: %w", err)
@@ -146,10 +158,7 @@ func setUpTransport(ctx context.Context, cfg *config, mgr *secrets.Manager, log 
 		}
 	}()
 
-	return newTransport(nc, log, &handler{
-		nc: nc,
-		mg: mgr,
-	}), nil
+	return transport.New(nc, log, handler.New(nc, mgr)), nil
 }
 
 func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...nats.Option) (*nats.Conn, error) {

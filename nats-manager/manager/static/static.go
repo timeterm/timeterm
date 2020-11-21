@@ -3,10 +3,10 @@ package static
 import (
 	"context"
 
-	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
+	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 )
 
-func ConfigureStaticUsers(ctx context.Context, mgr *secrets.Manager) error {
+func ConfigureStaticUsers(ctx context.Context, mgr *manager.Manager) error {
 	if _, err := mgr.NewAccount(ctx, "BACKEND"); err != nil {
 		return err
 	}

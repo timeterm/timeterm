@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -8,15 +8,22 @@ import (
 	"github.com/nats-io/jsm.go"
 	"github.com/nats-io/nats.go"
 
-	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
+	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 )
 
-type handler struct {
-	nc *nats.Conn
-	mg *secrets.Manager
+type Handler struct {
+	nc  *nats.Conn
+	mgr *manager.Manager
 }
 
-func (h *handler) provisionNewDevice(ctx context.Context, id uuid.UUID) (err error) {
+func New(nc *nats.Conn, mgr *manager.Manager) *Handler {
+	return &Handler{
+		nc:  nc,
+		mgr: mgr,
+	}
+}
+
+func (h *Handler) ProvisionNewDevice(ctx context.Context, id uuid.UUID) (err error) {
 	mgr, err := jsm.New(h.nc)
 	if err != nil {
 		return fmt.Errorf("could not create JetStream manager: %w", err)
@@ -27,15 +34,15 @@ func (h *handler) provisionNewDevice(ctx context.Context, id uuid.UUID) (err err
 		return fmt.Errorf("could not set up device consumers: %w", err)
 	}
 
-	err = h.mg.CreateNewDeviceUser(ctx, id)
+	err = h.mgr.CreateNewDeviceUser(ctx, id)
 	if err != nil {
 		return fmt.Errorf("could not create new device user: %w", err)
 	}
 	return nil
 }
 
-func (h *handler) generateDeviceCredentials(ctx context.Context, id uuid.UUID) (creds string, err error) {
-	creds, err = h.mg.GenerateDeviceCredentials(ctx, id)
+func (h *Handler) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (creds string, err error) {
+	creds, err = h.mgr.GenerateDeviceCredentials(ctx, id)
 	if err != nil {
 		return "", fmt.Errorf("could not generate credentials for device (user): %w", err)
 	}

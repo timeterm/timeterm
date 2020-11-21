@@ -1,4 +1,4 @@
-package secrets
+package manager
 
 import (
 	"context"
@@ -15,12 +15,13 @@ import (
 	"github.com/nats-io/nkeys"
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
+	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 )
 
 type Manager struct {
-	safe *VaultClient
-	log  logr.Logger
-	dbw  *database.Wrapper
+	secrets *secrets.Store
+	log     logr.Logger
+	dbw     *database.Wrapper
 
 	operator OperatorConfig
 }
@@ -57,14 +58,14 @@ func (c OperatorConfig) Validate() error {
 	return err
 }
 
-func NewManager(log logr.Logger, c *VaultClient, dbw *database.Wrapper, oc OperatorConfig) (*Manager, error) {
+func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc OperatorConfig) (*Manager, error) {
 	if err := oc.Validate(); err != nil {
 		return nil, fmt.Errorf("error validating operator config: %w", err)
 	}
 
 	return &Manager{
 		log:      log,
-		safe:     c,
+		secrets:  store,
 		dbw:      dbw,
 		operator: oc,
 	}, nil
@@ -80,7 +81,7 @@ func (m *Manager) newAccountKeys() (nkeys.KeyPair, error) {
 		return kp, fmt.Errorf("could not generate account keys: %w", err)
 	}
 
-	if err = m.safe.WriteAccountSeed(kp); err != nil {
+	if err = m.secrets.WriteAccountSeed(kp); err != nil {
 		return kp, fmt.Errorf("could not write account seed: %w", err)
 	}
 
@@ -93,7 +94,7 @@ func (m *Manager) newOperatorKeys() (nkeys.KeyPair, error) {
 		return kp, fmt.Errorf("could not generate operator keys: %w", err)
 	}
 
-	if err = m.safe.WriteOperatorSeed(kp); err != nil {
+	if err = m.secrets.WriteOperatorSeed(kp); err != nil {
 		return kp, fmt.Errorf("could not write operator seed: %w", err)
 	}
 
@@ -106,7 +107,7 @@ func (m *Manager) newUserKeys() (nkeys.KeyPair, error) {
 		return kp, fmt.Errorf("could not generate user keys: %w", err)
 	}
 
-	if err = m.safe.WriteUserSeed(kp); err != nil {
+	if err = m.secrets.WriteUserSeed(kp); err != nil {
 		return kp, fmt.Errorf("could not write user seed: %w", err)
 	}
 
@@ -136,7 +137,7 @@ func (m *Manager) newOperator(ctx context.Context, systemAccountPubKey string) (
 	claims.OperatorServiceURLs = m.operator.ServiceURLS
 	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err = m.safe.WriteOperatorJWT(claims, pk)
+	err = m.secrets.WriteOperatorJWT(claims, pk)
 	if err != nil {
 		return pk, fmt.Errorf("could not write operator JWT: %w", err)
 	}
@@ -181,7 +182,7 @@ func (m *Manager) newAccountWithPubKey(ctx context.Context, name, pubKey, operat
 	claims.IssuedAt = time.Now().Unix()
 	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err := m.safe.WriteAccountJWT(claims, operatorPubKey)
+	err := m.secrets.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
 		return fmt.Errorf("could not write account JWT: %w", err)
 	}
@@ -202,7 +203,7 @@ func (m *Manager) newSystemAccount(ctx context.Context, name, pubKey, operatorPu
 	claims.Limits.JetStreamLimits = jwt.JetStreamLimits{}
 	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err := m.safe.WriteAccountJWT(claims, operatorPubKey)
+	err := m.secrets.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
 		return fmt.Errorf("could not write account JWT: %w", err)
 	}
@@ -231,7 +232,7 @@ func (m *Manager) newUser(ctx context.Context, userName, accountPubKey string) (
 	claims.IssuedAt = time.Now().Unix()
 	// TODO(rutgerbrf): set some more claims to the correct values.
 
-	err = m.safe.WriteUserJWT(claims, accountPubKey)
+	err = m.secrets.WriteUserJWT(claims, accountPubKey)
 	if err != nil {
 		return pk, fmt.Errorf("could not write user JWT: %w", err)
 	}
@@ -282,7 +283,7 @@ func (m *Manager) InitKeys(ctx context.Context) error {
 		return fmt.Errorf("could not create system user: %w", err)
 	}
 
-	optok, err := m.safe.ReadJWTLiteral(oppk)
+	optok, err := m.secrets.ReadJWTLiteral(oppk)
 	if err != nil {
 		return fmt.Errorf("could not read operator JWT: %w", err)
 	}
@@ -327,7 +328,7 @@ func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, account
 		return "", err
 	}
 
-	kp, err := m.safe.ReadUserSeed(pk)
+	kp, err := m.secrets.ReadUserSeed(pk)
 	if err != nil {
 		return "", err
 	}
@@ -337,7 +338,7 @@ func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, account
 		return "", err
 	}
 
-	token, err := m.safe.ReadJWTLiteral(pk)
+	token, err := m.secrets.ReadJWTLiteral(pk)
 	if err != nil {
 		return "", err
 	}
