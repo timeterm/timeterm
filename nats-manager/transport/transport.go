@@ -41,7 +41,7 @@ func (t *Transport) Run(ctx context.Context) error {
 	if _, err := t.enc.QueueSubscribe(
 		nmsdk.SubjectProvisionNewDevice,
 		nmsdk.SubjectProvisionNewDevice,
-		Transport.handleProvisionNewDevice,
+		t.handleProvisionNewDevice,
 	); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (t *Transport) Run(ctx context.Context) error {
 	if _, err := t.enc.QueueSubscribe(
 		nmsdk.SubjectGenerateDeviceCredentials,
 		nmsdk.SubjectGenerateDeviceCredentials,
-		Transport.handleGenerateDeviceCredentials,
+		t.handleGenerateDeviceCredentials,
 	); err != nil {
 		return err
 	}

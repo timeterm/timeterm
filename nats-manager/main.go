@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -28,6 +30,24 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/transport"
 )
 
+const ttMsg = `
+   ╭--------------╮
+   ╰-----╮ ╭----╮ |    
+         | |  ╭-╯ ╰-╮
+         | |  ╰-╮ ╭-╯   
+         | |    | ╰-╮
+         ╰-╯    ╰---╯
+         nats-manager
+
+`
+
+func logArt(l logr.Logger, s string) {
+	scan := bufio.NewScanner(strings.NewReader(s))
+	for scan.Scan() {
+		l.Info(scan.Text())
+	}
+}
+
 func main() {
 	exitCode := 0
 	defer os.Exit(exitCode)
@@ -37,6 +57,8 @@ func main() {
 
 	log := zapr.NewLogger(logger)
 	defer log.Info("shutdown complete")
+
+	logArt(log, ttMsg)
 
 	if err := realMain(log); err != nil {
 		log.Error(err, "error running nats-manager")
@@ -191,9 +213,8 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 				log.Info("connected to NATS")
 				connected <- nc
 				return
-			} else {
-				log.Error(err, "error connecting to NATS (will likely retry unless shutting down)")
 			}
+			log.Error(err, "error connecting to NATS (will likely retry unless shutting down)")
 		}
 	}()
 

@@ -249,7 +249,7 @@ func (m *Manager) NewUser(ctx context.Context, name, accountName string) (string
 }
 
 func (m *Manager) InitKeys(ctx context.Context) error {
-	m.log.Info("Initializing keys")
+	m.log.Info("initializing keys")
 
 	sakp, err := m.newAccountKeys()
 	if err != nil {
