@@ -135,7 +135,7 @@ func realMain(log logr.Logger) error {
 }
 
 func setUpOnFirstRun(ctx context.Context, mgr *manager.Manager) error {
-	if err := mgr.Init(context.Background()); err != nil {
+	if err := mgr.Init(ctx); err != nil {
 		return fmt.Errorf("could not init secrets manager: %w", err)
 	}
 	return nil
