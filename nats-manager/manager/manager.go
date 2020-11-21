@@ -263,7 +263,7 @@ func (m *Manager) newUser(
 	claims.Name = userName
 	claims.Issuer = accountPubKey
 	claims.IssuedAt = time.Now().Unix()
-	// Allow allow listening for responses
+	// Always allow listening for responses
 	claims.Sub.Allow = []string{"INBOX.>"}
 	for _, edit := range editors {
 		edit(claims)
