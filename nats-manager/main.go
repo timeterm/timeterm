@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -194,7 +193,6 @@ func getBackendCredsFile(ctx context.Context, mgr *manager.Manager) (string, err
 
 func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...nats.Option) (*nats.Conn, error) {
 	connected := make(chan *nats.Conn, 1)
-	stop := int32(0)
 	stopped := make(chan struct{})
 
 	go func() {
@@ -202,7 +200,7 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 		defer tick.Stop()
 		defer close(stopped)
 
-		for atomic.LoadInt32(&stop) == 0 {
+		for {
 			select {
 			case <-ctx.Done():
 				return
@@ -220,9 +218,7 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 	}()
 
 	select {
-	case <-ctx.Done():
-		atomic.StoreInt32(&stop, 1)
-		<-stopped
+	case <-stopped:
 		return nil, ctx.Err()
 	case nc := <-connected:
 		return nc, nil
