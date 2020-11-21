@@ -77,15 +77,9 @@ func realMain(log logr.Logger) error {
 
 	if firstRun {
 		log.Info("first run, initializing")
-
-		if err = mgr.Init(context.Background()); err != nil {
-			return fmt.Errorf("could not init secrets manager: %w", err)
+		if err = setUpOnFirstRun(ctx, mgr); err != nil {
+			return err
 		}
-
-		if err = static.ConfigureStaticUsers(ctx, mgr); err != nil {
-			return fmt.Errorf("could not configure static users: %w", err)
-		}
-
 		log.Info("initialized")
 	}
 
@@ -99,14 +93,25 @@ func realMain(log logr.Logger) error {
 		return nil
 	})
 	eg.Go(func() error {
-		tx, err := setUpTransport(ctx, log, cfg, mgr)
+		nc, err := trySetUpNATS(ctx, log, cfg, mgr)
 		if err != nil {
 			return fmt.Errorf("could not set up transport: %w", err)
 		}
 
+		tx := transport.New(nc, log, handler.New(nc, mgr))
 		return tx.Run(ctx)
 	})
 	return eg.Wait()
+}
+
+func setUpOnFirstRun(ctx context.Context, mgr *manager.Manager) error {
+	if err := mgr.Init(context.Background()); err != nil {
+		return fmt.Errorf("could not init secrets manager: %w", err)
+	}
+	if err := static.ConfigureStaticUsers(ctx, mgr); err != nil {
+		return fmt.Errorf("could not configure static users: %w", err)
+	}
+	return nil
 }
 
 func isFirstRunDatabaseOpt(isFirstRun *bool) database.WrapperOpt {
@@ -126,29 +131,13 @@ func isFirstRunMigrationHook(isFirstRun *bool) database.MigrationHook {
 	}
 }
 
-func setUpTransport(
-	ctx context.Context,
-	log logr.Logger,
-	cfg *config,
-	mgr *manager.Manager,
-) (*transport.Transport, error) {
-	creds, err := mgr.GenerateUserCredentials(ctx, "backend", "BACKEND")
+func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {
+	credsFile, err := getBackendCredsFile(ctx, mgr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate backend user credentials: %w", err)
+		return nil, err
 	}
 
-	f, err := ioutil.TempFile("", "*.jwt")
-	if err != nil {
-		return nil, fmt.Errorf("could not write NATS credentials: %w", err)
-	}
-	if _, err = f.WriteString(creds); err != nil {
-		return nil, fmt.Errorf("could not write NATS credentials: %w", err)
-	}
-	if err = f.Close(); err != nil {
-		return nil, fmt.Errorf("could not close NATS credentials file: %w", err)
-	}
-
-	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserCredentials(f.Name()))
+	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserCredentials(credsFile))
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -157,12 +146,31 @@ func setUpTransport(
 			log.Error(err, "error draining NATS connection on shutdown")
 		}
 	}()
+	return nc, err
+}
 
-	return transport.New(nc, log, handler.New(nc, mgr)), nil
+func getBackendCredsFile(ctx context.Context, mgr *manager.Manager) (string, error) {
+	creds, err := mgr.GenerateUserCredentials(ctx, "backend", "BACKEND")
+	if err != nil {
+		return "", fmt.Errorf("failed to generate backend user credentials: %w", err)
+	}
+
+	f, err := ioutil.TempFile("", "*.jwt")
+	if err != nil {
+		return "", fmt.Errorf("could not write NATS credentials: %w", err)
+	}
+	if _, err = f.WriteString(creds); err != nil {
+		return "", fmt.Errorf("could not write NATS credentials: %w", err)
+	}
+	if err = f.Close(); err != nil {
+		return "", fmt.Errorf("could not close NATS credentials file: %w", err)
+	}
+
+	return f.Name(), nil
 }
 
 func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...nats.Option) (*nats.Conn, error) {
-	connected := make(chan *nats.Conn)
+	connected := make(chan *nats.Conn, 1)
 	stop := int32(0)
 	stopped := make(chan struct{})
 
