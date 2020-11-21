@@ -19,49 +19,49 @@ import (
 
 const requestHandleTimeout = time.Second * 30
 
-type tx struct {
+type transport struct {
 	enc *nats.EncodedConn
 	log logr.Logger
 	h   *handler
 }
 
-func runTx(ctx context.Context, nc *nats.Conn, log logr.Logger, h *handler) error {
-	enc := nats.EncodedConn{
-		Conn: nc,
-		Enc:  natspb.NewEncoder(),
-	}
-
-	tx := tx{enc: &enc, log: log, h: h}
-
-	_, err := enc.QueueSubscribe(
+func (t *transport) run(ctx context.Context) error {
+	if _, err := t.enc.QueueSubscribe(
 		nmsdk.SubjectProvisionNewDevice,
 		nmsdk.SubjectProvisionNewDevice,
-		tx.handleProvisionNewDevice,
-	)
-	if err != nil {
+		transport.handleProvisionNewDevice,
+	); err != nil {
 		return err
 	}
 
-	_, err = enc.QueueSubscribe(
+	if _, err := t.enc.QueueSubscribe(
 		nmsdk.SubjectGenerateDeviceCredentials,
 		nmsdk.SubjectGenerateDeviceCredentials,
-		tx.handleGenerateDeviceCredentials,
-	)
-	if err != nil {
+		transport.handleGenerateDeviceCredentials,
+	); err != nil {
 		return err
 	}
 
-	err = nc.Flush()
-	if err != nil {
+	if err := t.enc.Flush(); err != nil {
 		return err
 	}
 
 	<-ctx.Done()
-
-	return nil
+	return ctx.Err()
 }
 
-func (t *tx) handlePanic() {
+func newTransport(nc *nats.Conn, log logr.Logger, h *handler) *transport {
+	return &transport{
+		enc: &nats.EncodedConn{
+			Conn: nc,
+			Enc:  natspb.NewEncoder(),
+		},
+		log: log,
+		h:   h,
+	}
+}
+
+func (t *transport) handlePanic() {
 	if r := recover(); r != nil {
 		err, ok := r.(error)
 		if !ok {
@@ -76,7 +76,7 @@ func (t *tx) handlePanic() {
 	}
 }
 
-func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
+func (t *transport) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.ProvisionNewDeviceRequest) {
 	defer t.handlePanic()
 
 	rsp := new(rpcpb.ProvisionNewDeviceResponse)
@@ -100,7 +100,11 @@ func (t *tx) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpcpb.Prov
 	}
 }
 
-func (t *tx) handleGenerateDeviceCredentials(_ /* sub */, reply string, msg *rpcpb.GenerateDeviceCredentialsRequest) {
+func (t *transport) handleGenerateDeviceCredentials(
+	_, /* sub */
+	reply string,
+	msg *rpcpb.GenerateDeviceCredentialsRequest,
+) {
 	defer t.handlePanic()
 
 	rsp := new(rpcpb.GenerateDeviceCredentialsResponse)
@@ -128,7 +132,7 @@ func (t *tx) handleGenerateDeviceCredentials(_ /* sub */, reply string, msg *rpc
 	}
 }
 
-func (t *tx) provisionNewDevice(ctx context.Context, msg *rpcpb.ProvisionNewDeviceRequest) error {
+func (t *transport) provisionNewDevice(ctx context.Context, msg *rpcpb.ProvisionNewDeviceRequest) error {
 	devID, err := uuid.Parse(msg.GetDeviceId())
 	if err != nil {
 		return errors.New("invalid device ID")
@@ -144,7 +148,10 @@ func (t *tx) provisionNewDevice(ctx context.Context, msg *rpcpb.ProvisionNewDevi
 	return nil
 }
 
-func (t *tx) generateDeviceCredentials(ctx context.Context, msg *rpcpb.GenerateDeviceCredentialsRequest) (string, error) {
+func (t *transport) generateDeviceCredentials(
+	ctx context.Context,
+	msg *rpcpb.GenerateDeviceCredentialsRequest,
+) (string, error) {
 	devID, err := uuid.Parse(msg.GetDeviceId())
 	if err != nil {
 		return "", errors.New("invalid device ID")

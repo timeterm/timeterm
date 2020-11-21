@@ -109,34 +109,36 @@ func realMain(log logr.Logger) error {
 		return nil
 	})
 	eg.Go(func() error {
-		if err := actuallyRunTx(ctx, cfg, mgr, log); err != nil {
-			return fmt.Errorf("could not run transport: %w", err)
+		transport, err := setUpTransport(ctx, cfg, mgr, log)
+		if err != nil {
+			return fmt.Errorf("could not set up transport: %w", err)
 		}
-		return nil
+
+		return transport.run(ctx)
 	})
 	return eg.Wait()
 }
 
-func actuallyRunTx(ctx context.Context, cfg *config, mgr *secrets.Manager, log logr.Logger) error {
+func setUpTransport(ctx context.Context, cfg *config, mgr *secrets.Manager, log logr.Logger) (*transport, error) {
 	creds, err := mgr.GenerateUserCredentials(ctx, "backend", "BACKEND")
 	if err != nil {
-		return fmt.Errorf("failed to generate backend user credentials: %w", err)
+		return nil, fmt.Errorf("failed to generate backend user credentials: %w", err)
 	}
 
 	f, err := ioutil.TempFile("", "*.jwt")
 	if err != nil {
-		return fmt.Errorf("could not write NATS credentials: %w", err)
+		return nil, fmt.Errorf("could not write NATS credentials: %w", err)
 	}
 	if _, err = f.WriteString(creds); err != nil {
-		return fmt.Errorf("could not write NATS credentials: %w", err)
+		return nil, fmt.Errorf("could not write NATS credentials: %w", err)
 	}
 	if err = f.Close(); err != nil {
-		return fmt.Errorf("could not close NATS credentials file: %w", err)
+		return nil, fmt.Errorf("could not close NATS credentials file: %w", err)
 	}
 
 	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserCredentials(f.Name()))
 	if err != nil {
-		return fmt.Errorf("could not connect to NATS: %w", err)
+		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
 	defer func() {
 		if err = nc.Drain(); err != nil {
@@ -144,24 +146,21 @@ func actuallyRunTx(ctx context.Context, cfg *config, mgr *secrets.Manager, log l
 		}
 	}()
 
-	if err = runTx(ctx, nc, log, &handler{
+	return newTransport(nc, log, &handler{
 		nc: nc,
 		mg: mgr,
-	}); err != nil {
-		return fmt.Errorf("could not run transport: %w", err)
-	}
-	log.Info("shutting down")
-
-	return nil
+	}), nil
 }
 
 func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...nats.Option) (*nats.Conn, error) {
 	connected := make(chan *nats.Conn)
 	stop := int32(0)
+	stopped := make(chan struct{})
 
 	go func() {
 		tick := time.NewTicker(time.Second * 5)
 		defer tick.Stop()
+		defer close(stopped)
 
 		for atomic.LoadInt32(&stop) == 0 {
 			select {
@@ -184,6 +183,7 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 	select {
 	case <-ctx.Done():
 		atomic.StoreInt32(&stop, 1)
+		<-stopped
 		return nil, ctx.Err()
 	case nc := <-connected:
 		return nc, nil
