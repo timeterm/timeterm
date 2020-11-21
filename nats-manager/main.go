@@ -87,7 +87,11 @@ func realMain(log logr.Logger) error {
 		log.Info("initialized")
 	}
 
-	srv := api.NewServer(log, vcc)
+	if err := static.ConfigureUsers(ctx, log, mgr); err != nil {
+		return fmt.Errorf("could not configure static users: %w", err)
+	}
+
+	srv := api.NewServer(log, vcc, mgr)
 
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -97,13 +101,36 @@ func realMain(log logr.Logger) error {
 		return nil
 	})
 	eg.Go(func() error {
-		nc, err := trySetUpNATS(ctx, log, cfg, mgr)
-		if err != nil {
-			return fmt.Errorf("could not set up transport: %w", err)
-		}
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
 
-		tx := transport.New(nc, log, handler.New(nc, mgr))
-		return tx.Run(ctx)
+			func() {
+				nc, err := trySetUpNATS(ctx, log, cfg, mgr)
+				if err != nil {
+					log.Error(err, "error setting up NATS")
+					return
+				}
+				defer func() {
+					if err = nc.Drain(); err != nil {
+						log.Error(err, "error draining NATS connection on shutdown")
+					}
+				}()
+
+				if err := static.ConfigureStreams(log, nc); err != nil {
+					log.Error(err, "error setting up static streams")
+					return
+				}
+
+				tx := transport.New(nc, log, handler.New(nc, mgr))
+				if err := tx.Run(ctx); err != nil {
+					log.Error(err, "error running transport")
+				}
+			}()
+		}
 	})
 	return eg.Wait()
 }
@@ -111,9 +138,6 @@ func realMain(log logr.Logger) error {
 func setUpOnFirstRun(ctx context.Context, mgr *manager.Manager) error {
 	if err := mgr.Init(context.Background()); err != nil {
 		return fmt.Errorf("could not init secrets manager: %w", err)
-	}
-	if err := static.ConfigureStaticUsers(ctx, mgr); err != nil {
-		return fmt.Errorf("could not configure static users: %w", err)
 	}
 	return nil
 }
@@ -145,11 +169,6 @@ func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manage
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
-	defer func() {
-		if err = nc.Drain(); err != nil {
-			log.Error(err, "error draining NATS connection on shutdown")
-		}
-	}()
 	return nc, err
 }
 

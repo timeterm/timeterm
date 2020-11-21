@@ -14,22 +14,25 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/nats-io/jwt/v2"
 
+	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/vla"
 	vlahttprouter "gitlab.com/timeterm/timeterm/nats-manager/pkg/vla/impl/httprouter"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 )
 
 type Server struct {
-	r     vla.Router
-	log   logr.Logger
-	vault *secrets.Store
+	r       vla.Router
+	log     logr.Logger
+	secrets *secrets.Store
+	mgr     *manager.Manager
 }
 
-func NewServer(log logr.Logger, vc *secrets.Store) *Server {
+func NewServer(log logr.Logger, store *secrets.Store, mgr *manager.Manager) *Server {
 	s := Server{
-		r:     vlahttprouter.New(),
-		log:   log,
-		vault: vc,
+		r:       vlahttprouter.New(),
+		log:     log,
+		secrets: store,
+		mgr:     mgr,
 	}
 	s.registerRoutes()
 
@@ -67,16 +70,18 @@ func (s *Server) registerRoutes() {
 		w.WriteHeader(http.StatusOK)
 	})
 	vla.GET(s.r, "/jwt/v1/accounts/:pubkey", s.GetJWT)
+	vla.GET(s.r, "/creds/v1/accounts/:account/users/:user/", s.GetUserCreds)
 }
 
 func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, vr vla.Route, p vla.Params) {
-	token, err := s.vault.ReadJWTLiteral(p.ByName("pubkey"))
+	token, err := s.secrets.ReadJWTLiteral(p.ByName("pubkey"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	claims, err := jwt.Decode(token)
+	// Must be an account
+	claims, err := jwt.DecodeAccountClaims(token)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -119,4 +124,15 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, vr vla.Route, p 
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(token))
+}
+
+func (s *Server) GetUserCreds(w http.ResponseWriter, r *http.Request, vr vla.Route, p vla.Params) {
+	account := p.ByName("account")
+	user := p.ByName("user")
+
+	creds, err := s.mgr.GenerateUserCredentials(r.Context(), user, account)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	_, _ = w.Write([]byte(creds))
 }

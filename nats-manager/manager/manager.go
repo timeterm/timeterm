@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -16,6 +17,12 @@ import (
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
+)
+
+type (
+	AccountClaimsEditor  func(c *jwt.AccountClaims)
+	UserClaimsEditor     func(c *jwt.UserClaims)
+	OperatorClaimsEditor func(c *jwt.OperatorClaims)
 )
 
 type Manager struct {
@@ -114,7 +121,11 @@ func (m *Manager) newUserKeys() (nkeys.KeyPair, error) {
 	return kp, nil
 }
 
-func (m *Manager) newOperator(ctx context.Context, systemAccountPubKey string) (string, error) {
+func (m *Manager) newOperator(
+	ctx context.Context,
+	systemAccountPubKey string,
+	editors ...OperatorClaimsEditor,
+) (string, error) {
 	kp, err := m.newOperatorKeys()
 	if err != nil {
 		return "", fmt.Errorf("could not create operator keys: %w", err)
@@ -135,7 +146,9 @@ func (m *Manager) newOperator(ctx context.Context, systemAccountPubKey string) (
 	claims.IssuedAt = time.Now().Unix()
 	claims.SystemAccount = systemAccountPubKey
 	claims.OperatorServiceURLs = m.operator.ServiceURLS
-	// TODO(rutgerbrf): set some more claims to the correct values.
+	for _, edit := range editors {
+		edit(claims)
+	}
 
 	err = m.secrets.WriteOperatorJWT(claims, pk)
 	if err != nil {
@@ -145,7 +158,11 @@ func (m *Manager) newOperator(ctx context.Context, systemAccountPubKey string) (
 	return pk, nil
 }
 
-func (m *Manager) newAccount(ctx context.Context, name, operatorPubKey string) (string, error) {
+func (m *Manager) newAccount(
+	ctx context.Context,
+	name, operatorPubKey string,
+	editors ...AccountClaimsEditor,
+) (string, error) {
 	kp, err := m.newAccountKeys()
 	if err != nil {
 		return "", fmt.Errorf("could not create account keys: %w", err)
@@ -156,22 +173,26 @@ func (m *Manager) newAccount(ctx context.Context, name, operatorPubKey string) (
 		return "", fmt.Errorf("could not create account public key: %w", err)
 	}
 
-	if err = m.newAccountWithPubKey(ctx, name, pk, operatorPubKey); err != nil {
+	if err = m.newAccountWithPubKey(ctx, name, pk, operatorPubKey, editors...); err != nil {
 		return "", err
 	}
 
 	return pk, nil
 }
 
-func (m *Manager) NewAccount(ctx context.Context, name string) (string, error) {
+func (m *Manager) NewAccount(ctx context.Context, name string, editors ...AccountClaimsEditor) (string, error) {
 	pk, err := m.dbw.GetOperatorSubject(ctx, m.operator.Name)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch operator public key: %w", err)
 	}
-	return m.newAccount(ctx, name, pk)
+	return m.newAccount(ctx, name, pk, editors...)
 }
 
-func (m *Manager) newAccountWithPubKey(ctx context.Context, name, pubKey, operatorPubKey string) error {
+func (m *Manager) newAccountWithPubKey(
+	ctx context.Context,
+	name, pubKey, operatorPubKey string,
+	editors ...AccountClaimsEditor,
+) error {
 	if err := m.dbw.CreateAccount(ctx, name, pubKey, operatorPubKey); err != nil {
 		return fmt.Errorf("could not create account in database: %w", err)
 	}
@@ -180,7 +201,9 @@ func (m *Manager) newAccountWithPubKey(ctx context.Context, name, pubKey, operat
 	claims.Name = name
 	claims.Issuer = operatorPubKey
 	claims.IssuedAt = time.Now().Unix()
-	// TODO(rutgerbrf): set some more claims to the correct values.
+	for _, edit := range editors {
+		edit(claims)
+	}
 
 	err := m.secrets.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
@@ -190,7 +213,11 @@ func (m *Manager) newAccountWithPubKey(ctx context.Context, name, pubKey, operat
 	return nil
 }
 
-func (m *Manager) newSystemAccount(ctx context.Context, name, pubKey, operatorPubKey string) error {
+func (m *Manager) newSystemAccount(
+	ctx context.Context,
+	name, pubKey, operatorPubKey string,
+	editors ...AccountClaimsEditor,
+) error {
 	if err := m.dbw.CreateAccount(ctx, name, pubKey, operatorPubKey); err != nil {
 		return fmt.Errorf("could not create account in database: %w", err)
 	}
@@ -201,7 +228,9 @@ func (m *Manager) newSystemAccount(ctx context.Context, name, pubKey, operatorPu
 	claims.IssuedAt = time.Now().Unix()
 	// System accounts can not have JetStream enabled
 	claims.Limits.JetStreamLimits = jwt.JetStreamLimits{}
-	// TODO(rutgerbrf): set some more claims to the correct values.
+	for _, edit := range editors {
+		edit(claims)
+	}
 
 	err := m.secrets.WriteAccountJWT(claims, operatorPubKey)
 	if err != nil {
@@ -211,7 +240,11 @@ func (m *Manager) newSystemAccount(ctx context.Context, name, pubKey, operatorPu
 	return nil
 }
 
-func (m *Manager) newUser(ctx context.Context, userName, accountPubKey string) (string, error) {
+func (m *Manager) newUser(
+	ctx context.Context,
+	userName, accountPubKey string,
+	editors ...UserClaimsEditor,
+) (string, error) {
 	kp, err := m.newUserKeys()
 	if err != nil {
 		return "", fmt.Errorf("could not create user keys: %w", err)
@@ -230,7 +263,11 @@ func (m *Manager) newUser(ctx context.Context, userName, accountPubKey string) (
 	claims.Name = userName
 	claims.Issuer = accountPubKey
 	claims.IssuedAt = time.Now().Unix()
-	// TODO(rutgerbrf): set some more claims to the correct values.
+	// Allow allow listening for responses
+	claims.Sub.Allow = []string{"INBOX.>"}
+	for _, edit := range editors {
+		edit(claims)
+	}
 
 	err = m.secrets.WriteUserJWT(claims, accountPubKey)
 	if err != nil {
@@ -240,12 +277,12 @@ func (m *Manager) newUser(ctx context.Context, userName, accountPubKey string) (
 	return pk, nil
 }
 
-func (m *Manager) NewUser(ctx context.Context, name, accountName string) (string, error) {
+func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) (string, error) {
 	pk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch account public key: %w", err)
 	}
-	return m.newUser(ctx, name, pk)
+	return m.newUser(ctx, name, pk, editors...)
 }
 
 func (m *Manager) InitKeys(ctx context.Context) error {
@@ -353,6 +390,36 @@ func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, account
 		return "", fmt.Errorf("could not format user config: %w", err)
 	}
 	return string(cfg), nil
+}
+
+func (m *Manager) AccountExists(ctx context.Context, name string) (bool, error) {
+	subj, err := m.dbw.GetAccountSubject(ctx, name, m.operator.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if _, err = m.secrets.ReadAccountJWT(subj); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (m *Manager) UserExists(ctx context.Context, name, accountName string) (bool, error) {
+	subj, err := m.dbw.GetUserSubject(ctx, name, accountName, m.operator.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if _, err = m.secrets.ReadUserJWT(subj); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func deviceAccountName(id uuid.UUID) string {

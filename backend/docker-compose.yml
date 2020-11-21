@@ -20,14 +20,14 @@ services:
       - "8432:8080"
 
   nats:
-    image: synadia/jsm:nightly-20201116
+    image: synadia/jsm:nightly-20201121
     restart: always
     network_mode: host
     environment:
       NATS_CONFIG: |
         operator: /operator/OP.jwt
         resolver: URL(http://localhost:8086/jwt/v1/accounts/)
-        system_account: AA5U2BSCKUM7XKAFLTEVJZY7JIWE2BRS6UTR7KEDU6AS6PIBCSAEOILZ
+        system_account: ABOSN6ZFCZLLZDUWD463YP5QFVB3IZCZFT4VEUYTAHS4H7I5CJJ5JK5W
 
         jetstream {
           store_dir: datastore
