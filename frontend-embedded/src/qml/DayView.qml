@@ -17,7 +17,7 @@ Page {
     property var endOfDay
 
     background: Rectangle {
-        color: isCanceled ? "#FFB5AB" : "#FFFFFF"
+        color: "#FFFFFF"
     }
 
     function setTimetable(timetable) {

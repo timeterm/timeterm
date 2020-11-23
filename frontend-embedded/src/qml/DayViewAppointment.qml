@@ -14,9 +14,9 @@ Rectangle {
     width: dayHeader.width
     anchors.right: parent.right
 
-    color: "#e5e5e5"
+    color: appointment.isCanceled ? "#FFB5AB" : "#e5e5e5"
     border.width: 1
-    border.color: "#b5b5b5"
+    border.color: appointment.isCanceled ? "#ff4229" :"#b5b5b5"
     radius: 5
 
     Text {
@@ -29,19 +29,10 @@ Rectangle {
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width * 0.3125
-        anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: dayPage.textSize
-        text: appointment.subjects.join(", ")
-    }
-    
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -parent.width * 0.125
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
-        color: "#666666"
-        text: appointment.teachers.join(", ")
+        text: appointment.subjects.join(", ")
     }
 
     Text {
@@ -49,15 +40,15 @@ Rectangle {
         anchors.horizontalCenterOffset: parent.width * 0.125
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
-        color: "#666666"
-        text: appointment.groups.join(", ")
+        text: appointment.locations.join(", ")
     }
-
+    
     Text {
         anchors.right: parent.right
-        anchors.rightMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin: dayPage.customMargin
         font.pixelSize: dayPage.textSize
-        text: appointment.locations.join(", ")
+        color: "#666666"
+        text: appointment.teachers.join(", ")
     }
 }
