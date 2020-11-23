@@ -152,16 +152,22 @@ func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Man
 		return fmt.Errorf("could not get current JWT migration version: %w", err)
 	}
 
-	if len(m) <= currentVer {
+	if len(m) < currentVer {
 		return fmt.Errorf(
 			"current migration version (%d) is higher than what this version of nats-manager can handle (%d)",
 			currentVer, len(m),
 		)
+	} else if len(m) == currentVer {
+		log.Info("no migrations to perform")
+		return nil
 	}
 
 	for _, migration := range m[currentVer:] {
-		if err := migration.Run(log, dbw, mgr, st); err != nil {
+		if err = migration.Run(log, dbw, mgr, st); err != nil {
 			return fmt.Errorf("could not run migration %d (%q): %w", migration.Version, migration.Name, err)
+		}
+		if err = dbw.SetJWTMigrationVersion(context.Background(), migration.Version); err != nil {
+			return fmt.Errorf("could not update migration version to %d: %w", migration.Version, err)
 		}
 	}
 
