@@ -82,17 +82,53 @@ func PatchCIDRList(s *jwt.CIDRList, with *CIDRListPatches) {
 	s.Add(with.Add...)
 }
 
+type TimeRangePatches struct {
+	// Clear always happens first
+	Clear bool
+	// Remove happens second
+	Remove []jwt.TimeRange
+	// Add happens third
+	Add []jwt.TimeRange
+}
+
+func PatchTimeRangeList(s *[]jwt.TimeRange, with *TimeRangePatches) {
+	if with.Clear {
+		*s = make([]jwt.TimeRange, 0)
+	}
+
+	j := 0
+	for i := range *s {
+		for _, rm := range with.Remove {
+			if (*s)[i] != rm {
+				(*s)[j] = (*s)[i]
+				j++
+			}
+		}
+	}
+	*s = (*s)[:j]
+
+	for _, add := range with.Add {
+		exists := false
+		for _, it := range *s {
+			if it == add {
+				exists = true
+			}
+		}
+		if !exists {
+			*s = append(*s, add)
+		}
+	}
+}
+
 type UserLimitsPatches struct {
 	src    CIDRListPatches
-	times  *[]jwt.TimeRange
+	times  TimeRangePatches
 	locale *string
 }
 
 func PatchUserLimits(l *jwt.UserLimits, with *UserLimitsPatches) {
 	PatchCIDRList(&l.Src, &with.src)
-	if with.times != nil {
-		l.Times = *with.times
-	}
+	PatchTimeRangeList(&l.Times, &with.times)
 	if with.locale != nil {
 		l.Locale = *with.locale
 	}
