@@ -65,6 +65,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
     appointment.setTeachers({"mou"});
+    appointment.setIsCanceled(true);
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("4");
@@ -76,6 +77,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
     appointment.setTeachers({"mou"});
+    appointment.setIsCanceled(false);
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("5");
