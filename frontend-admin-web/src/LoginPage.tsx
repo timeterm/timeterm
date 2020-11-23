@@ -70,9 +70,12 @@ const LoginPage: React.FC = (props) => {
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
               onClick={() => {
-                window.location.href = `https://api.timeterm.nl/oidc/login/microsoft?redirectTo=${encodeURIComponent(
-                  window.location.href + "login/done"
-                )}`;
+                window.location.href = new URL(
+                  `/oidc/login/microsoft?redirectTo=${encodeURIComponent(
+                    window.location.href + "login/done"
+                  )}`,
+                  process.env.REACT_APP_API_ENDPOINT
+                ).toString();
               }}
             >
               Inloggen met Microsoft
@@ -111,9 +114,12 @@ const LoginPage: React.FC = (props) => {
               onMouseOver={() => setIsHovering(true)}
               onMouseOut={() => setIsHovering(false)}
               onClick={() => {
-                window.location.href = `https://api.timeterm.nl/oidc/login/google?redirectTo=${encodeURIComponent(
-                  window.location.href + "login/done"
-                )}`;
+                window.location.href = new URL(
+                  `oidc/login/google?redirectTo=${encodeURIComponent(
+                    window.location.href + "login/done"
+                  )}`,
+                  process.env.REACT_APP_API_ENDPOINT
+                ).toString();
               }}
             >
               Inloggen met Google

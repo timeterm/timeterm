@@ -305,7 +305,7 @@ func (w *Wrapper) GetDeviceByToken(ctx context.Context, token uuid.UUID) (Device
 		return dev, err
 	}
 
-	err = w.db.GetContext(ctx, &err, `
+	err = w.db.GetContext(ctx, &dev, `
 		SELECT device.* from device_token
 		INNER JOIN device on device.id = device_token.device_id
 		WHERE device_token.token_hash = $1

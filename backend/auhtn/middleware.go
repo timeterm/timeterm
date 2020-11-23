@@ -117,7 +117,6 @@ func DeviceLoginMiddleware(db *database.Wrapper, log logr.Logger) echo.Middlewar
 				return false, echo.NewHTTPError(http.StatusInternalServerError, "Could not query database")
 			}
 
-
 			AddDeviceToContext(c, device)
 
 			return true, nil

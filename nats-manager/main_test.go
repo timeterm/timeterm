@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/require"
-	rpcpb "gitlab.com/timeterm/timeterm/proto/go/rpc"
 
 	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
 )
@@ -19,10 +18,11 @@ func TestNatsManager(t *testing.T) {
 	deviceID := uuid.New()
 	client := nmsdk.NewClient(nc)
 
-	data, err := client.ProvisionNewDevice(context.Background(), &rpcpb.ProvisionNewDeviceRequest{
-		DeviceId: deviceID.String(),
-	})
+	err = client.ProvisionNewDevice(context.Background(), deviceID)
 	require.NoError(t, err)
 
-	t.Logf("Got NATS creds: \n%s\n", data.GetNatsCreds())
+	creds, err := client.GenerateDeviceCredentials(context.Background(), deviceID)
+	require.NoError(t, err)
+
+	t.Logf("Got NATS creds: \n%s\n", creds)
 }

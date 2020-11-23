@@ -84,6 +84,15 @@ type CreateDeviceResponse struct {
 	Token  uuid.UUID `json:"token"`
 }
 
+type GenerateNATSCredentialsResponse struct {
+	Credentials string `json:"credentials"`
+}
+
+type RegistrationConfig struct {
+	Token uuid.UUID `json:"token"`
+	// TODO(Robertvdmaas): NetworkingConfig
+}
+
 func OrganizationFrom(org database.Organization) Organization {
 	return Organization{
 		ID:   org.ID,

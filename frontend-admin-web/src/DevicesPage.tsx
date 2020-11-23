@@ -6,9 +6,20 @@ import React, { useState } from "react";
 import { useMutation } from "react-query";
 import Cookies from "universal-cookie";
 import { queryCache } from "./App";
+import { saveAs } from "file-saver";
+
+const exportConfiguration = () =>
+  fetchAuthnd(`/device/registrationconfig`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.blob())
+    .then((blob) => saveAs(blob, "timeterm-config.json"));
 
 const removeDevice = (devices: Device[]) =>
-  fetchAuthnd(`https://api.timeterm.nl/device`, {
+  fetchAuthnd(`/device`, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
@@ -20,7 +31,7 @@ const removeDevice = (devices: Device[]) =>
   });
 
 const restartDevices = (devices: Device[]) =>
-  fetchAuthnd(`https://api.timeterm.nl/device/restart`, {
+  fetchAuthnd(`/device/restart`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -31,14 +42,14 @@ const restartDevices = (devices: Device[]) =>
     }),
   });
 
-export const fetchAuthnd = (input: RequestInfo, init?: RequestInit) => {
+export const fetchAuthnd = (path: string, init?: RequestInit) => {
   const session = new Cookies().get("ttsess");
   const headers = {
     ...init?.headers,
     "X-Api-Key": session,
   };
 
-  return fetch(input, {
+  return fetch(new URL(path, process.env.REACT_APP_API_ENDPOINT).toString(), {
     ...init,
     headers,
   });
@@ -89,9 +100,17 @@ const DevicesPage: React.FC = () => {
         <h1 style={{ marginTop: 0 }}>Apparaten</h1>
         <div>
           <Button
+            icon={"download"}
+            outlined
+            onClick={() => exportConfiguration()}
+          >
+            Configuratie exporteren
+          </Button>
+          <Button
             icon={"delete"}
             danger
             raised
+            style={{ marginLeft: 8 }}
             disabled={selectedItems.length === 0}
             onClick={() => onDeleteDevices()}
           >

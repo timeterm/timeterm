@@ -8,8 +8,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: timeterm
+      POSTGRES_DB: postgres
     restart: on-failure
+    volumes:
+      - ./docker/postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 
   adminer:
     image: adminer:latest
@@ -18,46 +20,51 @@ services:
       - "8432:8080"
 
   nats:
-    image: synadia/jsm:nightly-20200914
+    image: synadia/jsm:nightly-20201121
     restart: always
-    command: server -sd /datastore
+    network_mode: host
     environment:
       NATS_CONFIG: |
-        operator: /operator/TIMETERM.jwt
-        resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
-        system_account: ACMUG2BUXKAGPY56SVXJKDZF3RO4QJKJNPSYHBUJCLQRPIL7M2NRWAYS
+        operator: /operator/OP.jwt
+        resolver: URL(http://localhost:8086/jwt/v1/accounts/)
+        system_account: ABOSN6ZFCZLLZDUWD463YP5QFVB3IZCZFT4VEUYTAHS4H7I5CJJ5JK5W
+
+        jetstream {
+          store_dir: datastore
+        }
     volumes:
-      - ./nm/store/TIMETERM/TIMETERM.jwt:/operator/TIMETERM.jwt
+      - ./OP.jwt:/operator/OP.jwt
     entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
     ports:
       - "4222:4222"
   
-  nats-account-server:
-    environment:
-      NAS_CONFIG: |
-        operatorjwtpath: /data/accounts/TIMETERM/TIMETERM.jwt
+  # nats-account-server:
+  #   environment:
+  #     NAS_CONFIG: |
+  #       operatorjwtpath: /data/TIMETERM.jwt
+  #       systemaccountjwtpath: /data/accounts/SYS/SYS.jwt
 
-        store: {
-          nsc: /data
-        }
+  #       store: {
+  #         nsc: /data
+  #       }
 
-        http {
-          host: 0.0.0.0
-          port: 9090
-        }
-    volumes:
-      - ./nm/store/TIMETERM:/data
-    image: synadia/nats-account-server:0.8.4
-    restart: always
-    entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
-    ports:
-      - "9090:9090"
+  #       http {
+  #         host: 0.0.0.0
+  #         port: 9090
+  #       }
+  #   volumes:
+  #     - ./nm/store/TIMETERM:/data
+  #   image: synadia/nats-account-server:0.8.4
+  #   restart: always
+  #   entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
+  #   ports:
+  #     - "9090:9090"
   
   vault:
     image: vault
     environment:
       VAULT_CONFIG: |
-        {"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}
+        {"ui": true, "backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}
     entrypoint: /bin/sh -c "echo \"$$VAULT_CONFIG\" > /vault/config/config.hcl && vault server -config /vault/config/config.hcl"
     ports:
       - "8300:8300"
