@@ -9,7 +9,37 @@ import (
 	"github.com/labstack/echo"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
+	"gitlab.com/timeterm/timeterm/backend/database"
 )
+
+type getNetworkingServicesParams struct {
+	paginationParams
+}
+
+func (s *Server) getNetworkingServices(c echo.Context) error {
+	var params getNetworkingServicesParams
+	err := c.Bind(&params)
+	if err != nil {
+		return err
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	dbNetworkingServices, err := s.db.GetNetworkingServices(c.Request().Context(), database.GetNetworkingServicesOpts{
+		OrganizationID: user.OrganizationID,
+		Limit:          params.MaxAmount,
+		Offset:         params.Offset,
+	})
+	if err != nil {
+		s.log.Error(err, "could not get networking services from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
+	}
+
+}
 
 func (s *Server) getNetworkingService(c echo.Context) error {
 	id := c.Param("id")

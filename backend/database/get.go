@@ -290,16 +290,57 @@ func (w *Wrapper) GetNetworkingService(ctx context.Context, id uuid.UUID) (Netwo
 
 type GetNetworkingServicesOpts struct {
 	OrganizationID uuid.UUID
-	Name		   *string
 	Limit          *uint64
 	Offset         *uint64
 }
 
 type PaginatedNetworkingServices struct {
 	Pagination
-	Students []NetworkingServices
+	NetworkServices []NetworkingService
 }
 
-func (w *Wrapper) GetNetworkingServices(ctx contex.Context, opts GetNetworkingServicesOpts) (PaginatedNetworkingServices, error) {
+func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingServicesOpts) (PaginatedNetworkingServices, error) {
+	netwServices := PaginatedNetworkingServices{
+		Pagination: Pagination{
+			Limit:  min(or(opts.Limit, 50), 100),
+			Offset: or(opts.Offset, 0),
+		},
+	}
 
+	conds := sq.And{
+		sq.Eq{"organization_id": opts.OrganizationID},
+	}
+
+	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
+		return b.
+			From("networking_service").
+			Where(conds).
+			PlaceholderFormat(sq.Dollar)
+	}
+
+	netwServSql, args, err := buildQuery(sq.Select(`*`)).
+		Limit(netwServices.Pagination.Limit).
+		Offset(netwServices.Pagination.Offset).
+		OrderBy("name ASC").
+		ToSql()
+	if err != nil {
+		return netwServices, err
+	}
+
+	err = w.db.SelectContext(ctx, &netwServices.NetworkServices, netwServSql, args...)
+	if err != nil {
+		return netwServices, err
+	}
+
+	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
+	if err != nil {
+		return netwServices, err
+	}
+
+	err = w.db.GetContext(ctx, &netwServices.Total, totalSql, args...)
+	if err != nil {
+		return netwServices, err
+	}
+
+	return netwServices, nil
 }
