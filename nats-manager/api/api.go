@@ -30,7 +30,7 @@ type Server struct {
 func NewServer(log logr.Logger, store *secrets.Store, mgr *manager.Manager) *Server {
 	s := Server{
 		r:       vlahttprouter.New(),
-		log:     log,
+		log:     log.WithName("ApiServer"),
 		secrets: store,
 		mgr:     mgr,
 	}
@@ -73,7 +73,7 @@ func (s *Server) registerRoutes() {
 	vla.GET(s.r, "/creds/v1/accounts/:account/users/:user/", s.GetUserCreds)
 }
 
-func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, vr vla.Route, p vla.Params) {
+func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p vla.Params) {
 	token, err := s.secrets.ReadJWTLiteral(p.ByName("pubkey"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -126,7 +126,7 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, vr vla.Route, p 
 	_, _ = w.Write([]byte(token))
 }
 
-func (s *Server) GetUserCreds(w http.ResponseWriter, r *http.Request, vr vla.Route, p vla.Params) {
+func (s *Server) GetUserCreds(w http.ResponseWriter, r *http.Request, _ vla.Route, p vla.Params) {
 	account := p.ByName("account")
 	user := p.ByName("user")
 

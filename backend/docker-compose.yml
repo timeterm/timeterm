@@ -27,7 +27,7 @@ services:
       NATS_CONFIG: |
         operator: /operator/OP.jwt
         resolver: URL(http://localhost:8086/jwt/v1/accounts/)
-        system_account: ABOSN6ZFCZLLZDUWD463YP5QFVB3IZCZFT4VEUYTAHS4H7I5CJJ5JK5W
+        system_account: AA4BPUBUT6EWPRFIVJ2RSHLC2EBDOUUQXFCZQIUTVHFYHUQ6EA5EPHUL
 
         jetstream {
           store_dir: datastore

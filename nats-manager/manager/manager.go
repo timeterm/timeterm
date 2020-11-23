@@ -71,7 +71,7 @@ func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc Operat
 	}
 
 	return &Manager{
-		log:      log,
+		log:      log.WithName("Manager"),
 		secrets:  store,
 		dbw:      dbw,
 		operator: oc,
@@ -80,6 +80,71 @@ func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc Operat
 
 func (m *Manager) Init(ctx context.Context) error {
 	return m.InitKeys(ctx)
+}
+
+func (m *Manager) CheckJWTs(ctx context.Context) {
+	m.log.Info("checking JWTs")
+
+	if err := m.dbw.WalkJWTs(ctx, func(subj string) bool {
+		if err := m.checkJWT(subj); err != nil {
+			m.log.Error(err, "error checking JWT", "subject", subj)
+		}
+		return true
+	}); err != nil {
+		m.log.Error(err, "error walking JWTs")
+	}
+
+	m.log.Info("JWTs checked")
+}
+
+func (m *Manager) checkJWT(subj string) error {
+	token, err := m.secrets.ReadJWT(subj)
+	if err != nil {
+		return fmt.Errorf("could not read JWT: %w", err)
+	}
+
+	var vr jwt.ValidationResults
+	token.Validate(&vr)
+
+	for _, res := range vr.Issues {
+		if !res.TimeCheck {
+			if res.Blocking {
+				m.log.Error(res, "JWT has a blocking validation issue (error)", "subject", subj)
+			} else {
+				m.log.Info("JWT has a validation issue", "subject", subj, "warning", res.Description)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Manager) PrintSettings(ctx context.Context) {
+	if err := m.printSettings(ctx); err != nil {
+		m.log.Error(err, "could not print settings")
+	}
+}
+
+func (m *Manager) printSettings(ctx context.Context) error {
+	sapk, err := m.getSystemAccountPubKey(ctx)
+	if err != nil {
+		return fmt.Errorf("could not read system account public key: %w", err)
+	}
+
+	oppk, err := m.getOperatorPubKey(ctx)
+	if err != nil {
+		return fmt.Errorf("could not read operator public key: %w", err)
+	}
+
+	optok, err := m.secrets.ReadJWTLiteral(oppk)
+	if err != nil {
+		return fmt.Errorf("could not read operator JWT: %w", err)
+	}
+
+	m.log.Info("system account public key", "pubKey", sapk)
+	m.log.Info("operator JWT", "jwt", optok)
+
+	return nil
 }
 
 func (m *Manager) newAccountKeys() (nkeys.KeyPair, error) {
@@ -121,7 +186,7 @@ func (m *Manager) newUserKeys() (nkeys.KeyPair, error) {
 	return kp, nil
 }
 
-func (m *Manager) newOperator(
+func (m *Manager) NewOperator(
 	ctx context.Context,
 	systemAccountPubKey string,
 	editors ...OperatorClaimsEditor,
@@ -298,7 +363,7 @@ func (m *Manager) InitKeys(ctx context.Context) error {
 		return fmt.Errorf("could not create system account public key: %w", err)
 	}
 
-	oppk, err := m.newOperator(ctx, sapk)
+	oppk, err := m.NewOperator(ctx, sapk)
 	if err != nil {
 		return fmt.Errorf("could not create operator: %w", err)
 	}
@@ -320,14 +385,7 @@ func (m *Manager) InitKeys(ctx context.Context) error {
 		return fmt.Errorf("could not create system user: %w", err)
 	}
 
-	optok, err := m.secrets.ReadJWTLiteral(oppk)
-	if err != nil {
-		return fmt.Errorf("could not read operator JWT: %w", err)
-	}
-
 	m.log.Info("keys initialized")
-	m.log.Info("system account public key", "pubKey", sapk)
-	m.log.Info("operator JWT", "jwt", optok)
 
 	return nil
 }
@@ -336,6 +394,14 @@ func (m *Manager) getOperatorPubKey(ctx context.Context) (string, error) {
 	pk, err := m.dbw.GetOperatorSubject(ctx, m.operator.Name)
 	if err != nil {
 		return "", fmt.Errorf("could not get operator subject: %w", err)
+	}
+	return pk, nil
+}
+
+func (m *Manager) getSystemAccountPubKey(ctx context.Context) (string, error) {
+	pk, err := m.dbw.GetAccountSubject(ctx, "SYS", m.operator.Name)
+	if err != nil {
+		return "", fmt.Errorf("could not get system account subject: %w", err)
 	}
 	return pk, nil
 }

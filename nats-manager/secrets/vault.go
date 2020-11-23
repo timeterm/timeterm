@@ -5,18 +5,21 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/go-logr/logr"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/nats-io/jwt/v2"
 	"github.com/nats-io/nkeys"
 )
 
 type Store struct {
+	log    logr.Logger
 	prefix string
 	vault  *vault.Client
 }
 
-func NewStore(prefix string, c *vault.Client) *Store {
+func NewStore(log logr.Logger, prefix string, c *vault.Client) *Store {
 	return &Store{
+		log:    log.WithName("Store"),
 		prefix: prefix,
 		vault:  c,
 	}
@@ -89,6 +92,7 @@ func (s *Store) WriteOperatorJWT(claims *jwt.OperatorClaims, operatorPubKey stri
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
+	s.log.V(1).Info("writing operator", "name", claims.Name, "subject", claims.Subject)
 	pat := s.jwtPath(claims.Subject)
 	return s.writeJWT(pat, claims, kp)
 }
@@ -102,6 +106,7 @@ func (s *Store) WriteUserJWT(claims *jwt.UserClaims, accountPubKey string) error
 		return fmt.Errorf("could not read account seed: %w", err)
 	}
 
+	s.log.V(1).Info("writing user", "name", claims.Name, "subject", claims.Subject)
 	pat := s.jwtPath(claims.Subject)
 	return s.writeJWT(pat, claims, kp)
 }
@@ -115,6 +120,7 @@ func (s *Store) WriteAccountJWT(claims *jwt.AccountClaims, operatorPubKey string
 		return fmt.Errorf("could not read operator seed: %w", err)
 	}
 
+	s.log.V(1).Info("writing account", "name", claims.Name, "subject", claims.Subject)
 	pat := s.jwtPath(claims.Subject)
 	return s.writeJWT(pat, claims, kp)
 }
@@ -123,6 +129,18 @@ func (s *Store) writeJWT(pat string, claims jwt.Claims, kp nkeys.KeyPair) error 
 	encoded, err := claims.Encode(kp)
 	if err != nil {
 		return fmt.Errorf("could not encode operator claims: %w", err)
+	}
+
+	var vr jwt.ValidationResults
+	claims.Validate(&vr)
+	for _, iss := range vr.Issues {
+		if iss.Blocking {
+			if !iss.TimeCheck {
+				return fmt.Errorf("not writing account JWT: encountered an issue: %w", iss)
+			}
+		} else {
+			s.log.Info("found non-blocking JWT issue on creation", "subject", claims.Claims().Subject)
+		}
 	}
 
 	_, err = s.vault.Logical().Write(pat, map[string]interface{}{

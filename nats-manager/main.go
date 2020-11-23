@@ -25,6 +25,7 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/handler"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager/static"
+	"gitlab.com/timeterm/timeterm/nats-manager/manager/static/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 	"gitlab.com/timeterm/timeterm/nats-manager/transport"
 )
@@ -69,7 +70,7 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	vcc := secrets.NewStore(cfg.vaultPrefix, vc)
+	vcc := secrets.NewStore(log, cfg.vaultPrefix, vc)
 	mgr, err := manager.New(log, vcc, dbw, manager.DefaultOperatorConfig())
 	if err != nil {
 		return fmt.Errorf("could not create secrets manager: %w", err)
@@ -86,9 +87,20 @@ func realMain(log logr.Logger) error {
 		log.Info("initialized")
 	}
 
-	if err := static.ConfigureUsers(ctx, log, mgr); err != nil {
-		return fmt.Errorf("could not configure static users: %w", err)
+	func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel()
+
+		mgr.PrintSettings(ctx)
+	}()
+
+	if err := jwtmigrate.RunStaticMigrations(log, dbw, mgr, vcc); err != nil {
+		return fmt.Errorf("could not run static migrations: %w", err)
 	}
+
+	go func() {
+		mgr.CheckJWTs(ctx)
+	}()
 
 	srv := api.NewServer(log, vcc, mgr)
 
