@@ -13,8 +13,8 @@ Page {
     property int textSize: weekPage.height * 0.04
     property int customMargin: weekPage.height * 0.05
     property var secondToPixelRatio: weekAppointments.height * 0.000037
-    property var startOfFirstAppointment
-    property var endOfLastAppointment
+    property var startOfWeek
+    property var endOfWeek
 
     background: Rectangle {
         color: "#FFFFFF"
@@ -22,12 +22,12 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (typeof startOfFirstAppointment === 'undefined' || typeof endOfLastAppointment === 'undefined') {
-                startOfFirstAppointment = new Date().setHours(0, 0, 0, 0)
-                endOfLastAppointment = new Date().setHours(24, 0, 0, 0)
+            if (typeof startOfWeek === 'undefined' || typeof endOfWeek === 'undefined') {
+                startOfWeek = new Date().setHours(0, 0, 0, 0)
+                endOfWeek = new Date().setHours(24, 0, 0, 0)
             }
 
-            if (timetable.data[i].startTime.getTime() >= startOfFirstAppointment && timetable.data[i].endTime.getTime() < endOfLastAppointment) {
+            if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
                 if (typeof weekAppointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first weekAppointment in the list
                     weekAppointments.startFirstAppointment = timetable.data[i].startTime
                 }
@@ -37,13 +37,13 @@ Page {
                                                 - weekAppointments.startFirstAppointment.getMillisecondsInDay())
                                                 / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
 
-                    fillTimeLine()
+                    fillWeekTimeLine()
                 }
 
-                let finishCreation = function (weekAppointment) {
+                let finishWeekAppointment = function (weekAppointment) {
                     if (weekAppointment.status === Component.Ready) {
                         weekAppointment.incubateObject(weekAppointments.contentItem, {
-                            weekAppointment: timetable.data[i],
+                            appointment: timetable.data[i],
                             startFirstAppointment: weekAppointments.startFirstAppointment,
                             secondToPixelRatio: secondToPixelRatio
                         })
@@ -54,15 +54,15 @@ Page {
 
                 let weekAppointment = Qt.createComponent("WeekViewAppointment.qml")
                 if (weekAppointment.status !== Component.Null && weekAppointment.status !== Component.Loading) {
-                    finishCreation(weekAppointment)
+                    finishWeekAppointment(weekAppointment)
                 } else {
-                    weekAppointment.statusChanged.connect(finishCreation)
+                    weekAppointment.statusChanged.connect(finishWeekAppointment)
                 }
             }
         }
     }
 
-    function fillTimeLine() {
+    function fillWeekTimeLine() {
         let currentLineTime = new Date()
         currentLineTime.setTime(weekAppointments.startFirstAppointment.getTime())
 
@@ -80,7 +80,8 @@ Page {
                         y: (currentLineTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
-                              + currentLineTime.getMinutes()
+                              + currentLineTime.getMinutes(),
+                        textSize: weekPage.textSize
                     })
                 } else if (timeLineItem.status === Component.Error) {
                     console.log("Could not create lineItem:",
@@ -120,7 +121,8 @@ Page {
         anchors.top: weekHeader.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        //anchors.bottom: parent.bottom
+        height: 500
 
         contentWidth: width
         flickableDirection: Flickable.VerticalFlick

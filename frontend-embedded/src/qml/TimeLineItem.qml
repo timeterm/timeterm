@@ -3,6 +3,7 @@ import QtQuick 2.0
 Item {
     width: parent.width
     property var time
+    property var textSize
 
     Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -15,6 +16,6 @@ Item {
     Text {
         x: parent.width * 0.05
         text: time
-        font.pixelSize: dayPage.textSize
+        font.pixelSize: textSize
     }
 }

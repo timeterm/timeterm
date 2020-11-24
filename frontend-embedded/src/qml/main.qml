@@ -200,11 +200,11 @@ ApplicationWindow {
         height: parent.height
 
         function redirectTimetable(timetable) {
-            if (currentIndex == 0) {
+            //if (currentIndex == 0) {
                 dayView.setTimetable(timetable)
-            } else if (currentIndex == 1) {
+            //} else if (currentIndex == 1) {
                 weekView.setTimetable(timetable)
-            }
+            //}
         }
 
         Item {
@@ -221,6 +221,8 @@ ApplicationWindow {
             Layout.fillHeight: true
             WeekView {
                 id: weekView
+                startOfWeek: new Date().setHours(0, 0, 0, 0)
+                endOfWeek: new Date().setHours(24, 0, 0, 0)
             }
         }
     }

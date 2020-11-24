@@ -12,7 +12,7 @@ Page {
 
     property int textSize: dayPage.height * 0.04
     property int customMargin: dayPage.height * 0.05
-    property var secondToPixelRatio: appointments.height * 0.000037
+    property var secondToPixelRatio: dayAppointments.height * 0.000037
     property var startOfDay
     property var endOfDay
 
@@ -28,43 +28,43 @@ Page {
             }
 
             if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
-                if (typeof appointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < appointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first appointment in the list
-                    appointments.startFirstAppointment = timetable.data[i].startTime
+                if (typeof dayAppointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
+                    dayAppointments.startFirstAppointment = timetable.data[i].startTime
                 }
-                if (typeof appointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > appointments.endLastAppointment.getMillisecondsInDay()) {
-                    appointments.endLastAppointment = timetable.data[i].endTime
-                    appointments.contentHeight = (appointments.endLastAppointment.getMillisecondsInDay()
-                                                - appointments.startFirstAppointment.getMillisecondsInDay())
-                                                / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between appointments
+                if (typeof dayAppointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment.getMillisecondsInDay()) {
+                    dayAppointments.endLastAppointment = timetable.data[i].endTime
+                    dayAppointments.contentHeight = (dayAppointments.endLastAppointment.getMillisecondsInDay()
+                                                - dayAppointments.startFirstAppointment.getMillisecondsInDay())
+                                                / 1000 * secondToPixelRatio - 5         // - 5 because of the spacing between dayAppointments
 
-                    fillTimeLine()
+                    fillDayTimeLine()
                 }
 
-                let finishCreation = function (appointment) {
-                    if (appointment.status === Component.Ready) {
-                        appointment.incubateObject(appointments.contentItem, {
+                let finishDayAppointment = function (dayAppointment) {
+                    if (dayAppointment.status === Component.Ready) {
+                        dayAppointment.incubateObject(dayAppointments.contentItem, {
                             appointment: timetable.data[i],
-                            startFirstAppointment: appointments.startFirstAppointment,
+                            startFirstAppointment: dayAppointments.startFirstAppointment,
                             secondToPixelRatio: secondToPixelRatio
                         })
-                    } else if (appointment.status === Component.Error) {
-                        console.log("Could not create appointment:", appointment.errorString())
+                    } else if (dayAppointment.status === Component.Error) {
+                        console.log("Could not create dayAppointment:", dayAppointment.errorString())
                     }
                 }
 
-                let appointment = Qt.createComponent("DayViewAppointment.qml")
-                if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
-                    finishCreation(appointment)
+                let dayAppointment = Qt.createComponent("DayViewAppointment.qml")
+                if (dayAppointment.status !== Component.Null && dayAppointment.status !== Component.Loading) {
+                    finishDayAppointment(dayAppointment)
                 } else {
-                    appointment.statusChanged.connect(finishCreation)
+                    dayAppointment.statusChanged.connect(finishDayAppointment)
                 }
             }
         }
     }
 
-    function fillTimeLine() {
+    function fillDayTimeLine() {
         let currentLineTime = new Date()
-        currentLineTime.setTime(appointments.startFirstAppointment.getTime())
+        currentLineTime.setTime(dayAppointments.startFirstAppointment.getTime())
 
         if (!currentLineTime.isFullHour()) {
             currentLineTime.addHours(1)
@@ -72,15 +72,16 @@ Page {
         }
 
         for (currentLineTime;
-             appointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before the end of the last appointment
+             dayAppointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before the end of the last dayAppointment
              currentLineTime.addHours(1)) {
             let finishLineItem = function (timeLineItem) {
                 if (timeLineItem.status === Component.Ready) {
                     timeLineItem.incubateObject(timeLine, {
-                        y: (currentLineTime.getMillisecondsInDay() - appointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * secondToPixelRatio,
+                        y: (currentLineTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
-                              + currentLineTime.getMinutes()
+                              + currentLineTime.getMinutes(),
+                        textSize: dayPage.textSize
                     })
                 } else if (timeLineItem.status === Component.Error) {
                     console.log("Could not create lineItem:",
@@ -115,7 +116,7 @@ Page {
     }
 
     Flickable {
-        id: appointments
+        id: dayAppointments
         anchors.margins: parent.height * 0.02
         anchors.top: dayHeader.bottom
         anchors.left: parent.left
@@ -148,8 +149,8 @@ Page {
 
                 function setCurrentTimeLine() {
                     let currTime = new Date()
-                    if (typeof appointments.startFirstAppointment !== 'undefined' && currTime.getTime() > appointments.startFirstAppointment.getTime() && currTime.getTime() < appointments.endLastAppointment.getTime()) {
-                        let offset = (currTime.getMillisecondsInDay() - appointments.startFirstAppointment.getMillisecondsInDay()) / 1000
+                    if (typeof dayAppointments.startFirstAppointment !== 'undefined' && currTime.getTime() > dayAppointments.startFirstAppointment.getTime() && currTime.getTime() < dayAppointments.endLastAppointment.getTime()) {
+                        let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
                         currentTime.visible = true
@@ -171,6 +172,6 @@ Page {
             Component.onCompleted: currentTime.secToPixRatio = secondToPixelRatio
         }
 
-        Component.onCompleted: appointments.visible = typeof appointments.startFirstAppointment !== 'undefined' // If there are no appointments, don't show the appointments and timeLine
+        Component.onCompleted: dayAppointments.visible = typeof dayAppointments.startFirstAppointment !== 'undefined' // If there are no dayAppointments, don't show the dayAppointments and timeLine
     }
 }
