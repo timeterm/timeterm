@@ -70,13 +70,17 @@ func (s *Server) registerRoutes() {
 		w.WriteHeader(http.StatusOK)
 	})
 	vla.GET(s.r, "/jwt/v1/accounts/:pubkey", s.GetJWT)
+	vla.GET(s.r, "/jwt/v1/operator", s.GetOperatorJWT)
 	vla.GET(s.r, "/creds/v1/accounts/:account/users/:user/", s.GetUserCreds)
+	vla.GET(s.r, "/meta/v1/systemaccount", s.GetSystemAccount)
 }
 
 func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p vla.Params) {
-	token, err := s.secrets.ReadJWTLiteral(p.ByName("pubkey"))
+	pubKey := p.ByName("pubkey")
+	token, err := s.secrets.ReadJWTLiteral(pubKey)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		s.log.Error(err, "could not read JWT literal", "pubKey", pubKey)
 		return
 	}
 
@@ -84,6 +88,7 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p v
 	claims, err := jwt.DecodeAccountClaims(token)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		s.log.Error(err, "could not decode account claims", "pubKey", pubKey)
 		return
 	}
 
@@ -133,6 +138,35 @@ func (s *Server) GetUserCreds(w http.ResponseWriter, r *http.Request, _ vla.Rout
 	creds, err := s.mgr.GenerateUserCredentials(r.Context(), user, account)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		s.log.Error(err, "could not generate user credentials")
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(creds))
+}
+
+func (s *Server) GetOperatorJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, _ vla.Params) {
+	token, err := s.mgr.GetOperatorJWT(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		s.log.Error(err, "could not get operator JWT")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/jwt")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(token))
+}
+
+func (s *Server) GetSystemAccount(w http.ResponseWriter, r *http.Request, _ vla.Route, _ vla.Params) {
+	subj, err := s.mgr.GetSystemAccountSubject(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		s.log.Error(err, "could not get system account subject")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(subj))
 }

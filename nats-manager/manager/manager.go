@@ -488,6 +488,28 @@ func (m *Manager) UserExists(ctx context.Context, name, accountName string) (boo
 	return true, nil
 }
 
+func (m *Manager) GetOperatorJWT(ctx context.Context) (string, error) {
+	oppk, err := m.dbw.GetOperatorSubject(ctx, m.operator.Name)
+	if err != nil {
+		return "", err
+	}
+
+	claims, err := m.secrets.ReadJWTLiteral(oppk)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err = jwt.DecodeOperatorClaims(claims); err != nil {
+		return "", err
+	}
+
+	return claims, nil
+}
+
+func (m *Manager) GetSystemAccountSubject(ctx context.Context) (string, error) {
+	return m.dbw.GetAccountSubject(ctx, "SYS", m.operator.Name)
+}
+
 func deviceAccountName(id uuid.UUID) string {
 	return fmt.Sprintf("EMDEV-%s", id)
 }
