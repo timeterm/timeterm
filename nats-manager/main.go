@@ -30,6 +30,8 @@ import (
 )
 
 func main() {
+	start := time.Now()
+
 	exitCode := 0
 	defer os.Exit(exitCode)
 
@@ -41,13 +43,15 @@ func main() {
 
 	logArt(log, ttMsg)
 
-	if err := realMain(log); err != nil {
-		log.Error(err, "error running nats-manager")
-		exitCode = 1
+	if err := realMain(log, start); err != nil {
+		if !errors.Is(err, context.Canceled) {
+			log.Error(err, "error running nats-manager")
+			exitCode = 1
+		}
 	}
 }
 
-func realMain(log logr.Logger) error {
+func realMain(log logr.Logger, start time.Time) error {
 	cfg, err := loadConfig()
 	if err != nil {
 		return fmt.Errorf("could not load configuration: %w", err)
@@ -69,13 +73,13 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	vcc := secrets.NewStore(log, cfg.vaultPrefix, vc)
-	mgr, err := manager.New(log, vcc, dbw, manager.DefaultOperatorConfig())
+	sst := secrets.NewStore(log, cfg.vaultPrefix, vc)
+	mgr, err := manager.New(log, sst, dbw, manager.DefaultOperatorConfig())
 	if err != nil {
 		return fmt.Errorf("could not create secrets manager: %w", err)
 	}
 
-	ctx, cancel := contextWithShutdown(context.Background())
+	ctx, cancel := contextWithShutdown(context.Background(), log)
 	defer cancel()
 
 	if firstRun {
@@ -93,15 +97,17 @@ func realMain(log logr.Logger) error {
 		mgr.PrintSettings(ctx)
 	}()
 
-	if err := static.RunJWTMigrations(log, dbw, mgr, vcc); err != nil {
+	if err := static.RunJWTMigrations(log, dbw, mgr, sst); err != nil {
 		return fmt.Errorf("could not run static JWT migrations: %w", err)
 	}
+
+	log.Info("started", "took", time.Since(start))
 
 	go func() {
 		mgr.CheckJWTs(ctx)
 	}()
 
-	srv := api.NewServer(log, vcc, mgr)
+	srv := api.NewServer(log, sst, mgr)
 
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -137,7 +143,9 @@ func realMain(log logr.Logger) error {
 
 				tx := transport.New(nc, log, handler.New(nc, mgr))
 				if err := tx.Run(ctx); err != nil {
-					log.Error(err, "error running transport")
+					if !errors.Is(err, context.Canceled) {
+						log.Error(err, "error running transport")
+					}
 				}
 			}()
 		}
@@ -210,18 +218,23 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 		tick := time.NewTicker(time.Second * 5)
 		defer tick.Stop()
 		defer close(stopped)
+		firstTry := true
 
 		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-tick.C:
+			if !firstTry {
+				select {
+				case <-ctx.Done():
+					return
+				case <-tick.C:
+				}
+			} else {
+				firstTry = false
 			}
 
 			nc, err := nats.Connect(url, opts...)
 			if err == nil {
-				log.Info("connected to NATS")
 				connected <- nc
+				log.Info("connected to NATS")
 				return
 			}
 			log.Error(err, "error connecting to NATS (will likely retry unless shutting down)")
@@ -236,7 +249,7 @@ func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...na
 	}
 }
 
-func contextWithShutdown(parent context.Context) (ctx context.Context, cancel func()) {
+func contextWithShutdown(parent context.Context, log logr.Logger) (ctx context.Context, cancel func()) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
 
@@ -248,6 +261,7 @@ func contextWithShutdown(parent context.Context) (ctx context.Context, cancel fu
 
 		select {
 		case <-sigs:
+			log.Info("shutdown requested by OS")
 		case <-ctx.Done():
 		}
 	}()
