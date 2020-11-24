@@ -39,10 +39,9 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
 	}
 
-	var apiNetworkingServices []NetworkingService
+	apiNetworkingServices := make([]NetworkingService, len(dbNetworkingServices.NetworkingServices))
 
-	for i := 0; i < len(dbNetworkingServices.NetworkingServices); i++ {
-		networkingService := dbNetworkingServices.NetworkingServices[i]
+	for networkingService, i := range dbNetworkingServices.NetworkingServices {
 		uid := networkingService.ID
 		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
 		if err != nil {
@@ -53,7 +52,7 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 		apiNetworkingService.ID = uid
 		apiNetworkingService.Name = networkingService.Name
 
-		apiNetworkingServices = append(apiNetworkingServices, apiNetworkingService)
+		apiNetworkingServices[i] = apiNetworkingService
 	}
 
 	apiPaginatedNetworkingServices := PaginatedNetworkingServicesFrom(dbNetworkingServices, apiNetworkingServices)
