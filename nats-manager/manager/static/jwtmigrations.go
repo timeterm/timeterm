@@ -1,25 +1,26 @@
-package jwtmigrate
+package static
 
 import (
 	"github.com/go-logr/logr"
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
-	"gitlab.com/timeterm/timeterm/nats-manager/manager/static/jwtpatch"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
+	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtmigrate"
+	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
 )
 
-var migrations = Migrations{
+var jwtMigrations = jwtmigrate.Migrations{
 	{
 		Name:    "Initial",
 		Version: 1,
-		CreateAccounts: map[string]accountCreate{
+		CreateAccounts: map[string]jwtmigrate.AccountCreate{
 			"BACKEND": {},
 		},
-		CreateUsers: map[string]userCreate{
+		CreateUsers: map[string]jwtmigrate.UserCreate{
 			"backend": {
-				accountName: "BACKEND",
-				patches: &jwtpatch.UserClaimsPatches{
+				AccountName: "BACKEND",
+				Patches: &jwtpatch.UserClaimsPatches{
 					UserPatches: jwtpatch.UserPatches{
 						PermissionsPatches: jwtpatch.PermissionsPatches{
 							Pub: &jwtpatch.PermissionPatches{
@@ -40,6 +41,6 @@ var migrations = Migrations{
 	},
 }
 
-func RunStaticMigrations(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager, st *secrets.Store) error {
-	return migrations.Run(log, dbw, mgr, st)
+func RunJWTMigrations(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager, st *secrets.Store) error {
+	return jwtMigrations.Run(log, dbw, mgr, st)
 }

@@ -289,32 +289,32 @@ func PatchRevocationList(l *jwt.RevocationList, with *RevocationListPatches) {
 }
 
 type ImportPatches struct {
-	name    *string
-	subject *jwt.Subject
-	account *string
-	token   *string
-	to      *jwt.Subject
-	typ     *jwt.ExportType
+	Name    *string
+	Subject *jwt.Subject
+	Account *string
+	Token   *string
+	To      *jwt.Subject
+	Type    *jwt.ExportType
 }
 
 func PatchImport(i *jwt.Import, with *ImportPatches) {
-	if with.name != nil {
-		i.Name = *with.name
+	if with.Name != nil {
+		i.Name = *with.Name
 	}
-	if with.subject != nil {
-		i.Subject = *with.subject
+	if with.Subject != nil {
+		i.Subject = *with.Subject
 	}
-	if with.account != nil {
-		i.Account = *with.account
+	if with.Account != nil {
+		i.Account = *with.Account
 	}
-	if with.token != nil {
-		i.Token = *with.token
+	if with.Token != nil {
+		i.Token = *with.Token
 	}
-	if with.to != nil {
-		i.To = *with.to
+	if with.To != nil {
+		i.To = *with.To
 	}
-	if with.typ != nil {
-		i.Type = *with.typ
+	if with.Type != nil {
+		i.Type = *with.Type
 	}
 }
 

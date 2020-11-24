@@ -25,7 +25,6 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/handler"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager/static"
-	"gitlab.com/timeterm/timeterm/nats-manager/manager/static/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 	"gitlab.com/timeterm/timeterm/nats-manager/transport"
 )
@@ -94,8 +93,8 @@ func realMain(log logr.Logger) error {
 		mgr.PrintSettings(ctx)
 	}()
 
-	if err := jwtmigrate.RunStaticMigrations(log, dbw, mgr, vcc); err != nil {
-		return fmt.Errorf("could not run static migrations: %w", err)
+	if err := static.RunJWTMigrations(log, dbw, mgr, vcc); err != nil {
+		return fmt.Errorf("could not run static JWT migrations: %w", err)
 	}
 
 	go func() {

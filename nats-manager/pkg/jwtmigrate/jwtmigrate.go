@@ -12,7 +12,7 @@ import (
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
-	"gitlab.com/timeterm/timeterm/nats-manager/manager/static/jwtpatch"
+	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
 	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 )
 
@@ -70,43 +70,43 @@ func setMigrationVersionInUser(c *jwt.UserClaims, version int) {
 	setMigrationVersionInTagList(&c.Tags, version)
 }
 
-type operatorMigration struct {
-	nameRegex string
-	patches   *jwtpatch.OperatorClaimsPatches
+type OperatorMigration struct {
+	NameRegex string
+	Patches   *jwtpatch.OperatorClaimsPatches
 }
 
-type accountMigration struct {
-	nameRegex         string
-	operatorNameRegex string
-	patches           *jwtpatch.AccountClaimsPatches
+type AccountMigration struct {
+	NameRegex         string
+	OperatorNameRegex string
+	Patches           *jwtpatch.AccountClaimsPatches
 }
 
-type userMigration struct {
-	nameRegex         string
-	accountNameRegex  string
-	operatorNameRegex string
-	patches           *jwtpatch.UserClaimsPatches
+type UserMigration struct {
+	NameRegex         string
+	AccountNameRegex  string
+	OperatorNameRegex string
+	Patches           *jwtpatch.UserClaimsPatches
 }
 
-type accountCreate struct {
-	patches *jwtpatch.AccountClaimsPatches
+type AccountCreate struct {
+	Patches *jwtpatch.AccountClaimsPatches
 }
 
-type userCreate struct {
-	accountName string
-	patches     *jwtpatch.UserClaimsPatches
+type UserCreate struct {
+	AccountName string
+	Patches     *jwtpatch.UserClaimsPatches
 }
 
 type Migration struct {
 	Name    string
 	Version int
 
-	CreateAccounts map[string]accountCreate
-	CreateUsers    map[string]userCreate
+	CreateAccounts map[string]AccountCreate
+	CreateUsers    map[string]UserCreate
 
-	OperatorsUp []*operatorMigration
-	AccountsUp  []*accountMigration
-	UsersUp     []*userMigration
+	OperatorsUp []*OperatorMigration
+	AccountsUp  []*AccountMigration
+	UsersUp     []*UserMigration
 }
 
 type Migrations []Migration
@@ -181,7 +181,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 
 	for name, acc := range m.CreateAccounts {
 		if _, err := mgr.NewAccount(ctx, name, func(c *jwt.AccountClaims) {
-			jwtpatch.PatchAccountClaims(c, acc.patches)
+			jwtpatch.PatchAccountClaims(c, acc.Patches)
 			setMigrationVersionInAccount(c, m.Version)
 		}); err != nil {
 			return fmt.Errorf("could not create account %s: %w", name, err)
@@ -189,16 +189,16 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 	}
 
 	for name, user := range m.CreateUsers {
-		if _, err := mgr.NewUser(ctx, name, user.accountName, func(c *jwt.UserClaims) {
-			jwtpatch.PatchUserClaims(c, user.patches)
+		if _, err := mgr.NewUser(ctx, name, user.AccountName, func(c *jwt.UserClaims) {
+			jwtpatch.PatchUserClaims(c, user.Patches)
 			setMigrationVersionInUser(c, m.Version)
 		}); err != nil {
-			return fmt.Errorf("could not create user %s under account %s: %w", name, user.accountName, err)
+			return fmt.Errorf("could not create user %s under account %s: %w", name, user.AccountName, err)
 		}
 	}
 
 	for _, opm := range m.OperatorsUp {
-		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.nameRegex, func(subject string) bool {
+		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.NameRegex, func(subject string) bool {
 			tok, err := st.ReadOperatorJWT(subject)
 			if err != nil {
 				log.Error(err, "could not read operator JWT", "subject", subject)
@@ -206,7 +206,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 			}
 
 			if v, ok := getMigrationVersionFromOperator(tok); !ok || v == m.Version-1 {
-				jwtpatch.PatchOperatorClaims(tok, opm.patches)
+				jwtpatch.PatchOperatorClaims(tok, opm.Patches)
 				setMigrationVersionInOperator(tok, m.Version)
 			}
 
@@ -221,7 +221,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 	}
 
 	for _, acm := range m.AccountsUp {
-		if err := dbw.WalkAccountSubjectsRe(ctx, acm.nameRegex, acm.operatorNameRegex, func(subject string) bool {
+		if err := dbw.WalkAccountSubjectsRe(ctx, acm.NameRegex, acm.OperatorNameRegex, func(subject string) bool {
 			tok, err := st.ReadAccountJWT(subject)
 			if err != nil {
 				log.Error(err, "could not read account JWT", "subject", subject)
@@ -229,7 +229,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 			}
 
 			if v, ok := getMigrationVersionFromAccount(tok); !ok || v == m.Version-1 {
-				jwtpatch.PatchAccountClaims(tok, acm.patches)
+				jwtpatch.PatchAccountClaims(tok, acm.Patches)
 				setMigrationVersionInAccount(tok, m.Version)
 			}
 
@@ -246,9 +246,9 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 	for _, usm := range m.UsersUp {
 		if err := dbw.WalkUserSubjectsRe(
 			ctx,
-			usm.nameRegex,
-			usm.accountNameRegex,
-			usm.operatorNameRegex,
+			usm.NameRegex,
+			usm.AccountNameRegex,
+			usm.OperatorNameRegex,
 			func(subject string) bool {
 				tok, err := st.ReadUserJWT(subject)
 				if err != nil {
@@ -257,7 +257,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 				}
 
 				if v, ok := getMigrationVersionFromUser(tok); !ok || v == m.Version-1 {
-					jwtpatch.PatchUserClaims(tok, usm.patches)
+					jwtpatch.PatchUserClaims(tok, usm.Patches)
 					setMigrationVersionInUser(tok, m.Version)
 				}
 
