@@ -29,7 +29,7 @@ Rectangle {
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width * 0.125
+        anchors.horizontalCenterOffset: -parent.width / 6 + weekPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: weekPage.textSize
         text: appointment.subjects.join(", ")
@@ -37,7 +37,7 @@ Rectangle {
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: parent.width * 0.125
+        anchors.horizontalCenterOffset: parent.width / 6 - weekPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: weekPage.textSize
         text: appointment.locations.join(", ")
@@ -51,6 +51,4 @@ Rectangle {
         color: "#666666"
         text: appointment.teachers.join(", ")
     }
-
-    Component.onCompleted: console.log(secondToPixelRatio)
 }

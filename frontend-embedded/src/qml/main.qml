@@ -207,23 +207,15 @@ ApplicationWindow {
             //}
         }
 
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            DayView {
-                id: dayView
-                startOfDay: new Date().setHours(0, 0, 0, 0)
-                endOfDay: new Date().setHours(24, 0, 0, 0)
-            }
+        DayView {
+            id: dayView
+            startOfDay: new Date().setHours(0, 0, 0, 0)
+            endOfDay: new Date().setHours(24, 0, 0, 0)
         }
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            WeekView {
-                id: weekView
-                startOfWeek: new Date().setHours(0, 0, 0, 0)
-                endOfWeek: new Date().setHours(24, 0, 0, 0)
-            }
+        WeekView {
+            id: weekView
+            startOfWeek: new Date().setHours(0, 0, 0, 0)
+            endOfWeek: new Date().setHours(24, 0, 0, 0)
         }
     }
 

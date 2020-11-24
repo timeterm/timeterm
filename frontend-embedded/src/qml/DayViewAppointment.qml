@@ -29,7 +29,7 @@ Rectangle {
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width * 0.125
+        anchors.horizontalCenterOffset: -parent.width / 6 + dayPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
         text: appointment.subjects.join(", ")
@@ -37,7 +37,7 @@ Rectangle {
 
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: parent.width * 0.125
+        anchors.horizontalCenterOffset: parent.width / 6 - dayPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
         text: appointment.locations.join(", ")
