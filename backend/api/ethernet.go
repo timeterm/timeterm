@@ -41,7 +41,7 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 
 	apiNetworkingServices := make([]NetworkingService, len(dbNetworkingServices.NetworkingServices))
 
-	for networkingService, i := range dbNetworkingServices.NetworkingServices {
+	for i, networkingService := range dbNetworkingServices.NetworkingServices {
 		uid := networkingService.ID
 		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
 		if err != nil {
