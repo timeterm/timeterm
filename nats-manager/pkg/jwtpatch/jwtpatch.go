@@ -6,6 +6,7 @@ import (
 	"github.com/nats-io/jwt/v2"
 )
 
+// StringListPatches contains patches for a jwt.StringList.
 type StringListPatches struct {
 	// Clear always happens first
 	Clear bool
@@ -15,6 +16,7 @@ type StringListPatches struct {
 	Add jwt.StringList
 }
 
+// PatchStringList patches a jwt.StringList with StringListPatches.
 func PatchStringList(s *jwt.StringList, with *StringListPatches) {
 	if with.Clear {
 		*s = make(jwt.StringList, 0)
@@ -23,11 +25,13 @@ func PatchStringList(s *jwt.StringList, with *StringListPatches) {
 	s.Add(with.Add...)
 }
 
+// PermissionPatches contains patches for a jwt.Permission.
 type PermissionPatches struct {
 	Allow StringListPatches
 	Deny  StringListPatches
 }
 
+// PatchPermission patches a jwt.Permission with PermissionPatches.
 func PatchPermission(p *jwt.Permission, with *PermissionPatches) {
 	PatchStringList(&p.Allow, &with.Allow)
 	PatchStringList(&p.Deny, &with.Deny)
