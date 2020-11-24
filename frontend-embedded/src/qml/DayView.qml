@@ -88,7 +88,7 @@ Page {
                 }
             }
 
-            let timeLineItem = Qt.createComponent("DayViewTimeLineItem.qml")
+            let timeLineItem = Qt.createComponent("TimeLineItem.qml")
             if (timeLineItem.status !== Component.Null && timeLineItem.status !== Component.Loading) {
                 finishLineItem(timeLineItem)
             } else {
