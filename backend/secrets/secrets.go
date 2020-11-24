@@ -24,12 +24,12 @@ func New() (*Wrapper, error) {
 	return &Wrapper{client}, nil
 }
 
-func createNetworkingServiceConfigSecretPath(id uuid.UUID) string {
-	return fmt.Sprintf("/timeterm/timeterm/ethernet/config/%s", id)
+func createNetworkingServiceSecretPath(id uuid.UUID) string {
+	return fmt.Sprintf("/timeterm/timeterm/networking/service/%s", id)
 }
 
-func (w *Wrapper) GetNetworkingServiceConfig(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
-	secretPath := createNetworkingServiceConfigSecretPath(id)
+func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
+	secretPath := createNetworkingServiceSecretPath(id)
 	secret, err := w.c.Logical().Read(secretPath)
 	if err != nil {
 		return nil, err
@@ -55,12 +55,12 @@ func (w *Wrapper) GetNetworkingServiceConfig(id uuid.UUID) (*devcfgpb.Networking
 }
 
 func (w *Wrapper) DeleteNetworkingService(id uuid.UUID) error {
-	secretPath := createNetworkingServiceConfigSecretPath(id)
+	secretPath := createNetworkingServiceSecretPath(id)
 	_, err := w.c.Logical().Delete(secretPath)
 	return err
 }
 
-func (w *Wrapper) UpsertEthernetConfig(id uuid.UUID, cfg *devcfgpb.NetworkingService) error {
+func (w *Wrapper) UpsertNetworkingService(id uuid.UUID, cfg *devcfgpb.NetworkingService) error {
 	bytes, err := proto.Marshal(cfg)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (w *Wrapper) UpsertEthernetConfig(id uuid.UUID, cfg *devcfgpb.NetworkingSer
 
 	encoded := base64.StdEncoding.EncodeToString(bytes)
 
-	secretPath := createNetworkingServiceConfigSecretPath(id)
+	secretPath := createNetworkingServiceSecretPath(id)
 
 	_, err = w.c.Logical().Write(secretPath, map[string]interface{}{
 		"config": encoded,

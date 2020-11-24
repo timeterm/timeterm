@@ -296,7 +296,7 @@ type GetNetworkingServicesOpts struct {
 
 type PaginatedNetworkingServices struct {
 	Pagination
-	NetworkServices []NetworkingService
+	NetworkingServices []NetworkingService
 }
 
 func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingServicesOpts) (PaginatedNetworkingServices, error) {
@@ -327,7 +327,7 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 		return netwServices, err
 	}
 
-	err = w.db.SelectContext(ctx, &netwServices.NetworkServices, netwServSql, args...)
+	err = w.db.SelectContext(ctx, &netwServices.NetworkingServices, netwServSql, args...)
 	if err != nil {
 		return netwServices, err
 	}

@@ -92,7 +92,7 @@ func (s *Server) registerRoutes() {
 	stdGroup.DELETE("/", s.deleteStudents)
 
 	netServGroup := s.echo.Group("/networking/service")
-	netServGrouop.GET("/", s.getNetworkingServices)
+	netServGroup.GET("/", s.getNetworkingServices)
 	netServGroup.GET("/:id", s.getNetworkingService)
 	netServGroup.POST("/", s.createNetworkingService)
 	netServGroup.PUT("/:id", s.replaceNetworkingService)

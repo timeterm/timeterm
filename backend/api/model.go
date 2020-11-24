@@ -149,7 +149,7 @@ type NetworkingService struct {
 	ID                       uuid.UUID                `json:"id"`
 	OrganizationID           uuid.UUID                `json:"organizationId"`
 	Name                     string                   `json:"name"`
-	Type                     NetworkingServiceType      `json:"type"`
+	Type                     NetworkingServiceType    `json:"type"`
 	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
 	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
 	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy`
@@ -335,7 +335,7 @@ func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphrase
 		return ""
 	}
 }
-func EthernetConfigFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
+func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
 	return NetworkingService{
 		ID:                       id,
 		Type:                     networkingServiceTypeFrom(cfg.GetType()),
@@ -583,6 +583,11 @@ type PaginatedStudents struct {
 	Data []Student `json:"data"`
 }
 
+type PaginatedNetworkingServices struct {
+	Pagination
+	Data []NetworkingService `json:"data"`
+}
+
 type CreateDeviceResponse struct {
 	Device Device    `json:"device"`
 	Token  uuid.UUID `json:"token"`
@@ -702,6 +707,13 @@ func PaginatedStudentsFrom(p database.PaginatedStudents) PaginatedStudents {
 	return PaginatedStudents{
 		Pagination: PaginationFrom(p.Pagination),
 		Data:       StudentsFrom(p.Students),
+	}
+}
+
+func PaginatedNetworkingServicesFrom(p database.PaginatedNetworkingServices, data []NetworkingService) PaginatedNetworkingServices {
+	return PaginatedNetworkingServices{
+		Pagination: PaginationFrom(p.Pagination),
+		Data:       data,
 	}
 }
 

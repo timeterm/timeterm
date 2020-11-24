@@ -39,6 +39,26 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
 	}
 
+	var apiNetworkingServices []NetworkingService
+
+	for i := 0; i < len(dbNetworkingServices.NetworkingServices); i++ {
+		networkingService := dbNetworkingServices.NetworkingServices[i]
+		uid := networkingService.ID
+		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
+		}
+
+		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
+		apiNetworkingService.ID = uid
+		apiNetworkingService.Name = networkingService.Name
+
+		apiNetworkingServices = append(apiNetworkingServices, apiNetworkingService)
+	}
+
+	apiPaginatedNetworkingServices := PaginatedNetworkingServicesFrom(dbNetworkingServices, apiNetworkingServices)
+
+	return c.JSON(http.StatusOK, apiPaginatedNetworkingServices)
 }
 
 func (s *Server) getNetworkingService(c echo.Context) error {
@@ -49,13 +69,13 @@ func (s *Server) getNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
-	secretEthernetConfig, err := s.secr.GetNetworkingServiceConfig(uid)
+	secretNetworkingService, err := s.secr.GetNetworkingService(uid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret ethernet service")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
 	}
 
-	apiEthernetConfig := EthernetConfigFrom(secretEthernetConfig, uid)
-	return c.JSON(http.StatusOK, apiEthernetConfig)
+	apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
+	return c.JSON(http.StatusOK, apiNetworkingService)
 }
 
 func (s *Server) replaceNetworkingService(c echo.Context) error {
@@ -98,7 +118,7 @@ func (s *Server) replaceNetworkingService(c echo.Context) error {
 
 	oldProtoNetworkingService := NetworkingServiceToProto(oldNetworkingService)
 
-	err = s.secr.UpsertEthernetConfig(uid, oldProtoNetworkingService)
+	err = s.secr.UpsertNetworkingService(uid, oldProtoNetworkingService)
 	if err != nil {
 		s.log.Error(err, "could not update secret networking service")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update secret networking service")
@@ -133,7 +153,7 @@ func (s *Server) createNetworkingService(c echo.Context) error {
 
 	secretNS := NetworkingServiceToProto(ns)
 
-	err = s.secr.UpsertEthernetConfig(ns.ID, secretNS)
+	err = s.secr.UpsertNetworkingService(ns.ID, secretNS)
 	if err != nil {
 		s.log.Error(err, "could not create new secret networking service")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create new secret networking service")
