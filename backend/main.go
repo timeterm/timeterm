@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -49,7 +52,14 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(os.Getenv("NATS_CREDS_FILE")))
+	log.Info("retrieving NATS credentials")
+	credsFile, err := getNATSCreds()
+	if err != nil {
+		return  fmt.Errorf("error retrieving NATS credentials: %w", err)
+	}
+	log.Info("NATS credentials retrieved")
+
+	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(credsFile))
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -72,6 +82,31 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("error running API server")
 	}
 	return nil
+}
+
+func getNATSCreds() (string, error) {
+	endpoint := os.Getenv("NATS_GET_CREDS_ENDPOINT")
+	if endpoint == "" {
+		return "", errors.New("environment variable NATS_GET_CREDS_ENDPOINT is not set")
+	}
+
+	rsp, err := http.Get(endpoint)
+	if err != nil {
+		return "", fmt.Errorf("could not request NATS credentials: %w", err)
+	}
+	defer func() { _ = rsp.Body.Close() }()
+
+	f, err := ioutil.TempFile("", "*.creds")
+	if err != nil {
+		return "", fmt.Errorf("could not create temporary credentials file: %w", err)
+	}
+	defer func() { _ = f.Close() }()
+
+	if _, err = io.Copy(f, rsp.Body); err != nil {
+		return "", fmt.Errorf("could not copy response body to temporary file: %w", err)
+	}
+
+	return f.Name(), nil
 }
 
 func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {

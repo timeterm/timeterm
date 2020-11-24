@@ -27,44 +27,36 @@ services:
       NATS_CONFIG: |
         operator: /operator/OP.jwt
         resolver: URL(http://localhost:8086/jwt/v1/accounts/)
-        system_account: AA6B4G2DH2GGKOKVMEADCIG24VF4KMQHSA4RH4N2JOFFVNHJQXTQCS6H
 
         jetstream {
           store_dir: datastore
         }
-    volumes:
-      - ./OP.jwt:/operator/OP.jwt
-    entrypoint: /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && /nats-server -c /nats.config"
+    entrypoint: |
+      /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && \
+      mkdir -p /operator && \
+      wget http://localhost:8086/jwt/v1/operator -O /operator/OP.jwt && \
+      echo \"system_account: $$(wget -q -O - http://localhost:8086/meta/v1/systemaccount)\" >> /nats.config && \
+      /nats-server -c /nats.config"
     ports:
       - "4222:4222"
-  
-  # nats-account-server:
-  #   environment:
-  #     NAS_CONFIG: |
-  #       operatorjwtpath: /data/TIMETERM.jwt
-  #       systemaccountjwtpath: /data/accounts/SYS/SYS.jwt
-
-  #       store: {
-  #         nsc: /data
-  #       }
-
-  #       http {
-  #         host: 0.0.0.0
-  #         port: 9090
-  #       }
-  #   volumes:
-  #     - ./nm/store/TIMETERM:/data
-  #   image: synadia/nats-account-server:0.8.4
-  #   restart: always
-  #   entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
-  #   ports:
-  #     - "9090:9090"
   
   vault:
     image: vault
     environment:
       VAULT_CONFIG: |
-        {"ui": true, "backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}
+        ui = true
+
+        default_lease_ttl = "168h"
+        max_lease_ttl     = "720h"
+
+        storage "file" {
+          path = "/vault/file"
+        }
+
+        listener "tcp" {
+          address     = "0.0.0.0:8300"
+          tls_disable = 1
+        }
     entrypoint: /bin/sh -c "echo \"$$VAULT_CONFIG\" > /vault/config/config.hcl && vault server -config /vault/config/config.hcl"
     ports:
       - "8300:8300"
