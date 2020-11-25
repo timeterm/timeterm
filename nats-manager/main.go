@@ -136,10 +136,14 @@ func realMain(log logr.Logger, start time.Time) error {
 					}
 				}()
 
-				if err := static.ConfigureStreams(log, nc); err != nil {
-					log.Error(err, "error setting up static streams")
-					return
+				connectedCb := func(nc *nats.Conn) {
+					if err := static.ConfigureStreams(log, nc); err != nil {
+						log.Error(err, "error setting up static streams")
+						return
+					}
 				}
+				nc.SetReconnectHandler(connectedCb)
+				connectedCb(nc)
 
 				tx := transport.New(nc, log, handler.New(nc, mgr))
 				if err := tx.Run(ctx); err != nil {
