@@ -826,6 +826,11 @@ components:
           type: string
         domainMatch:
           type: string
+        phase2:
+          type: string
+          enum:
+          - Gtc
+          - MschapV2
         isPhase2EapBased:
           type: boolean
     

@@ -216,6 +216,7 @@ const GeneralTable = <T extends object>({
                     style={{
                       maxHeight: isFetching ? 4 : 0,
                       transition: "0.5s",
+                      transitionDelay: isFetching ? "0s" : "300ms",
                     }}
                   />
                 )}

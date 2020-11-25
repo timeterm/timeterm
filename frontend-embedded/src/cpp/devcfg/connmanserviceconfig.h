@@ -174,6 +174,7 @@ class ConnManServiceConfig: public QObject
     Q_PROPERTY(QString altSubjectMatch READ altSubjectMatch WRITE setAltSubjectMatch NOTIFY altSubjectMatchChanged)
     Q_PROPERTY(QString domainSuffixMatch READ domainSuffixMatch WRITE setDomainSuffixMatch NOTIFY domainSuffixMatchChanged)
     Q_PROPERTY(QString domainMatch READ domainMatch WRITE setDomainMatch NOTIFY domainMatchChanged)
+    Q_PROPERTY(Phase2Type phase2 READ phase2 WRITE setPhase2 NOTIFY phase2Changed)
     Q_PROPERTY(bool isPhase2EapBased READ isPhase2EapBased WRITE setIsPhase2EapBased NOTIFY isPhase2EapBasedChanged)
 
 public:
@@ -335,7 +336,7 @@ public:
     static QString securityToConnManString(Security s);
     static QString eapTypeToConnManString(EapType t);
     static QString privateKeyPassphraseTypeToConnManString(PrivateKeyPassphraseType t);
-    static QString phase2TypeToConnManString(Phase2Type t);
+    static QString phase2TypeToConnManString(Phase2Type t, bool isEapBased);
 
 signals:
     void serviceNameChanged();

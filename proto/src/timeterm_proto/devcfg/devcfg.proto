@@ -88,6 +88,12 @@ enum PrivateKeyPassphraseType {
   PRIVATE_KEY_PASSPHRASE_TYPE_FSID = 1;
 }
 
+enum Phase2Type {
+  PHASE_2_TYPE_UNSPECIFIED = 0;
+  PHASE_2_TYPE_MSCHAPV2 = 1;
+  PHASE_2_TYPE_GTC = 2;
+}
+
 message NetworkingService {
   NetworkingServiceType type = 1;
   Ipv4Config ipv4_config = 2;
@@ -116,5 +122,6 @@ message NetworkingService {
   string alt_subject_match = 25;
   string domain_suffix_match = 26;
   string domain_match = 27;
-  bool is_phase_2_eap_based = 28;
+  Phase2Type phase_2 = 28;
+  bool is_phase_2_eap_based = 29;
 }

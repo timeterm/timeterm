@@ -6,8 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/timeterm/timeterm/backend/database"
 	devcfgpb "gitlab.com/timeterm/timeterm/proto/go/devcfg"
+
+	"gitlab.com/timeterm/timeterm/backend/database"
 )
 
 type Organization struct {
@@ -145,6 +146,13 @@ type PrivateKeyPassphraseType string
 
 const PrivateKeyPassphraseTypeFsid PrivateKeyPassphraseType = "Fsid"
 
+type Phase2Type string
+
+const (
+	Phase2TypeMschapV2 Phase2Type = "MschapV2"
+	Phase2TypeGtc      Phase2Type = "Gtc"
+)
+
 type NetworkingService struct {
 	ID                       uuid.UUID                `json:"id"`
 	OrganizationID           uuid.UUID                `json:"organizationId"`
@@ -152,13 +160,13 @@ type NetworkingService struct {
 	Type                     NetworkingServiceType    `json:"type"`
 	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
 	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
-	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy`
+	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy"`
 	Mac                      string                   `json:"mac"`
 	Nameservers              []string                 `json:"nameservers"`
 	SearchDomains            []string                 `json:"searchDomains"`
 	Timeservers              []string                 `json:"timeservers"`
 	Domain                   string                   `json:"domain"`
-	NetworkName              string                   `json:"name"`
+	NetworkName              string                   `json:"networkName"`
 	SSID                     string                   `json:"ssid"`
 	Passphrase               string                   `json:"passphrase"`
 	Security                 Security                 `json:"security"`
@@ -176,6 +184,7 @@ type NetworkingService struct {
 	AltSubjectMatch          string                   `json:"altSubjectMatch"`
 	DomainSuffixMatch        string                   `json:"domainSuffixMatch"`
 	DomainMatch              string                   `json:"domainMatch"`
+	Phase2                   Phase2Type               `json:"phase2"`
 	IsPhase2EapBased         bool                     `json:"isPhase2EapBased"`
 }
 
@@ -336,6 +345,17 @@ func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphrase
 	}
 }
 
+func phase2TypeFrom(t devcfgpb.Phase2Type) Phase2Type {
+	switch t {
+	case devcfgpb.Phase2Type_PHASE_2_TYPE_GTC:
+		return Phase2TypeGtc
+	case devcfgpb.Phase2Type_PHASE_2_TYPE_MSCHAPV2:
+		return Phase2TypeMschapV2
+	default:
+		return ""
+	}
+}
+
 func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
 	return NetworkingService{
 		ID:                       id,
@@ -366,6 +386,7 @@ func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) Networ
 		AltSubjectMatch:          cfg.GetAltSubjectMatch(),
 		DomainSuffixMatch:        cfg.GetDomainSuffixMatch(),
 		DomainMatch:              cfg.GetDomainMatch(),
+		Phase2:                   phase2TypeFrom(cfg.GetPhase_2()),
 		IsPhase2EapBased:         cfg.GetIsPhase_2EapBased(),
 	}
 }
@@ -527,6 +548,17 @@ func privateKeyPassphraseTypeToProto(pkPassphraseType PrivateKeyPassphraseType) 
 	}
 }
 
+func phase2TypeToProto(t Phase2Type) devcfgpb.Phase2Type {
+	switch t {
+	case Phase2TypeGtc:
+		return devcfgpb.Phase2Type_PHASE_2_TYPE_GTC
+	case Phase2TypeMschapV2:
+		return devcfgpb.Phase2Type_PHASE_2_TYPE_MSCHAPV2
+	default:
+		return devcfgpb.Phase2Type_PHASE_2_TYPE_UNSPECIFIED
+	}
+}
+
 func NetworkingServiceToProto(netServ NetworkingService) *devcfgpb.NetworkingService {
 	return &devcfgpb.NetworkingService{
 		Type:                     networkingServiceTypeToProto(netServ.Type),
@@ -556,6 +588,7 @@ func NetworkingServiceToProto(netServ NetworkingService) *devcfgpb.NetworkingSer
 		AltSubjectMatch:          netServ.AltSubjectMatch,
 		DomainSuffixMatch:        netServ.DomainSuffixMatch,
 		DomainMatch:              netServ.DomainMatch,
+		Phase_2:                  phase2TypeToProto(netServ.Phase2),
 		IsPhase_2EapBased:        netServ.IsPhase2EapBased,
 	}
 }

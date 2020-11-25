@@ -16,15 +16,10 @@ import { Icon } from "@rmwc/icon";
 import { ReactComponent as ZermeloIcon } from "./zermelo-clean.svg";
 import { Drawer, DrawerContent } from "@rmwc/drawer";
 import { Route, Switch as RouterSwitch } from "react-router-dom";
-import { Select } from "@rmwc/select";
-import { Switch } from "@rmwc/switch";
 import "@rmwc/switch/styles";
 import UserSettings from "./settings/UserSettings";
+import NetworkSettings from "./settings/NetworkSettings";
 import OrganizationSettings from "./settings/OrganizationSettings";
-
-export interface Savable {
-  save: () => void;
-}
 
 interface SettingsStore {
   [key: string]: object | undefined;
@@ -93,6 +88,7 @@ const SettingsPage: React.FC = () => {
             style={{
               height: isLoading ? 4 : 0,
               transition: "0.3s",
+              transitionDelay: isLoading ? "0s" : "300ms",
             }}
           />
 
@@ -126,9 +122,9 @@ const SettingsPage: React.FC = () => {
                       Informatie
                     </LinkListItem>
 
-                    <LinkListItem to="/settings/organization/wifi">
-                      <ListItemGraphic icon="wifi" />
-                      Wi-Fi
+                    <LinkListItem to="/settings/organization/networking">
+                      <ListItemGraphic icon="settings_ethernet" />
+                      Netwerken
                     </LinkListItem>
 
                     <CollapsibleList
@@ -154,142 +150,86 @@ const SettingsPage: React.FC = () => {
             <div
               style={{
                 display: "flex",
-                margin: 16,
-                flexDirection: "column",
-                alignItems: "flex-start",
+                width: "100%",
+                height: "100%",
               }}
             >
-              <RouterSwitch>
-                <Route exact path="/settings">
-                  <Typography use="body1">
-                    Selecteer een instellingscategorie uit het menu links
-                  </Typography>
-                </Route>
+              <div
+                style={{
+                  display: "flex",
+                  margin: 16,
+                  flexDirection: "column",
+                  width: "100%",
+                  alignItems: "flex-start",
+                }}
+              >
+                <RouterSwitch>
+                  <Route exact path="/settings">
+                    <Typography use="body1">
+                      Selecteer een instellingscategorie uit het menu links
+                    </Typography>
+                  </Route>
 
-                <Route exact path="/settings/account">
-                  <UserSettings
-                    setIsLoading={setIsLoading}
-                    setIsModified={setAreContentsModified}
-                    settingsStore={store}
-                    setSaveChanges={setSaveChanges}
-                  />
-                </Route>
-
-                <Route exact path="/settings/organization/information">
-                  <OrganizationSettings
-                    setIsModified={setAreContentsModified}
-                    setIsLoading={setIsLoading}
-                    settingsStore={store}
-                    setSaveChanges={setSaveChanges}
-                  />
-                </Route>
-
-                <Route exact path="/settings/organization/wifi">
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Typography use="headline5">Wifi-instellingen</Typography>
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                      }}
-                      label={"Netwerknaam (SSID)"}
-                      outlined
+                  <Route exact path="/settings/account">
+                    <UserSettings
+                      setIsLoading={setIsLoading}
+                      setIsModified={setAreContentsModified}
+                      settingsStore={store}
+                      setSaveChanges={setSaveChanges}
                     />
+                  </Route>
 
+                  <Route exact path="/settings/organization/information">
+                    <OrganizationSettings
+                      setIsModified={setAreContentsModified}
+                      setIsLoading={setIsLoading}
+                      settingsStore={store}
+                      setSaveChanges={setSaveChanges}
+                    />
+                  </Route>
+
+                  <Route exact path="/settings/organization/networking">
+                    <NetworkSettings
+                      setIsModified={setAreContentsModified}
+                      setIsLoading={setIsLoading}
+                      settingsStore={store}
+                      setSaveChanges={setSaveChanges}
+                    />
+                  </Route>
+
+                  <Route
+                    exact
+                    path="/settings/organization/integration/zermelo"
+                  >
                     <div
                       style={{
-                        marginTop: 16,
+                        display: "flex",
+                        flexDirection: "column",
                       }}
                     >
-                      <Select
-                        label={"EAP-methode"}
-                        enhanced
+                      <Typography use="headline5">Zermelo-koppeling</Typography>
+
+                      <TextField
+                        style={{
+                          marginTop: 16,
+                          width: "25em",
+                        }}
+                        label={"Zermelo-institutie"}
                         outlined
-                        options={["PEAP"]}
+                      />
+
+                      <TextField
+                        style={{
+                          marginTop: 16,
+                          width: "25em",
+                        }}
+                        label={"Token van Timeterm-gebruiker in Zermelo"}
+                        outlined
                       />
                     </div>
-
-                    <div
-                      style={{
-                        marginTop: 16,
-                      }}
-                    >
-                      <Select
-                        label={"Phase 2-verificatie"}
-                        enhanced
-                        outlined
-                        options={["Geen", "MSCHAPV2", "GTC", "AKA", "AKA'"]}
-                      />
-                    </div>
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                      }}
-                      label={"Identiteit"}
-                      outlined
-                    />
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                      }}
-                      label={"Anonieme identiteit"}
-                      outlined
-                    />
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                      }}
-                      label={"Wachtwoord"}
-                      outlined
-                    />
-
-                    <Switch
-                      style={{
-                        marginTop: 16,
-                      }}
-                    >
-                      Netwerk is verborgen
-                    </Switch>
-                  </div>
-                </Route>
-
-                <Route exact path="/settings/organization/integration/zermelo">
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Typography use="headline5">Zermelo-koppeling</Typography>
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                        width: "25em",
-                      }}
-                      label={"Zermelo-institutie"}
-                      outlined
-                    />
-
-                    <TextField
-                      style={{
-                        marginTop: 16,
-                        width: "25em",
-                      }}
-                      label={"Token van Timeterm-gebruiker in Zermelo"}
-                      outlined
-                    />
-                  </div>
-                </Route>
-              </RouterSwitch>
+                  </Route>
+                </RouterSwitch>
+              </div>
             </div>
           </div>
         </Elevation>

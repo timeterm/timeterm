@@ -283,8 +283,8 @@ void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::Re
         setDomainSuffixMatch(obj["domainSuffixMatch"].toString());
     if (obj.contains("domainMatch") && obj["domainMatch"].isString())
         setDomainMatch(obj["domainMatch"].toString());
-    if (obj.contains("phase2Type") && obj["phase2Type"].isString())
-        setPhase2Type(readPhase2Type(obj["phase2Type"].toString()));
+    if (obj.contains("phase2") && obj["phase2"].isString())
+        setPhase2Type(readPhase2Type(obj["phase2"].toString()));
     if (obj.contains("isPhase2EapBased") && obj["isPhase2EapBased"].isString())
         setIsPhase2EapBased(obj["isPhase2EapBased"].toBool());
 }
@@ -938,7 +938,7 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
     if (!m_domainMatch.isEmpty())
         writeKv(strm, "DomainMatch", m_domainMatch);
     if (m_phase2Type != Phase2TypeUndefined)
-        writeKv(strm, "Phase2Type", phase2TypeToConnManString(m_phase2Type));
+        writeKv(strm, "Phase2Type", phase2TypeToConnManString(m_phase2Type, m_isPhase2EapBased));
 }
 
 QString ConnManServiceConfig::serviceTypeToConnManString(ConnManServiceConfig::ServiceType t)
@@ -1004,13 +1004,15 @@ QString ConnManServiceConfig::privateKeyPassphraseTypeToConnManString(ConnManSer
     return "";
 }
 
-QString ConnManServiceConfig::phase2TypeToConnManString(ConnManServiceConfig::Phase2Type t)
+QString ConnManServiceConfig::phase2TypeToConnManString(ConnManServiceConfig::Phase2Type t, bool isEapBased)
 {
+    auto prefix = isEapBased ? QStringLiteral("EAP-") : QStringLiteral("");
+
     switch (t) {
     case Phase2TypeMschapV2:
-        return "mschapv2";
+        return prefix + "MSCHAPV2";
     case Phase2TypeGtc:
-        return "gtc";
+        return prefix + "GTC";
     default:
         return "";
     }
