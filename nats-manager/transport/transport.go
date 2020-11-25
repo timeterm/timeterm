@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"gitlab.com/timeterm/timeterm/backend/pkg/natspb"
@@ -92,7 +91,7 @@ func (t *Transport) handleProvisionNewDevice(_ /* sub */, reply string, msg *rpc
 			},
 		}
 	} else {
-		rsp.Response = &rpcpb.ProvisionNewDeviceResponse_Success{Success: &empty.Empty{}}
+		rsp.Response = &rpcpb.ProvisionNewDeviceResponse_Success{Success: &rpcpb.Empty{}}
 	}
 
 	err = t.enc.Publish(reply, rsp)

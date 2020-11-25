@@ -76,7 +76,7 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	server, err := api.NewServer(db, log, nc)
+	server, err := api.NewServer(db, log, nc, secr)
 	if err != nil {
 		return fmt.Errorf("could not create API server: %w", err)
 	}

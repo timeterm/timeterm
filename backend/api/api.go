@@ -57,7 +57,6 @@ func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secre
 		secr: secr,
 		mqw:  mq.NewWrapper(nc),
 		nm:   nmsdk.NewClient(nc),
-		secr: secr,
 	}
 	server.registerRoutes()
 
