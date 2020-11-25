@@ -335,6 +335,7 @@ func privateKeyPassphraseTypeFrom(pkPassphraseType devcfgpb.PrivateKeyPassphrase
 		return ""
 	}
 }
+
 func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
 	return NetworkingService{
 		ID:                       id,
