@@ -86,6 +86,7 @@ func (s *Server) registerRoutes() {
 	devGroup.POST("/:id/restart", s.rebootDevice)
 	devGroup.PATCH("/:id", s.patchDevice)
 	devGroup.DELETE("/:id", s.deleteDevice)
+	devGroup.GET("/registrationconfig", s.getRegistrationConfig)
 
 	registrationLoginMiddleware := authn.DeviceRegistrationLoginMiddleware(s.db, s.log)
 	s.echo.POST("/device", registrationLoginMiddleware(s.createDevice))
