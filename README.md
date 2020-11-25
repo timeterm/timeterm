@@ -3,8 +3,7 @@
 Timeterm is een embedded roostersysteem voor scholen, wat op het moment alleen streeft Zermelo aan te spreken.
 Het is een PWS-project wat nog in ontwikkeling is, het is nog niet klaar.
 
-Het is op het moment nog niet open-source, de broncode is enkel publiek beschikbaar, omdat wat licentiezaken met Qt nog duidelijk moeten worden.
-Zie de verschillende mappen voor de verschillende licenties die gebruikt zijn. De root van de repository staat onder Apache 2.
+Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zie de verschillende mappen voor de verschillende licenties die gebruikt zijn. De root van de repository valt onder Apache 2.
 
 © 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
 
