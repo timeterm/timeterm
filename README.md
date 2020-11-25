@@ -6,3 +6,27 @@ Het is een PWS-project wat nog in ontwikkeling is, het is nog niet klaar.
 Het is op het moment nog niet open-source, de broncode is enkel publiek beschikbaar, omdat wat licentiezaken met Qt nog duidelijk moeten worden.
 
 © 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
+
+## Het backend opstarten (development)
+
+De eerste keer opstarten vereist wat meer stappen dan de keren daarop.
+We gaan er vanuit dat je toegang hebt tot docker-compose.
+
+1. `timeterm $ cd backend`
+2. `backend $ docker-compose up -d vault postgres`
+3. `backend $ vault operator init -address http://localhost:8300`
+   Deze stap kan weggelaten worden wanneer Vault al eens eerder is opgestart. 
+	 Sla de initial root token en de unseal keys op een veilige plek op (en zorg vooral dat je ze niet vergeet).
+4. `backend $ vault operator unseal -address http://localhost:8300`
+   In het geval van deze setup moet dit commando 3x uitgevoerd worden (de helft + 1 (quorum) van de aangemaakte unseal keys moet geleverd worden). 
+5. `backend $ cd ../nats-manager`
+6. `nats-manager $ ./nats-manager`
+   Voor deze stap moet je nats-manager al gebouwd hebben en je omgevingsvariabelen moeten ook juist ingesteld zijn.
+	 nats-manager en het backend laden automatisch omgevingsvariabelen het bestand `.env`.
+	 Er is een bestand `.env.example` in de map van nats-manager toegevoegd waarin voorbeeldwaarden voor de vereiste
+	 omgevingsvariabelen staan.
+7. (in een andere terminalsessie/venster) `timeterm $ cd backend`
+8. `backend $ docker-compose up -d nats`
+9. `backend $ ./backend`
+   Voor deze stap geldt ook dat de omgevingsvariabelen juist ingesteld moeten zijn. Dit kan hier ook met `.env` gedaan worden.
+
