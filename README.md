@@ -10,7 +10,7 @@ Het is op het moment nog niet open-source, de broncode is enkel publiek beschikb
 ## Het backend opstarten (development)
 
 De eerste keer opstarten vereist wat meer stappen dan de keren daarop.
-We gaan er vanuit dat je toegang hebt tot docker-compose.
+We gaan er vanuit dat je toegang hebt tot [Docker Compose](https://docs.docker.com/compose/) en de [Vault](https://www.vaultproject.io/) CLI.
 
 1. `timeterm $ cd backend`
 2. `backend $ docker-compose up -d vault postgres`
