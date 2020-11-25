@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
+
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
 )
@@ -266,9 +268,9 @@ func (s *Server) patchDevice(c echo.Context) error {
 }
 
 func (s *Server) createDevice(c echo.Context) error {
-	user, ok := authn.UserFromContext(c)
+	org, ok := authn.OrganizationFromContext(c)
 	if !ok {
-		return echo.NewHTTPError(http.StatusBadRequest, "Not authenticated")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
 	}
 
 	var dev Device
@@ -278,13 +280,59 @@ func (s *Server) createDevice(c echo.Context) error {
 	}
 
 	dbDevice, token, err := s.db.CreateDevice(c.Request().Context(),
-		user.OrganizationID, dev.Name, database.DeviceStatusNotActivated,
+		org.ID, dev.Name, database.DeviceStatusNotActivated,
 	)
 	if err != nil {
 		s.log.Error(err, "could not create device")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create device")
 	}
 
+	err = s.nm.ProvisionNewDevice(c.Request().Context(), dbDevice.ID)
+	if err != nil {
+		s.log.Error(err, "could not provision new device")
+		if err = s.db.DeleteDevice(c.Request().Context(), dbDevice.ID); err != nil {
+			s.log.Error(err, "could not delete device after failed provisioning attempt")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not provision new device")
+	}
+
 	rsp := CreateDeviceResponseFrom(dbDevice, token)
+	return c.JSON(http.StatusOK, rsp)
+}
+
+func (s *Server) generateNATSCredentials(c echo.Context) error {
+	dev, ok := authn.DeviceFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	start := time.Now()
+	creds, err := s.nm.GenerateDeviceCredentials(c.Request().Context(), dev.ID)
+	if err != nil {
+		s.log.Error(err, "could not generate NATS credentials")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not generate NATS credentials")
+	}
+	s.log.V(1).Info("generated NATS credentials", "took", time.Since(start))
+
+	rsp := GenerateNATSCredentialsResponse{
+		Credentials: creds,
+	}
+	return c.JSON(http.StatusOK, rsp)
+}
+
+func (s *Server) getRegistrationConfig(c echo.Context) error {
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	token, err := s.db.CreateDeviceRegistrationToken(c.Request().Context(), user.OrganizationID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
+	}
+
+	rsp := RegistrationConfig{
+		Token: token,
+	}
 	return c.JSON(http.StatusOK, rsp)
 }

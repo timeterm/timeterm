@@ -38,18 +38,18 @@ paths:
               schema:
                 required:
                   - token
-                  - ethernetConfig
+                  - networkingConfig
                 properties:
                   token:
                     type: string
-                  ethernetConfig:
+                  networkingConfig:
                     required:
                       - services
                     properties:
                       services:
-                        type: object
-                        additionalProperties:
-                          $ref: "#/components/schemas/EthernetService"
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/NetworkingService"
 
   /device:
     post:
@@ -166,6 +166,18 @@ paths:
         "204":
           description: No content
 
+  /device/{id}/config/natscreds:
+    get:
+      operationId: getDeviceNatsCredentials
+      summary: Get NATS credentials for a device
+      responses:
+        "200":
+          description: NATS credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsCredentials"
+
   /device/{id}/reboot:
     post:
       operationId: rebootDevice
@@ -265,10 +277,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Organization"
   
-  /ethernet/service:
+  /networking/service:
     get:
-      operationId: getEthernetServices
-      summary: Get ethernet services
+      operationId: getNetworkingServices
+      summary: Get networking services
       parameters:
         - name: offset
           in: query
@@ -286,38 +298,54 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedEthernetServices"
-
-  /ethernet/service/{serviceId}:
-    get:
-      operationId: getEthernetService
-      summary: Get an ethernet service
+                $ref: "#/components/schemas/PaginatedNetworkingServices"
+    post:
+      operationId: createNetworkingService
+      summary: Create a networking service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NetworkingService"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EthernetService"
+                $ref: "#/components/schemas/NetworkingService"
+
+  /networking/service/{serviceId}:
+    get:
+      operationId: getNetworkingService
+      summary: Get a networking service
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkingService"
 
     delete:
-      operationId: deleteEthernetService
-      summary: Delete an ethernet service
+      operationId: deleteNetworkingService
+      summary: Delete a networking service
       responses:
         "204":
           description: No content
     
     put:
-      operationId: replaceEthernetService
-      summary: Replace an ethernet service
+      operationId: replaceNetworkingService
+      summary: Replace a networking service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NetworkingService"
       responses:
-        "200":
-          description: Ethernet service updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EthernetService"
-
+        "204":
+          description: No content
+  
   /student:
     post:
       operationId: createStudent
@@ -639,14 +667,14 @@ components:
               items:
                 $ref: "#/components/schemas/Student"
     
-    PaginatedEthernetServices:
+    PaginatedNetworkingServices:
       allOf:
         - $ref: "#/components/schemas/Pagination"
         - properties:
             data:
               type: array
               items:
-                $ref: "#/components/schemas/EthernetService"
+                $ref: "#/components/schemas/NetworkingService"
 
     Problem:
       description: An RFC7807 Problem Details Object.
@@ -673,16 +701,16 @@ components:
           $ref: "#/components/schemas/Device"
         token:
           type: string
-        natsCredentials:
-          type: string
 
-    EthernetService:
+    NetworkingService:
       required:
         - type
       properties:
         id:
           type: string
           format: uuid
+        name:
+          type: string
         type:
           type: string
           enum:
@@ -742,7 +770,7 @@ components:
             type: string
         domain:
           type: string
-        name:
+        networkName:
           type: string
         ssid:
           type: string
@@ -800,6 +828,11 @@ components:
           type: string
         isPhase2EapBased:
           type: boolean
+    
+    NatsCredentials:
+      properties:
+        credentials:
+          type: string
 
   responses:
     ProblemResponse:

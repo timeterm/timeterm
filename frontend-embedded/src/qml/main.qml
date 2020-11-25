@@ -200,26 +200,22 @@ ApplicationWindow {
         height: parent.height
 
         function redirectTimetable(timetable) {
-            if (currentIndex == 0) {
+            //if (currentIndex == 0) {
                 dayView.setTimetable(timetable)
-            } else if (currentIndex == 1) {
+            //} else if (currentIndex == 1) {
                 weekView.setTimetable(timetable)
-            }
+            //}
         }
 
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            DayView {
-                id: dayView
-            }
+        DayView {
+            id: dayView
+            startOfDay: new Date().setHours(0, 0, 0, 0)
+            endOfDay: new Date().setHours(24, 0, 0, 0)
         }
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            WeekView {
-                id: weekView
-            }
+        WeekView {
+            id: weekView
+            startOfWeek: new Date().setHours(0, 0, 0, 0)
+            endOfWeek: new Date().setHours(24, 0, 0, 0)
         }
     }
 

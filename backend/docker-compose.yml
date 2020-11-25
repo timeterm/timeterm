@@ -8,8 +8,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: timeterm
+      POSTGRES_DB: postgres
     restart: on-failure
+    volumes:
+      - ./docker/postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 
   adminer:
     image: adminer:latest
@@ -18,38 +20,43 @@ services:
       - "8432:8080"
 
   nats:
-    image: synadia/jsm:nightly-20200914
+    image: synadia/jsm:nightly-20201121
     restart: always
-    command: server -sd /datastore
+    network_mode: host
     environment:
       NATS_CONFIG: |
-        operator: /operator/TIMETERM.jwt
-        resolver: URL(http://nats-account-server:9090/jwt/v1/accounts/)
-        system_account:
+        operator: /operator/OP.jwt
+        resolver: URL(http://localhost:8086/jwt/v1/accounts/)
+
+        jetstream {
+          store_dir: datastore
+        }
+    entrypoint: |
+      /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && \
+      mkdir -p /operator && \
+      wget http://localhost:8086/jwt/v1/operator -O /operator/OP.jwt && \
+      echo \"system_account: $$(wget -q -O - http://localhost:8086/meta/v1/systemaccount)\" >> /nats.config && \
+      /nats-server -c /nats.config"
     ports:
       - "4222:4222"
-  
-  nats-account-server:
-    environment:
-      NAS_CONFIG: |
-        {
-          store: {
-            nsc: /data
-          }
-        }
-    volumes:
-      - ./nsc/TIMETERM:/data
-    image: synadia/nats-account-server:0.8.4
-    restart: always
-    entrypoint: /bin/sh -c "echo \"$$NAS_CONFIG\" > /nas.config && nats-account-server -c /nas.config"
-    ports:
-      - "9090:9090"
   
   vault:
     image: vault
     environment:
       VAULT_CONFIG: |
-        {"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "listener": {"tcp": {"address": "0.0.0.0:8300", "tls_disable": 1}}}
+        ui = true
+
+        default_lease_ttl = "168h"
+        max_lease_ttl     = "720h"
+
+        storage "file" {
+          path = "/vault/file"
+        }
+
+        listener "tcp" {
+          address     = "0.0.0.0:8300"
+          tls_disable = 1
+        }
     entrypoint: /bin/sh -c "echo \"$$VAULT_CONFIG\" > /vault/config/config.hcl && vault server -config /vault/config/config.hcl"
     ports:
       - "8300:8300"

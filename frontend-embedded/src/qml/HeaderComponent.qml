@@ -95,7 +95,7 @@ Item {
 
     Timer {
         id: dateTimeTimer
-        interval: 1000
+        interval: 1000 // 1 second
         repeat: true
         running: true
         triggeredOnStart: true

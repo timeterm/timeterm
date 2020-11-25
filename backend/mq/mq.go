@@ -24,7 +24,7 @@ func NewWrapper(nc *nats.Conn) *Wrapper {
 }
 
 func (w *Wrapper) RebootDevice(id uuid.UUID) error {
-	return w.enc.Publish(fmt.Sprintf("FEDEV.%s.REBOOT", id), &mqpb.RebootMessage{
+	return w.enc.Publish(fmt.Sprintf("EMDEV.%s.REBOOT", id), &mqpb.RebootMessage{
 		DeviceId: id.String(),
 	})
 }

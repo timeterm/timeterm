@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -15,25 +19,33 @@ import (
 
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
-	"gitlab.com/timeterm/timeterm/backend/mq"
 	_ "gitlab.com/timeterm/timeterm/backend/pkg/natspb"
 	"gitlab.com/timeterm/timeterm/backend/secrets"
 )
 
 func main() {
+	exitCode := 0
+	defer os.Exit(exitCode)
+
 	logger, _ := zap.NewDevelopment()
 	defer func() { _ = logger.Sync() }()
 
 	log := zapr.NewLogger(logger)
 	defer log.Info("shutdown complete")
 
+	if err := realMain(log); err != nil {
+		log.Error(err, "error running backend")
+		exitCode = 1
+	}
+}
+
+func realMain(log logr.Logger) error {
 	log.Info("starting")
 	db, err := database.New(os.Getenv("DATABASE_URL"), log,
 		database.WithJanitor(true),
 	)
 	if err != nil {
-		log.Error(err, "could not open database")
-		os.Exit(1)
+		return fmt.Errorf("could not open database: %w", err)
 	}
 	defer func() {
 		if err = db.Close(); err != nil {
@@ -41,13 +53,12 @@ func main() {
 		}
 	}()
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"))
+	log.Info("retrieving NATS credentials")
+	credsFile, err := getNATSCreds()
 	if err != nil {
-		log.Error(err, "could not connect to NATS")
-		os.Exit(1)
+		return  fmt.Errorf("error retrieving NATS credentials: %w", err)
 	}
-
-	mqw := mq.NewWrapper(nc)
+	log.Info("NATS credentials retrieved")
 
 	secr, err := secrets.New()
 	if err != nil {
@@ -55,10 +66,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	server, err := api.NewServer(db, log, mqw, secr)
+	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(credsFile))
 	if err != nil {
-		log.Error(err, "could not create API server")
-		os.Exit(1)
+		return fmt.Errorf("could not connect to NATS: %w", err)
+	}
+	defer func() {
+		if err = nc.Drain(); err != nil {
+			log.Error(err, "could not drain NATS connection")
+		}
+	}()
+
+	server, err := api.NewServer(db, log, nc)
+	if err != nil {
+		return fmt.Errorf("could not create API server: %w", err)
 	}
 
 	ctx, cancel := contextWithTermination(context.Background(), log)
@@ -66,9 +86,34 @@ func main() {
 
 	err = server.Run(ctx)
 	if !errors.Is(err, context.Canceled) {
-		log.Error(err, "error running API server")
-		os.Exit(1)
+		return fmt.Errorf("error running API server")
 	}
+	return nil
+}
+
+func getNATSCreds() (string, error) {
+	endpoint := os.Getenv("NATS_GET_CREDS_ENDPOINT")
+	if endpoint == "" {
+		return "", errors.New("environment variable NATS_GET_CREDS_ENDPOINT is not set")
+	}
+
+	rsp, err := http.Get(endpoint)
+	if err != nil {
+		return "", fmt.Errorf("could not request NATS credentials: %w", err)
+	}
+	defer func() { _ = rsp.Body.Close() }()
+
+	f, err := ioutil.TempFile("", "*.creds")
+	if err != nil {
+		return "", fmt.Errorf("could not create temporary credentials file: %w", err)
+	}
+	defer func() { _ = f.Close() }()
+
+	if _, err = io.Copy(f, rsp.Body); err != nil {
+		return "", fmt.Errorf("could not copy response body to temporary file: %w", err)
+	}
+
+	return f.Name(), nil
 }
 
 func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {

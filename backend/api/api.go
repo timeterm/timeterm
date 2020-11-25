@@ -6,6 +6,10 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/nats-io/nats.go"
+
+	"gitlab.com/timeterm/timeterm/nats-manager/sdk"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
@@ -20,6 +24,7 @@ type Server struct {
 	echo *echo.Echo
 	mqw  *mq.Wrapper
 	secr *secrets.Wrapper
+	nm   *nmsdk.Client
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -29,6 +34,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	e.HideBanner = true
 	e.HidePort = true
 	e.Logger = newEchoLogrLogger(log)
+	e.Use(middleware.CORS())
 
 	e.Renderer, err = templates.Load()
 	if err != nil {
@@ -38,7 +44,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper, secr *secrets.Wrapper) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secrets.Wrapper) (Server, error) {
 	e, err := newEcho(log)
 	if err != nil {
 		return Server{}, err
@@ -48,7 +54,9 @@ func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper, secr *sec
 		db:   db,
 		log:  log,
 		echo: e,
-		mqw:  mqw,
+		secr: secr,
+		mqw:  mq.NewWrapper(nc),
+		nm:   nmsdk.NewClient(nc),
 		secr: secr,
 	}
 	server.registerRoutes()
@@ -64,27 +72,33 @@ func NewServer(db *database.Wrapper, log logr.Logger, mqw *mq.Wrapper, secr *sec
 
 func (s *Server) registerRoutes() {
 	g := s.echo.Group("")
-	g.Use(authn.Middleware(s.db, s.log))
+	g.Use(authn.UserLoginMiddleware(s.db, s.log))
 
-	userGroup := s.echo.Group("/user")
+	userGroup := g.Group("/user")
 	userGroup.GET("/me", s.getCurrentUser)
 	userGroup.PATCH("/:id", s.patchUser)
 
-	devGroup := s.echo.Group("/device")
-	devGroup.GET("/", s.getDevices)
-	devGroup.DELETE("/", s.deleteDevices)
-	devGroup.POST("/", s.createDevice)
+	devGroup := g.Group("/device")
+	devGroup.GET("", s.getDevices)
+	devGroup.DELETE("", s.deleteDevices)
 	devGroup.POST("/restart", s.rebootDevices)
 	devGroup.GET("/:id", s.getDevice)
 	devGroup.POST("/:id/restart", s.rebootDevice)
 	devGroup.PATCH("/:id", s.patchDevice)
 	devGroup.DELETE("/:id", s.deleteDevice)
 
-	orgGroup := s.echo.Group("/organization")
+	registrationLoginMiddleware := authn.DeviceRegistrationLoginMiddleware(s.db, s.log)
+	s.echo.POST("/device", registrationLoginMiddleware(s.createDevice))
+
+	devConfigGroup := s.echo.Group("/device/:id/config")
+	devConfigGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
+	devConfigGroup.GET("/natscreds", s.generateNATSCredentials)
+
+	orgGroup := g.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)
 
-	stdGroup := s.echo.Group("/student")
+	stdGroup := g.Group("/student")
 	stdGroup.GET("/:id", s.getStudent)
 	stdGroup.PATCH("/:id", s.patchStudent)
 	stdGroup.GET("/", s.getStudents)
@@ -100,6 +114,8 @@ func (s *Server) registerRoutes() {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	const shutdownTimeout = time.Second * 30
+
 	errc := make(chan error)
 	go func() {
 		const serveAddr = ":1323"
@@ -111,10 +127,15 @@ func (s *Server) Run(ctx context.Context) error {
 	case err := <-errc:
 		return err
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 
-		_ = s.echo.Shutdown(shutdownCtx)
+		s.log.Info("shutting down API server", "timeout", shutdownTimeout)
+		if err := s.echo.Shutdown(shutdownCtx); err != nil {
+			s.log.Error(err, "failed to gracefully shut down API server")
+		}
+		s.log.Info("done shutting down API server")
+
 		return ctx.Err()
 	}
 }

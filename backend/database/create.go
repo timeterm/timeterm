@@ -239,7 +239,7 @@ func (w *Wrapper) CreateNewUser(ctx context.Context, name, email string, federat
 	return user, tx.Commit()
 }
 
-func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+func (w *Wrapper) CreateUserToken(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
 	token := uuid.New()
 	tokenHash, err := hashToken(token)
 	if err != nil {
@@ -250,6 +250,36 @@ func (w *Wrapper) CreateToken(ctx context.Context, userID uuid.UUID) (uuid.UUID,
 		INSERT INTO "user_token" ("token_hash", "user_id")
 		VALUES ($1, $2)
 	`, tokenHash, userID)
+
+	return token, err
+}
+
+func (w *Wrapper) CreateDeviceToken(ctx context.Context, deviceID uuid.UUID) (uuid.UUID, error) {
+	token := uuid.New()
+	tokenHash, err := hashToken(token)
+	if err != nil {
+		return token, err
+	}
+
+	_, err = w.db.ExecContext(ctx, `
+		INSERT INTO "device_token" ("token_hash", "device_id")
+		VALUES ($1, $2)
+	`, tokenHash, deviceID)
+
+	return token, err
+}
+
+func (w *Wrapper) CreateDeviceRegistrationToken(ctx context.Context, organizationID uuid.UUID) (uuid.UUID, error) {
+	token := uuid.New()
+	tokenHash, err := hashToken(token)
+	if err != nil {
+		return token, err
+	}
+
+	_, err = w.db.ExecContext(ctx, `
+		INSERT INTO "device_registration_token" ("token_hash", "organization_id")
+		VALUES ($1, $2)
+	`, tokenHash, organizationID)
 
 	return token, err
 }

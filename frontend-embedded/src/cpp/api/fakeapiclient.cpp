@@ -26,6 +26,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     //QDateTime testTime = QDateTime::fromString(string, format);
 
     QDateTime testTime = QDateTime::currentDateTime();
+    testTime = testTime.addSecs(-8*60*60);
 
     auto appointments = ZermeloAppointments();
 
@@ -65,6 +66,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
     appointment.setTeachers({"mou"});
+    appointment.setIsCanceled(true);
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("4");
@@ -76,6 +78,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointment.setGroups({"gv6.gv6b"});
     appointment.setLocations({"g045"});
     appointment.setTeachers({"mou"});
+    appointment.setIsCanceled(false);
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("5");
@@ -102,10 +105,10 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     appointments.append(appointment);
 
     appointment.setStartTimeSlot("7");
-    appointment.setEndTimeSlot("7");
+    appointment.setEndTimeSlot("8");
     testTime = testTime.addSecs(15*60);
     appointment.setStartTime(testTime);
-    testTime = testTime.addSecs(45*90);
+    testTime = testTime.addSecs(90*60);
     appointment.setEndTime(testTime);
     appointment.setSubjects({"wisb"});
     appointment.setGroups({"gv6.wisb6"});

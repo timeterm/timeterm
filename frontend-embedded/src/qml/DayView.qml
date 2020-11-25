@@ -2,16 +2,20 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQml.Models 2.12
 import QtQuick.Layouts 1.12
+import QtGraphicalEffects 1.0
 
 import "../js/TimeFunctions.js" as TimeFunction
 
 Page {
     id: dayPage
-    anchors.fill: parent
+    width: stack.width
+    height: stack.height
 
     property int textSize: dayPage.height * 0.04
     property int customMargin: dayPage.height * 0.05
-    property var secondToPixelRatio: appointments.height * 0.000037
+    property var secondToPixelRatio: dayAppointments.height * 0.000037
+    property var startOfDay
+    property var endOfDay
 
     background: Rectangle {
         color: "#FFFFFF"
@@ -19,40 +23,49 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (i === 0) {                                                          // first appointment in the list
-                appointments.startFirstAppointment = timetable.data[i].startTime
-            } else if (i === timetable.data.length - 1) {                           // last appointment in the list
-                appointments.endLastAppointment = timetable.data[i].endTime
-                appointments.contentHeight = (appointments.endLastAppointment.getTime()
-                                            - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio
-                
-                fillTimeLine()
+            if (typeof startOfDay === 'undefined' || typeof endOfDay === 'undefined') {
+                startOfDay = new Date().setHours(0, 0, 0, 0)
+                endOfDay = new Date().setHours(24, 0, 0, 0)
             }
 
-            let finishCreation = function (appointment) {
-                if (appointment.status === Component.Ready) {
-                    appointment.incubateObject(appointments.contentItem, {
-                        appointment: timetable.data[i],
-                        startFirstAppointment: appointments.startFirstAppointment,
-                        secondToPixelRatio: secondToPixelRatio
-                    })
-                } else if (appointment.status === Component.Error) {
-                    console.log("Could not create appointment:", appointment.errorString())
+            if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
+                if (typeof dayAppointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
+                    dayAppointments.startFirstAppointment = timetable.data[i].startTime
                 }
-            }
+                if (typeof dayAppointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment.getMillisecondsInDay()) {
+                    dayAppointments.endLastAppointment = timetable.data[i].endTime
+                    dayAppointments.contentHeight = (dayAppointments.endLastAppointment.getMillisecondsInDay()
+                                                - dayAppointments.startFirstAppointment.getMillisecondsInDay())
+                                                / 1000 * dayPage.secondToPixelRatio - 5         // - 5 because of the spacing between dayAppointments
 
-            let appointment = Qt.createComponent("DayViewAppointment.qml")
-            if (appointment.status !== Component.Null && appointment.status !== Component.Loading) {
-                finishCreation(appointment)
-            } else {
-                appointment.statusChanged.connect(finishCreation)
+                    fillDayTimeLine()
+                }
+
+                let finishDayAppointment = function (dayAppointment) {
+                    if (dayAppointment.status === Component.Ready) {
+                        dayAppointment.incubateObject(dayAppointments.contentItem, {
+                            appointment: timetable.data[i],
+                            startFirstAppointment: dayAppointments.startFirstAppointment,
+                            secondToPixelRatio: dayPage.secondToPixelRatio
+                        })
+                    } else if (dayAppointment.status === Component.Error) {
+                        console.log("Could not create dayAppointment:", dayAppointment.errorString())
+                    }
+                }
+
+                let dayAppointment = Qt.createComponent("DayViewAppointment.qml")
+                if (dayAppointment.status !== Component.Null && dayAppointment.status !== Component.Loading) {
+                    finishDayAppointment(dayAppointment)
+                } else {
+                    dayAppointment.statusChanged.connect(finishDayAppointment)
+                }
             }
         }
     }
 
-    function fillTimeLine() {
+    function fillDayTimeLine() {
         let currentLineTime = new Date()
-        currentLineTime.setTime(appointments.startFirstAppointment.getTime())
+        currentLineTime.setTime(dayAppointments.startFirstAppointment.getTime())
 
         if (!currentLineTime.isFullHour()) {
             currentLineTime.addHours(1)
@@ -60,27 +73,28 @@ Page {
         }
 
         for (currentLineTime;
-             appointments.endLastAppointment.getTime() - currentLineTime.getTime() > 30 * 60 * 1000; // Last timeLine is at least less than 30 minutes before last appointment
+             dayAppointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last dayTimeLine is at least less than 30 minutes before the end of the last dayAppointment
              currentLineTime.addHours(1)) {
-            let finishLineItem = function (timeLineItem) {
-                if (timeLineItem.status === Component.Ready) {
-                    timeLineItem.incubateObject(timeLine, {
-                        y: (currentLineTime.getTime() - appointments.startFirstAppointment.getTime()) / 1000 * secondToPixelRatio,
+            let finishDayLineItem = function (dayTimeLineItem) {
+                if (dayTimeLineItem.status === Component.Ready) {
+                    dayTimeLineItem.incubateObject(dayTimeLine, {
+                        y: (currentLineTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * dayPage.secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
-                              + currentLineTime.getMinutes()
+                              + currentLineTime.getMinutes(),
+                        textSize: dayPage.textSize
                     })
-                } else if (timeLineItem.status === Component.Error) {
+                } else if (dayTimeLineItem.status === Component.Error) {
                     console.log("Could not create lineItem:",
-                                timeLineItem.errorString())
+                                dayTimeLineItem.errorString())
                 }
             }
 
-            let timeLineItem = Qt.createComponent("DayViewTimeLineItem.qml")
-            if (timeLineItem.status !== Component.Null && timeLineItem.status !== Component.Loading) {
-                finishLineItem(timeLineItem)
+            let dayTimeLineItem = Qt.createComponent("TimeLineItem.qml")
+            if (dayTimeLineItem.status !== Component.Null && dayTimeLineItem.status !== Component.Loading) {
+                finishDayLineItem(dayTimeLineItem)
             } else {
-                timeLineItem.statusChanged.connect(finishLineItem)
+                dayTimeLineItem.statusChanged.connect(finishDayLineItem)
             }
         }
     }
@@ -94,7 +108,6 @@ Page {
         anchors.margins: parent.height * 0.02
         color: "#b5b5b5"
         radius: 5
-        z: 1
         Text {
             text: new Date().toLocaleString(Qt.locale("nl_NL"), "dddd")
             anchors.verticalCenter: parent.verticalCenter
@@ -104,7 +117,7 @@ Page {
     }
 
     Flickable {
-        id: appointments
+        id: dayAppointments
         anchors.margins: parent.height * 0.02
         anchors.top: dayHeader.bottom
         anchors.left: parent.left
@@ -119,13 +132,47 @@ Page {
         property var endLastAppointment
 
         Rectangle {
-            id: timeLine
+            id: dayTimeLine
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
             width: parent.width - dayHeader.width - dayHeader.anchors.margins
-            color: "#7bb0ff"
+            color: "#D6E6FF"
             radius: 5
+
+            Rectangle { // The red line
+                property var secToPixRatio
+                id: currentTime
+                anchors.left: parent.left
+                width: parent.width
+                height: 2
+                color: "#FF0000"
+
+                function setCurrentdayTimeLine() {
+                    let currTime = new Date()
+                    if (typeof dayAppointments.startFirstAppointment !== 'undefined' && currTime.getTime() > dayAppointments.startFirstAppointment.getTime() && currTime.getTime() < dayAppointments.endLastAppointment.getTime()) {
+                        let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
+                        offset *= secToPixRatio
+                        currentTime.y = offset
+                        currentTime.visible = true
+                    } else {
+                        currentTime.visible = false
+                    }
+                }
+            }
+
+            Timer {
+                id: dayTimeLineTimer
+                interval: 1000 // 60 seconds
+                repeat: true
+                running: true
+                triggeredOnStart: true
+                onTriggered: currentTime.setCurrentdayTimeLine()
+            }
+
+            Component.onCompleted: currentTime.secToPixRatio = dayPage.secondToPixelRatio
         }
+
+        Component.onCompleted: dayAppointments.visible = typeof dayAppointments.startFirstAppointment !== 'undefined' // If there are no dayAppointments, don't show the dayAppointments and dayTimeLine
     }
 }

@@ -16,7 +16,8 @@
         <file>assets/icons/calendar-today.svg</file>
         <file>assets/icons/calendar-week.svg</file>
         <file>src/qml/DayViewAppointment.qml</file>
-        <file>src/qml/DayViewTimeLineItem.qml</file>
         <file>src/js/TimeFunctions.js</file>
+        <file>src/qml/TimeLineItem.qml</file>
+        <file>src/qml/WeekViewAppointment.qml</file>
     </qresource>
 </RCC>
