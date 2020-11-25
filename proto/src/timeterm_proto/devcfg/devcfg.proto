@@ -4,12 +4,12 @@ option go_package = "gitlab.com/timeterm/timeterm/proto/go/devcfg;devcfgpb";
 
 package timeterm_proto.devcfg;
 
-message EthernetServices { map<string, EthernetService> services = 1; }
+message NetworkingServices { map<string, NetworkingService> services = 1; }
 
-enum EthernetServiceType {
-  ETHERNET_SERVICE_TYPE_UNSPECIFIED = 0;
-  ETHERNET_SERVICE_TYPE_ETHERNET = 1;
-  ETHERNET_SERVICE_TYPE_WIFI = 2;
+enum NetworkingServiceType {
+   NETWORKING_SERVICE_TYPE_UNSPECIFIED = 0;
+   NETWORKING_SERVICE_TYPE_ETHERNET = 1;
+   NETWORKING_SERVICE_TYPE_WIFI = 2;
 }
 
 enum Ipv4ConfigType {
@@ -64,9 +64,10 @@ enum Security {
 }
 
 enum Eap {
-  EAP_TLS = 0;
-  EAP_TTLS = 1;
-  EAP_PEAP = 2;
+  EAP_UNSPECIFIED = 0;
+  EAP_TLS = 1;
+  EAP_TTLS = 2;
+  EAP_PEAP = 3;
 }
 
 enum CaCertType {
@@ -87,8 +88,8 @@ enum PrivateKeyPassphraseType {
   PRIVATE_KEY_PASSPHRASE_TYPE_FSID = 1;
 }
 
-message EthernetService {
-  EthernetServiceType type = 1;
+message NetworkingService {
+  NetworkingServiceType type = 1;
   Ipv4Config ipv4_config = 2;
   Ipv6Config ipv6_config = 3;
   Ipv6Privacy ipv6_privacy = 4;

@@ -58,6 +58,12 @@ type Device struct {
 	LastHeartbeat  sql.NullTime
 }
 
+type NetworkingService struct {
+	ID             uuid.UUID
+	OrganizationID uuid.UUID
+	Name           string
+}
+
 func (w *Wrapper) CreateOrganization(ctx context.Context,
 	name string,
 	zermeloInstitution string,
@@ -88,6 +94,25 @@ func (w *Wrapper) CreateStudent(ctx context.Context, organizationID uuid.UUID) (
 	`, organizationID)
 
 	return std, row.Scan(&std.ID)
+}
+
+func (w *Wrapper) CreateNetworkingService(
+	ctx context.Context,
+	organizationID uuid.UUID,
+	name string,
+) (NetworkingService, error) {
+	ns := NetworkingService{
+		OrganizationID: organizationID,
+		Name:           name,
+	}
+
+	row := w.db.QueryRowContext(ctx, `
+		INSERT INTO "networking_service" (organization_id, name)
+		VALUES ($1, $2)
+		RETURNING "id"
+	`, organizationID, name)
+
+	return ns, row.Scan(&ns.ID)
 }
 
 func (w *Wrapper) CreateDevice(ctx context.Context,

@@ -20,6 +20,7 @@ import (
 	"gitlab.com/timeterm/timeterm/backend/api"
 	"gitlab.com/timeterm/timeterm/backend/database"
 	_ "gitlab.com/timeterm/timeterm/backend/pkg/natspb"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 )
 
 func main() {
@@ -59,6 +60,12 @@ func realMain(log logr.Logger) error {
 	}
 	log.Info("NATS credentials retrieved")
 
+	secr, err := secrets.New()
+	if err != nil {
+		log.Error(err, "could not create a secret wrapper")
+		os.Exit(1)
+	}
+
 	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(credsFile))
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
@@ -69,7 +76,7 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	server, err := api.NewServer(db, log, nc)
+	server, err := api.NewServer(db, log, nc, secr)
 	if err != nil {
 		return fmt.Errorf("could not create API server: %w", err)
 	}

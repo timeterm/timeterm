@@ -14,6 +14,7 @@ import (
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
 	"gitlab.com/timeterm/timeterm/backend/mq"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -22,6 +23,7 @@ type Server struct {
 	log  logr.Logger
 	echo *echo.Echo
 	mqw  *mq.Wrapper
+	secr *secrets.Wrapper
 	nm   *nmsdk.Client
 }
 
@@ -42,7 +44,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secrets.Wrapper) (Server, error) {
 	e, err := newEcho(log)
 	if err != nil {
 		return Server{}, err
@@ -52,6 +54,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn) (Server, er
 		db:   db,
 		log:  log,
 		echo: e,
+		secr: secr,
 		mqw:  mq.NewWrapper(nc),
 		nm:   nmsdk.NewClient(nc),
 	}
@@ -98,9 +101,16 @@ func (s *Server) registerRoutes() {
 	stdGroup := g.Group("/student")
 	stdGroup.GET("/:id", s.getStudent)
 	stdGroup.PATCH("/:id", s.patchStudent)
-	stdGroup.GET("", s.getStudents)
-	stdGroup.POST("", s.createStudent)
-	stdGroup.DELETE("", s.deleteStudents)
+	stdGroup.GET("/", s.getStudents)
+	stdGroup.POST("/", s.createStudent)
+	stdGroup.DELETE("/", s.deleteStudents)
+
+	netServGroup := s.echo.Group("/networking/service")
+	netServGroup.GET("/", s.getNetworkingServices)
+	netServGroup.GET("/:id", s.getNetworkingService)
+	netServGroup.POST("/", s.createNetworkingService)
+	netServGroup.PUT("/:id", s.replaceNetworkingService)
+	netServGroup.DELETE("/:id", s.deleteNetworkingService)
 }
 
 func (s *Server) Run(ctx context.Context) error {
