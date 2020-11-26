@@ -345,6 +345,14 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 	return netwServices, nil
 }
 
+func (w *Wrapper) GetAllNetworkingServices(ctx context.Context) ([]NetworkingService, error) {
+	var networkingServices []NetworkingService
+
+	err := w.db.GetContext(ctx, &networkingServices, `SELECT * FROM "networking_service"`)
+
+	return networkingServices, err
+}
+
 func (w *Wrapper) GetOrganizationByDeviceRegistrationToken(ctx context.Context, token uuid.UUID) (Organization, error) {
 	var org Organization
 

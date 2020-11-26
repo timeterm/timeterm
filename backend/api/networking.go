@@ -45,6 +45,7 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 		uid := networkingService.ID
 		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
 		if err != nil {
+			s.log.Error(err, "could not read secret networking service")
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
 		}
 

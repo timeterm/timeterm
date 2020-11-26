@@ -632,8 +632,8 @@ type GenerateNATSCredentialsResponse struct {
 }
 
 type RegistrationConfig struct {
-	Token uuid.UUID `json:"token"`
-	// TODO(Robertvdmaas): NetworkingConfig
+	Token              uuid.UUID           `json:"token"`
+	NetworkingServices []NetworkingService `json:"networkingServices"`
 }
 
 func OrganizationFrom(org database.Organization) Organization {

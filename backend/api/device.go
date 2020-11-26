@@ -331,8 +331,32 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
 	}
 
+	dbNetworkingServices, err := s.db.GetAllNetworkingServices(c.Request().Context())
+	if err != nil {
+		s.log.Error(err, "could not read networking services from database")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
+	}
+
+	apiNetworkingServices := make([]NetworkingService, len(dbNetworkingServices))
+
+	for i, networkingService := range dbNetworkingServices {
+		uid := networkingService.ID
+		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
+		if err != nil {
+			s.log.Error(err, "could not read secret networking service")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
+		}
+
+		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
+		apiNetworkingService.ID = uid
+		apiNetworkingService.Name = networkingService.Name
+
+		apiNetworkingServices[i] = apiNetworkingService
+	}
+
 	rsp := RegistrationConfig{
-		Token: token,
+		Token:              token,
+		NetworkingServices: apiNetworkingServices,
 	}
 	return c.JSON(http.StatusOK, rsp)
 }
