@@ -37,8 +37,6 @@ Page {
                     weekAppointments.contentHeight = (weekAppointments.endLastAppointment.getMillisecondsInDay()
                                                 - weekAppointments.startFirstAppointment.getMillisecondsInDay())
                                                 / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
-
-                    fillWeekTimeLine()
                 }
 
                 let finishWeekAppointment = function (weekAppointment) {
@@ -46,7 +44,8 @@ Page {
                         weekAppointment.incubateObject(weekAppointments.contentItem, {
                             appointment: timetable.data[i],
                             startFirstAppointment: weekAppointments.startFirstAppointment,
-                            secondToPixelRatio: weekPage.secondToPixelRatio
+                            secondToPixelRatio: weekPage.secondToPixelRatio,
+                            weekAppointmentWidth: weekAppointments.weekAppointmentWidth
                         })
                     } else if (weekAppointment.status === Component.Error) {
                         console.log("Could not create weekAppointment:", weekAppointment.errorString())
@@ -61,6 +60,7 @@ Page {
                 }
             }
         }
+        fillWeekTimeLine()
     }
 
     function fillWeekTimeLine() {
@@ -99,44 +99,26 @@ Page {
         }
     }
 
-    Rectangle {
-        id: weekHeader
-        width: parent.width * 0.8
-        height: parent.height * 0.06
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: parent.height * 0.02
-        color: "#b5b5b5"
-        radius: 5
-        Text {
-            text: new Date().toLocaleString(Qt.locale("nl_NL"), "dddd") + " (week)"
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.centerIn: parent
-            font.pixelSize: textSize
-        }
-    }
-
     Flickable {
         id: weekAppointments
         anchors.margins: parent.height * 0.02
-        anchors.top: weekHeader.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.fill: parent
 
-        contentWidth: width
-        flickableDirection: Flickable.VerticalFlick
+        contentWidth: weekTimeLine.width + (weekAppointmentWidth + weekPage.height * 0.02) * 5
+        flickableDirection: Flickable.HorizontalAndVerticalFlick 
         clip: true
 
         property var startFirstAppointment
         property var endLastAppointment
+        property var weekAppointmentWidth = (width - weekTimeLine.width) / 3.5
 
         Rectangle {
             id: weekTimeLine
+            anchors.topMargin: weekPage.height * 0.08
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            width: parent.width - weekHeader.width - weekHeader.anchors.margins
+            width: parent.width - weekPage.width * 0.8 - weekPAge.height * 0.02
             color: "#D6E6FF"
             radius: 5
 

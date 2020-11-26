@@ -37,8 +37,6 @@ Page {
                     dayAppointments.contentHeight = (dayAppointments.endLastAppointment.getMillisecondsInDay()
                                                 - dayAppointments.startFirstAppointment.getMillisecondsInDay())
                                                 / 1000 * dayPage.secondToPixelRatio - 5         // - 5 because of the spacing between dayAppointments
-
-                    fillDayTimeLine()
                 }
 
                 let finishDayAppointment = function (dayAppointment) {
@@ -61,6 +59,7 @@ Page {
                 }
             }
         }
+        fillDayTimeLine()
     }
 
     function fillDayTimeLine() {
