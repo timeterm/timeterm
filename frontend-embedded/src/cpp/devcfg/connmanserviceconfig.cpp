@@ -284,7 +284,7 @@ void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::Re
     if (obj.contains("domainMatch") && obj["domainMatch"].isString())
         setDomainMatch(obj["domainMatch"].toString());
     if (obj.contains("phase2") && obj["phase2"].isString())
-        setPhase2Type(readPhase2Type(obj["phase2"].toString()));
+        setPhase2(readPhase2Type(obj["phase2"].toString()));
     if (obj.contains("isPhase2EapBased") && obj["isPhase2EapBased"].isString())
         setIsPhase2EapBased(obj["isPhase2EapBased"].toBool());
 }
@@ -750,17 +750,17 @@ QString ConnManServiceConfig::domainMatch() const
     return m_domainMatch;
 }
 
-void ConnManServiceConfig::setPhase2Type(ConnManServiceConfig::Phase2Type phase2Type)
+void ConnManServiceConfig::setPhase2(ConnManServiceConfig::Phase2Type phase2)
 {
-    if (phase2Type != m_phase2Type) {
-        m_phase2Type = phase2Type;
-        emit phase2TypeChanged();
+    if (phase2 != m_phase2) {
+        m_phase2 = phase2;
+        emit phase2Changed();
     }
 }
 
-ConnManServiceConfig::Phase2Type ConnManServiceConfig::phase2Type() const
+ConnManServiceConfig::Phase2Type ConnManServiceConfig::phase2() const
 {
-    return m_phase2Type;
+    return m_phase2;
 }
 
 void ConnManServiceConfig::setIsPhase2EapBased(bool isPhase2EapBased)
@@ -937,8 +937,8 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
         writeKv(strm, "DomainSuffixMatch", m_domainSuffixMatch);
     if (!m_domainMatch.isEmpty())
         writeKv(strm, "DomainMatch", m_domainMatch);
-    if (m_phase2Type != Phase2TypeUndefined)
-        writeKv(strm, "Phase2Type", phase2TypeToConnManString(m_phase2Type, m_isPhase2EapBased));
+    if (m_phase2 != Phase2TypeUndefined)
+        writeKv(strm, "Phase2", phase2TypeToConnManString(m_phase2, m_isPhase2EapBased));
 }
 
 QString ConnManServiceConfig::serviceTypeToConnManString(ConnManServiceConfig::ServiceType t)

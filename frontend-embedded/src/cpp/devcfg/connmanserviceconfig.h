@@ -308,8 +308,8 @@ public:
     [[nodiscard]] QString domainSuffixMatch() const;
     void setDomainMatch(const QString &domainMatch);
     [[nodiscard]] QString domainMatch() const;
-    void setPhase2Type(Phase2Type phase2Type);
-    [[nodiscard]] Phase2Type phase2Type() const;
+    void setPhase2(Phase2Type phase2);
+    [[nodiscard]] Phase2Type phase2() const;
     void setIsPhase2EapBased(bool isPhase2EapBased);
     [[nodiscard]] bool isPhase2EapBased() const;
 
@@ -370,7 +370,7 @@ signals:
     void altSubjectMatchChanged();
     void domainSuffixMatchChanged();
     void domainMatchChanged();
-    void phase2TypeChanged();
+    void phase2Changed();
     void isPhase2EapBasedChanged();
 
 private:
@@ -455,7 +455,7 @@ private:
     QString m_domainMatch;
     /// Inner authentication type with for eap = Tls or eap = Ttls.
     /// Set phase2EapBased to true to indicate usage of EAP-based authentication method (should only be used with eap = Ttls).
-    Phase2Type m_phase2Type = Phase2TypeUndefined;
+    Phase2Type m_phase2 = Phase2TypeUndefined;
     bool m_isPhase2EapBased = false;
 };
 
