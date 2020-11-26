@@ -94,6 +94,10 @@ func (s *Server) registerRoutes() {
 	devConfigGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
 	devConfigGroup.GET("/natscreds", s.generateNATSCredentials)
 
+	devHeartbeatGroup := s.echo.Group("/device/:id/heartbeat")
+	devHeartbeatGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
+	devHeartbeatGroup.POST("", s.updateLastHeartbeat)
+
 	orgGroup := g.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
 	orgGroup.GET("/:id", s.getOrganization)

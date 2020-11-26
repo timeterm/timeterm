@@ -360,3 +360,28 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, rsp)
 }
+
+func (s *Server) updateLastHeartbeat(c echo.Context) error {
+	dev, ok := authn.DeviceFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	deviceID := c.Param("id")
+	uid, err := uuid.Parse(deviceID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	if dev.ID != uid {
+		return echo.NewHTTPError(http.StatusBadRequest, "ID mismatch")
+	}
+
+	err = s.db.ReplaceDeviceHeartbeat(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not update last hearbeat")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update last heartbeat")
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
