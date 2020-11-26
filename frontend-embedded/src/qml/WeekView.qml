@@ -37,6 +37,7 @@ Page {
                     weekAppointments.contentHeight = (weekAppointments.endLastAppointment.getMillisecondsInDay()
                                                 - weekAppointments.startFirstAppointment.getMillisecondsInDay())
                                                 / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
+                                                + weekPage.height * 0.08
                 }
 
                 let finishWeekAppointment = function (weekAppointment) {
@@ -60,7 +61,9 @@ Page {
                 }
             }
         }
-        fillWeekTimeLine()
+        if (typeof weekAppointments.startFirstAppointment !== 'undefined') {
+            fillWeekTimeLine()
+        }
     }
 
     function fillWeekTimeLine() {
@@ -104,13 +107,13 @@ Page {
         anchors.margins: parent.height * 0.02
         anchors.fill: parent
 
-        contentWidth: weekTimeLine.width + (weekAppointmentWidth + weekPage.height * 0.02) * 5
-        flickableDirection: Flickable.HorizontalAndVerticalFlick 
-        clip: true
-
         property var startFirstAppointment
         property var endLastAppointment
-        property var weekAppointmentWidth = (width - weekTimeLine.width) / 3.5
+        property var weekAppointmentWidth: weekPage.width * 0.8 / 3.5
+
+        contentWidth: weekPage.width * 0.15 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 4
+        flickableDirection: Flickable.HorizontalAndVerticalFlick 
+        clip: true
 
         Rectangle {
             id: weekTimeLine
@@ -118,7 +121,7 @@ Page {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            width: parent.width - weekPage.width * 0.8 - weekPAge.height * 0.02
+            width: weekPage.width * 0.15
             color: "#D6E6FF"
             radius: 5
 

@@ -59,7 +59,9 @@ Page {
                 }
             }
         }
-        fillDayTimeLine()
+        if (typeof dayAppointments.startFirstAppointment !== "undefined") {
+            fillDayTimeLine()
+        }
     }
 
     function fillDayTimeLine() {

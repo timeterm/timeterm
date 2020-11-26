@@ -6,7 +6,7 @@ Rectangle {
     property var secondToPixelRatio
     property var weekAppointmentWidth
 
-    x: weekAppointments.width * 0.2 + (appointment.startTime.getDay() - 1) * (width + weekAppointments.anchors.magins);
+    x: weekTimeLine.width + weekPage.height * 0.02 + (appointment.startTime.getDay() - 1) * (weekAppointmentWidth + weekPage.height * 0.02); // timeLineWidth + margin + day * (weekAppointmentWidth + margin)
     y: (appointment.startTime.getMillisecondsInDay()
        - startFirstAppointment.getMillisecondsInDay()) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio

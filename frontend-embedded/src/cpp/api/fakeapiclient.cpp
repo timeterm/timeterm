@@ -26,6 +26,7 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
     //QDateTime testTime = QDateTime::fromString(string, format);
 
     QDateTime testTime = QDateTime::currentDateTime();
+    //testTime = testTime.addDays(-3);
     testTime = testTime.addSecs(-8*60*60);
 
     auto appointments = ZermeloAppointments();
