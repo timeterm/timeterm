@@ -192,6 +192,7 @@ func (m *Manager) NewOperator(
 	if err != nil {
 		return "", fmt.Errorf("could not create operator keys: %w", err)
 	}
+	defer kp.Wipe()
 
 	pk, err := kp.PublicKey()
 	if err != nil {
@@ -233,6 +234,7 @@ func (m *Manager) newAccount(
 	if err != nil {
 		return "", fmt.Errorf("could not create account keys: %w", err)
 	}
+	defer kp.Wipe()
 
 	pk, err := kp.PublicKey()
 	if err != nil {
@@ -317,6 +319,7 @@ func (m *Manager) newUser(
 	if err != nil {
 		return "", fmt.Errorf("could not create user keys: %w", err)
 	}
+	defer kp.Wipe()
 
 	pk, err := kp.PublicKey()
 	if err != nil {
@@ -363,6 +366,7 @@ func (m *Manager) InitKeys(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not create system account keys: %w", err)
 	}
+	defer sakp.Wipe()
 
 	// Create the public key for the system account
 	sapk, err := sakp.PublicKey()
@@ -455,6 +459,7 @@ func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, account
 	if err != nil {
 		return "", err
 	}
+	defer kp.Wipe()
 
 	// Extract the seed from the key pair
 	seed, err := kp.Seed()
@@ -528,6 +533,22 @@ func (m *Manager) GetOperatorJWT(ctx context.Context) (string, error) {
 	}
 
 	return claims, nil
+}
+
+func (m *Manager) GetUserKeyPair(ctx context.Context, name, accountName string) (nkeys.KeyPair, error) {
+	subj, err := m.dbw.GetUserSubject(ctx, name, accountName, m.operator.Name)
+	if err != nil {
+		return nil, err
+	}
+	return m.secrets.ReadUserSeed(subj)
+}
+
+func (m *Manager) GetUserJWT(ctx context.Context, name, accountName string) (string, error) {
+	subj, err := m.dbw.GetUserSubject(ctx, name, accountName, m.operator.Name)
+	if err != nil {
+		return "", err
+	}
+	return m.secrets.ReadJWTLiteral(subj)
 }
 
 // deviceAccountName generates a new name for an (embedded) device account.

@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"strings"
@@ -175,36 +174,24 @@ func isFirstRunMigrationHook(isFirstRun *bool) database.MigrationHook {
 }
 
 func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {
-	credsFile, err := getBackendCredsFile(ctx, mgr)
-	if err != nil {
-		return nil, err
+	jwtCB := func() (string, error) {
+		return mgr.GetUserJWT(ctx, "backend", "BACKEND")
+	}
+	signCB := func(nonce []byte) ([]byte, error) {
+		kp, err := mgr.GetUserKeyPair(ctx, "backend", "BACKEND")
+		if err != nil {
+			return nil, err
+		}
+		defer kp.Wipe()
+
+		return kp.Sign(nonce)
 	}
 
-	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserCredentials(credsFile))
+	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserJWT(jwtCB, signCB))
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
 	return nc, err
-}
-
-func getBackendCredsFile(ctx context.Context, mgr *manager.Manager) (string, error) {
-	creds, err := mgr.GenerateUserCredentials(ctx, "backend", "BACKEND")
-	if err != nil {
-		return "", fmt.Errorf("failed to generate backend user credentials: %w", err)
-	}
-
-	f, err := ioutil.TempFile("", "*.jwt")
-	if err != nil {
-		return "", fmt.Errorf("could not write NATS credentials: %w", err)
-	}
-	if _, err = f.WriteString(creds); err != nil {
-		return "", fmt.Errorf("could not write NATS credentials: %w", err)
-	}
-	if err = f.Close(); err != nil {
-		return "", fmt.Errorf("could not close NATS credentials file: %w", err)
-	}
-
-	return f.Name(), nil
 }
 
 func tryConnectNATS(ctx context.Context, log logr.Logger, url string, opts ...nats.Option) (*nats.Conn, error) {
