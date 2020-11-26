@@ -348,7 +348,7 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 func (w *Wrapper) GetAllNetworkingServices(ctx context.Context) ([]NetworkingService, error) {
 	var networkingServices []NetworkingService
 
-	err := w.db.GetContext(ctx, &networkingServices, `SELECT * FROM "networking_service"`)
+	err := w.db.SelectContext(ctx, &networkingServices, `SELECT * FROM "networking_service"`)
 
 	return networkingServices, err
 }
