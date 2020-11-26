@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
+	"github.com/nats-io/jwt/v2"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
@@ -53,20 +54,13 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	log.Info("retrieving NATS credentials")
-	credsFile, err := getNATSCreds()
-	if err != nil {
-		return  fmt.Errorf("error retrieving NATS credentials: %w", err)
-	}
-	log.Info("NATS credentials retrieved")
-
 	secr, err := secrets.New()
 	if err != nil {
 		log.Error(err, "could not create a secret wrapper")
 		os.Exit(1)
 	}
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserCredentials(credsFile))
+	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserJWT(natsCredsCBs()))
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -91,29 +85,58 @@ func realMain(log logr.Logger) error {
 	return nil
 }
 
-func getNATSCreds() (string, error) {
-	endpoint := os.Getenv("NATS_GET_CREDS_ENDPOINT")
-	if endpoint == "" {
-		return "", errors.New("environment variable NATS_GET_CREDS_ENDPOINT is not set")
+func wipeBytes(bs []byte) {
+	for i := range bs {
+		bs[i] = 'X'
+	}
+}
+
+func natsCredsCBs() (nats.UserJWTHandler, nats.SignatureHandler) {
+	getCreds := func() ([]byte, error) {
+		endpoint := os.Getenv("NATS_GET_CREDS_ENDPOINT")
+		if endpoint == "" {
+			return nil, errors.New("environment variable NATS_GET_CREDS_ENDPOINT is not set")
+		}
+
+		rsp, err := http.Get(endpoint)
+		if err != nil {
+			return nil, fmt.Errorf("could not request NATS credentials: %w", err)
+		}
+		defer func() { _ = rsp.Body.Close() }()
+
+		var bs bytes.Buffer
+		if _, err = ioutil.ReadAll(&bs); err != nil {
+			return nil, err
+		}
+		return bs.Bytes(), nil
 	}
 
-	rsp, err := http.Get(endpoint)
-	if err != nil {
-		return "", fmt.Errorf("could not request NATS credentials: %w", err)
-	}
-	defer func() { _ = rsp.Body.Close() }()
-
-	f, err := ioutil.TempFile("", "*.creds")
-	if err != nil {
-		return "", fmt.Errorf("could not create temporary credentials file: %w", err)
-	}
-	defer func() { _ = f.Close() }()
-
-	if _, err = io.Copy(f, rsp.Body); err != nil {
-		return "", fmt.Errorf("could not copy response body to temporary file: %w", err)
+	jwtCB := func() (string, error) {
+		creds, err := getCreds()
+		if err != nil {
+			return "", err
+		}
+		defer wipeBytes(creds)
+		return jwt.ParseDecoratedJWT(creds)
 	}
 
-	return f.Name(), nil
+	signCB := func(nonce []byte) ([]byte, error) {
+		creds, err := getCreds()
+		if err != nil {
+			return nil, err
+		}
+		defer wipeBytes(creds)
+
+		nkey, err := jwt.ParseDecoratedUserNKey(creds)
+		if err != nil {
+			return nil, err
+		}
+		defer nkey.Wipe()
+
+		return nkey.Sign(nonce)
+	}
+
+	return jwtCB, signCB
 }
 
 func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {

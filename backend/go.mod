@@ -28,6 +28,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.8.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/nats-io/jwt/v2 v2.0.0-20200916203241-1f8ce17dff02
 	github.com/nats-io/nats.go v1.10.1-0.20201013114232-5a33ce07522f
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
