@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -104,11 +103,7 @@ func natsCredsCBs() (nats.UserJWTHandler, nats.SignatureHandler) {
 		}
 		defer func() { _ = rsp.Body.Close() }()
 
-		var bs bytes.Buffer
-		if _, err = ioutil.ReadAll(&bs); err != nil {
-			return nil, err
-		}
-		return bs.Bytes(), nil
+		return ioutil.ReadAll(rsp.Body)
 	}
 
 	jwtCB := func() (string, error) {
