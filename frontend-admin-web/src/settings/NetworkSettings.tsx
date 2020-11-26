@@ -3,15 +3,12 @@ import { TextField } from "@rmwc/textfield";
 import { Select } from "@rmwc/select";
 import { Switch } from "@rmwc/switch";
 import React from "react";
-import { CollapsibleList, List, ListItem, SimpleListItem } from "@rmwc/list";
+import { CollapsibleList, List, SimpleListItem } from "@rmwc/list";
 import { fetchAuthnd } from "../DevicesPage";
-import { useQuery } from "react-query";
 import { Paginated } from "../GeneralTable";
 import { Button } from "@rmwc/button";
 import useSetting, { SettingPageProps } from "./useSetting";
-import { UserResponse } from "../AppDrawer";
 import { Icon } from "@rmwc/icon";
-import { Elevation } from "@rmwc/elevation";
 
 enum NetworkingServiceType {
   Ethernet = "Ethernet",
@@ -235,7 +232,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
         {patch?.services?.map((service, i) => (
           <CollapsibleList
             style={{
-              borderBottom: "1px solid grey",
+              borderBottom:
+                "1px solid var(--mdc-theme-text-hint-on-background, rgba(0, 0, 0, 0.38))",
             }}
             handle={
               <SimpleListItem
@@ -325,7 +323,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                     style={{
                       marginTop: 16,
                     }}
-                    label={"Ipv4-netwerk"}
+                    label={"IPv4-netwerk"}
                     outlined
                   />
 
@@ -502,6 +500,10 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                   )}
                 </>
               )}
+
+              <Button danger raised icon={"delete"} style={{ marginTop: 16 }}>
+                Netwerk verwijderen
+              </Button>
             </div>
           </CollapsibleList>
         ))}
