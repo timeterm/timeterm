@@ -90,13 +90,6 @@ func realMain(log logr.Logger, start time.Time) error {
 		log.Info("initialized")
 	}
 
-	func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel()
-
-		mgr.PrintSettings(ctx)
-	}()
-
 	if err := static.RunJWTMigrations(log, dbw, mgr, sst); err != nil {
 		return fmt.Errorf("could not run static JWT migrations: %w", err)
 	}

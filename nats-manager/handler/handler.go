@@ -34,9 +34,9 @@ func (h *Handler) ProvisionNewDevice(ctx context.Context, id uuid.UUID) (err err
 		return fmt.Errorf("could not set up device consumers: %w", err)
 	}
 
-	err = h.mgr.CreateNewDeviceUser(ctx, id)
+	err = h.mgr.ProvisionNewDevice(ctx, id)
 	if err != nil {
-		return fmt.Errorf("could not create new device user: %w", err)
+		return fmt.Errorf("could not provision new device: %w", err)
 	}
 	return nil
 }

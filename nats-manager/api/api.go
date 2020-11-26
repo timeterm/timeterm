@@ -176,7 +176,7 @@ func (s *Server) GetOperatorJWT(w http.ResponseWriter, r *http.Request, _ vla.Ro
 
 // GetSystemAccount returns the public key of the system account. Necessary for auto-configuring the NATS server.
 func (s *Server) GetSystemAccount(w http.ResponseWriter, r *http.Request, _ vla.Route, _ vla.Params) {
-	subj, err := s.mgr.GetSystemAccountSubject(r.Context())
+	subj, err := s.mgr.GetSystemAccountPubKey(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.log.Error(err, "could not get system account subject")
