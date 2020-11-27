@@ -354,7 +354,35 @@ func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors
 	if err != nil {
 		return "", fmt.Errorf("could not fetch account public key: %w", err)
 	}
-	return m.newUser(ctx, name, pk, editors...)
+	
+	pk, err = m.newUser(ctx, name, pk, editors...)
+	if err != nil {
+		return "", err
+	}
+	return pk, m.SaveAppCreds(ctx, name, accountName)
+}
+
+func (m *Manager) SaveAppCreds(ctx context.Context, userName, accountName string) error {
+	if app, ok := GetAppByUser(userName, accountName); ok {
+		return m.saveAppCreds(ctx, app, userName, accountName)
+	}
+	return nil
+}
+
+func wipeBytes(bs []byte) {
+	for i := range bs {
+		bs[i] = 'X'
+	}
+}
+
+func (m *Manager) saveAppCreds(ctx context.Context, appName, userName, accountName string) error {
+	creds, err := m.GenerateUserCredentials(ctx, userName, accountName)
+	if err != nil {
+		return err
+	}
+	defer wipeBytes(creds)
+
+	return m.secrets.WriteAppCreds(appName, creds)
 }
 
 // InitKeys initializes the system account and the operator.
@@ -442,43 +470,43 @@ func (m *Manager) ProvisionNewDevice(ctx context.Context, id uuid.UUID) error {
 }
 
 // GenerateDeviceCredentials generates new NATS credentials for a device with a known ID.
-func (m *Manager) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (string, error) {
+func (m *Manager) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) ([]byte, error) {
 	return m.GenerateUserCredentials(ctx, deviceUserName(id), deviceAccountName(id))
 }
 
 // GenerateUserCredentials generates new NATS credentials for a user with a known name and issuer (account).
-func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, accountName string) (string, error) {
+func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, accountName string) ([]byte, error) {
 	// Get the subject for the user
 	pk, err := m.dbw.GetUserSubject(ctx, userName, accountName, m.operator.Name)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Read the key pair for the user, the seed is part of the credentials file
 	kp, err := m.secrets.ReadUserSeed(pk)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer kp.Wipe()
 
 	// Extract the seed from the key pair
 	seed, err := kp.Seed()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Read the user's JWT
 	token, err := m.secrets.ReadJWTLiteral(pk)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Create the config
 	cfg, err := jwt.FormatUserConfig(token, seed)
 	if err != nil {
-		return "", fmt.Errorf("could not format user config: %w", err)
+		return nil, fmt.Errorf("could not format user config: %w", err)
 	}
-	return string(cfg), nil
+	return cfg, nil
 }
 
 // AccountExists checks if an account with a known name exists. It returns false if the account

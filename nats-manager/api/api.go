@@ -69,7 +69,6 @@ func (s *Server) registerRoutes() {
 	vla.GET(s.r, "/jwt/v1/accounts/", s.AccountsHealth)
 	vla.GET(s.r, "/jwt/v1/accounts/:pubkey", s.GetJWT)
 	vla.GET(s.r, "/jwt/v1/operator", s.GetOperatorJWT)
-	vla.GET(s.r, "/creds/v1/accounts/:account/users/:user/", s.GetUserCreds)
 	vla.GET(s.r, "/meta/v1/systemaccount", s.GetSystemAccount)
 }
 
@@ -141,23 +140,6 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p v
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(token))
-}
-
-// GetUserCreds retrieves NATS credentials for a user. The returned information is sensitive,
-// as it can be used for authentication to the NATS server. Necessary for auto-configuring the Timeterm backend.
-func (s *Server) GetUserCreds(w http.ResponseWriter, r *http.Request, _ vla.Route, p vla.Params) {
-	account := p.ByName("account")
-	user := p.ByName("user")
-
-	creds, err := s.mgr.GenerateUserCredentials(r.Context(), user, account)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.log.Error(err, "could not generate user credentials")
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(creds))
 }
 
 // GetOperatorJWT returns the JWT of the configured operator. Necessary for auto-configuring the NATS server.

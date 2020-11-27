@@ -41,6 +41,10 @@ func (s *Store) jwtPath(subject string) string {
 	return path.Join(s.prefix, "/jwts/", subject)
 }
 
+func (s *Store) appCredsPath(appName string) string {
+	return path.Join(s.prefix, "/apps/creds/", appName)
+}
+
 func (s *Store) WriteOperatorSeed(kp nkeys.KeyPair) error {
 	pubKey, err := kp.PublicKey()
 	if err != nil {
@@ -248,9 +252,8 @@ func (s *Store) writeSeed(path string, kp nkeys.KeyPair) error {
 
 	// Converting seed to a string is safe (or should really be safe)
 	// because it should be in Base 32.
-	seedStr := string(seed)
 	_, err = s.vault.Logical().Write(path, map[string]interface{}{
-		"seed": seedStr,
+		"seed": string(seed),
 	})
 	return err
 }
@@ -273,4 +276,13 @@ func (s *Store) readSeed(path string) (nkeys.KeyPair, error) {
 		return kp, fmt.Errorf("could not create key pair from seed: %w", err)
 	}
 	return kp, nil
+}
+
+func (s *Store) WriteAppCreds(appName string, creds []byte) error {
+	pat := s.appCredsPath(appName)
+	
+	_, err := s.vault.Logical().Write(pat, map[string]interface{}{
+		"creds": string(creds),
+	})
+	return err
 }

@@ -18,7 +18,7 @@ import (
 )
 
 // version describes the current schema version (migration number).
-const version = 1
+const version = 2
 
 // queries is a generic interface for a sqlx database connection (pool) or transaction.
 type querier interface {
@@ -125,7 +125,7 @@ func createWrapperOpts(opts []WrapperOpt) wrapperOpts {
 // WrapperOpt is a function which configures the options for the Wrapper.
 type WrapperOpt func(w wrapperOpts) wrapperOpts
 
-// WithMigrationURL sets the URL at which the migrations can be found.
+// WithMigrationsURL sets the URL at which the migrations can be found.
 func WithMigrationsURL(url string) WrapperOpt {
 	return func(w wrapperOpts) wrapperOpts {
 		w.migrationsURL = url

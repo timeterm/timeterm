@@ -112,6 +112,11 @@ func (t *Transport) handleGenerateDeviceCredentials(
 	defer cancel()
 
 	creds, err := t.generateDeviceCredentials(ctx, msg)
+	defer func() {
+		for i := range creds {
+			creds[i] = 'X'
+		}
+	}()
 	if err != nil {
 		rsp.Response = &rpcpb.GenerateDeviceCredentialsResponse_Error{
 			Error: &rpcpb.Error{
@@ -121,7 +126,7 @@ func (t *Transport) handleGenerateDeviceCredentials(
 	} else {
 		rsp.Response = &rpcpb.GenerateDeviceCredentialsResponse_Sucess{
 			Sucess: &rpcpb.DeviceCredentials{
-				NatsCreds: creds,
+				NatsCreds: string(creds),
 			},
 		}
 	}
@@ -151,17 +156,17 @@ func (t *Transport) provisionNewDevice(ctx context.Context, msg *rpcpb.Provision
 func (t *Transport) generateDeviceCredentials(
 	ctx context.Context,
 	msg *rpcpb.GenerateDeviceCredentialsRequest,
-) (string, error) {
+) ([]byte, error) {
 	devID, err := uuid.Parse(msg.GetDeviceId())
 	if err != nil {
-		return "", errors.New("invalid device ID")
+		return nil, errors.New("invalid device ID")
 	}
 
 	creds, err := t.h.GenerateDeviceCredentials(ctx, devID)
 	if err != nil {
 		t.log.Error(err, "could not generate device credentials")
 
-		return "", fmt.Errorf("could not generate credentials for device: %w", err)
+		return nil, fmt.Errorf("could not generate credentials for device: %w", err)
 	}
 
 	return creds, nil

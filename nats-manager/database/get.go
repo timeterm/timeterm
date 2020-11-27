@@ -219,7 +219,7 @@ func (w *bareWrapper) WalkUserSubjectsRe(
 	nameRegex,
 	accountNameRegex,
 	operatorNameRegex string,
-	f func(subj string) bool,
+	f func(accountName, userName, subj string) bool,
 ) error {
 	offset := 0
 	for {
