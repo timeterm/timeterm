@@ -41,10 +41,10 @@ func (h *Handler) ProvisionNewDevice(ctx context.Context, id uuid.UUID) (err err
 	return nil
 }
 
-func (h *Handler) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (creds string, err error) {
+func (h *Handler) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (creds []byte, err error) {
 	creds, err = h.mgr.GenerateDeviceCredentials(ctx, id)
 	if err != nil {
-		return "", fmt.Errorf("could not generate credentials for device (user): %w", err)
+		return nil, fmt.Errorf("could not generate credentials for device (user): %w", err)
 	}
 	return
 }

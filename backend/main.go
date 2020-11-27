@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"os/signal"
 
@@ -13,8 +11,8 @@ import (
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
-	"github.com/nats-io/jwt/v2"
 	"github.com/nats-io/nats.go"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
@@ -55,11 +53,15 @@ func realMain(log logr.Logger) error {
 
 	secr, err := secrets.New()
 	if err != nil {
-		log.Error(err, "could not create a secret wrapper")
-		os.Exit(1)
+		return fmt.Errorf("could not create secrets wrapper: %w", err)
 	}
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserJWT(natsCredsCBs()))
+	acr, err := nmsdk.NewAppCredsRetrieverFromEnv("backend")
+	if err != nil {
+		return fmt.Errorf("could not create (NATS) app credentials retriever: %w", err)
+	}
+
+	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserJWT(acr.NatsCredsCBs()))
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -82,56 +84,6 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("error running API server")
 	}
 	return nil
-}
-
-func wipeBytes(bs []byte) {
-	for i := range bs {
-		bs[i] = 'X'
-	}
-}
-
-func natsCredsCBs() (nats.UserJWTHandler, nats.SignatureHandler) {
-	getCreds := func() ([]byte, error) {
-		endpoint := os.Getenv("NATS_GET_CREDS_ENDPOINT")
-		if endpoint == "" {
-			return nil, errors.New("environment variable NATS_GET_CREDS_ENDPOINT is not set")
-		}
-
-		rsp, err := http.Get(endpoint)
-		if err != nil {
-			return nil, fmt.Errorf("could not request NATS credentials: %w", err)
-		}
-		defer func() { _ = rsp.Body.Close() }()
-
-		return ioutil.ReadAll(rsp.Body)
-	}
-
-	jwtCB := func() (string, error) {
-		creds, err := getCreds()
-		if err != nil {
-			return "", err
-		}
-		defer wipeBytes(creds)
-		return jwt.ParseDecoratedJWT(creds)
-	}
-
-	signCB := func(nonce []byte) ([]byte, error) {
-		creds, err := getCreds()
-		if err != nil {
-			return nil, err
-		}
-		defer wipeBytes(creds)
-
-		nkey, err := jwt.ParseDecoratedUserNKey(creds)
-		if err != nil {
-			return nil, err
-		}
-		defer nkey.Wipe()
-
-		return nkey.Sign(nonce)
-	}
-
-	return jwtCB, signCB
 }
 
 func contextWithTermination(ctx context.Context, log logr.Logger) (context.Context, func()) {

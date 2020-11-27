@@ -89,7 +89,7 @@ func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc Operat
 }
 
 // Init initializes the manager. Only has to run on the first run of the program (ever), as it configures
-// the keys necessary for issueing other accounts and users.
+// the keys necessary for issuing other accounts and users.
 func (m *Manager) Init(ctx context.Context) error {
 	return m.InitKeys(ctx)
 }
@@ -350,15 +350,209 @@ func (m *Manager) newUser(
 
 // NewUser creates a new user issued by an existing account. The default claims can be edited with editors.
 func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) (string, error) {
-	pk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
+	acpk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch account public key: %w", err)
 	}
-	return m.newUser(ctx, name, pk, editors...)
+
+	pk, err := m.newUser(ctx, name, acpk, editors...)
+	if err != nil {
+		return "", err
+	}
+	return pk, m.SaveAppCreds(ctx, name, accountName)
+}
+
+func (m *Manager) UpdateOperator(ctx context.Context, name string, editors ...OperatorClaimsEditor) error {
+	pk, err := m.dbw.GetOperatorSubject(ctx, name)
+	if err != nil {
+		return fmt.Errorf("could not get operator subject: %w", err)
+	}
+
+	tok, err := m.secrets.ReadOperatorJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteOperatorJWT(tok, pk); err != nil {
+		return fmt.Errorf("could not write operator JWT: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Manager) UpdateAccount(ctx context.Context, name, operatorName string, editors ...AccountClaimsEditor) error {
+	pk, err := m.dbw.GetAccountSubject(ctx, name, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not get account subject: %w", err)
+	}
+
+	opk, err := m.dbw.GetOperatorSubject(ctx, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not get operator public key: %w", err)
+	}
+
+	tok, err := m.secrets.ReadAccountJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteAccountJWT(tok, opk); err != nil {
+		return fmt.Errorf("could not write account JWT: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Manager) UpdateUser(
+	ctx context.Context,
+	name, accountName, operatorName string,
+	editors ...UserClaimsEditor,
+) error {
+	pk, err := m.dbw.GetUserSubject(ctx, name, accountName, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not get user subject: %w", err)
+	}
+
+	apk, err := m.dbw.GetAccountSubject(ctx, accountName, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not fetch user public key: %w", err)
+	}
+
+	tok, err := m.secrets.ReadUserJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteUserJWT(tok, apk); err != nil {
+		return fmt.Errorf("could not write user JWT: %w", err)
+	}
+
+	if err = m.SaveAppCreds(ctx, name, accountName); err != nil {
+		return fmt.Errorf("could not save app credentials: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Manager) SaveAppCreds(ctx context.Context, userName, accountName string) error {
+	if app, ok := GetAppByUser(userName, accountName); ok {
+		return m.saveAppCreds(ctx, app, userName, accountName)
+	}
+	return nil
+}
+
+func wipeBytes(bs []byte) {
+	for i := range bs {
+		bs[i] = 'X'
+	}
+}
+
+func (m *Manager) saveAppCreds(ctx context.Context, appName, userName, accountName string) error {
+	creds, err := m.GenerateUserCredentials(ctx, userName, accountName)
+	if err != nil {
+		return err
+	}
+	defer wipeBytes(creds)
+
+	return m.secrets.WriteAppCreds(appName, creds)
+}
+
+func (m *Manager) operatorExists(ctx context.Context, name string) (bool, error) {
+	if _, err := m.dbw.GetOperatorSubject(ctx, name); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *Manager) accountExists(ctx context.Context, name, operatorName string) (bool, error) {
+	if _, err := m.dbw.GetAccountSubject(ctx, name, operatorName); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *Manager) userExists(ctx context.Context, name, accountName, operatorName string) (bool, error) {
+	if _, err := m.dbw.GetUserSubject(ctx, name, accountName, operatorName); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+// The Manager is initialized if the operator, the operator account, the operator user,
+// the system account and system account all exist (and are valid). When none of these exist,
+// the Manager is free to initialize. Otherwise, the user should decide on what to do
+// (it would likely not be a very good idea to clear the database for the user).
+func (m *Manager) requiresKeysInit(ctx context.Context) (bool, error) {
+	operatorExists, err := m.operatorExists(ctx, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	operatorAccountExists, err := m.accountExists(ctx, m.operator.AccountName, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	operatorUserExists, err := m.userExists(ctx, m.operator.UserName, m.operator.AccountName, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	sysAccountExists, err := m.accountExists(ctx, "SYS", m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	sysUserExists, err := m.userExists(ctx, "sys", "SYS", m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	if !boolsEqual(operatorExists, operatorAccountExists, operatorUserExists, sysAccountExists, sysUserExists) {
+		return false, fmt.Errorf("partially initialized")
+	}
+
+	return !operatorExists, nil
+}
+
+func boolsEqual(b0 bool, bs ...bool) bool {
+	for _, b := range bs {
+		if b != b0 {
+			return false
+		}
+		b0 = b
+	}
+	return true
 }
 
 // InitKeys initializes the system account and the operator.
 func (m *Manager) InitKeys(ctx context.Context) error {
+	required, err := m.requiresKeysInit(ctx)
+	if err != nil {
+		return err
+	}
+	if !required {
+		return nil
+	}
+
 	m.log.Info("initializing keys")
 
 	// Create the keys for the system account
@@ -442,43 +636,43 @@ func (m *Manager) ProvisionNewDevice(ctx context.Context, id uuid.UUID) error {
 }
 
 // GenerateDeviceCredentials generates new NATS credentials for a device with a known ID.
-func (m *Manager) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (string, error) {
+func (m *Manager) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) ([]byte, error) {
 	return m.GenerateUserCredentials(ctx, deviceUserName(id), deviceAccountName(id))
 }
 
 // GenerateUserCredentials generates new NATS credentials for a user with a known name and issuer (account).
-func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, accountName string) (string, error) {
+func (m *Manager) GenerateUserCredentials(ctx context.Context, userName, accountName string) ([]byte, error) {
 	// Get the subject for the user
 	pk, err := m.dbw.GetUserSubject(ctx, userName, accountName, m.operator.Name)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Read the key pair for the user, the seed is part of the credentials file
 	kp, err := m.secrets.ReadUserSeed(pk)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer kp.Wipe()
 
 	// Extract the seed from the key pair
 	seed, err := kp.Seed()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Read the user's JWT
 	token, err := m.secrets.ReadJWTLiteral(pk)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Create the config
 	cfg, err := jwt.FormatUserConfig(token, seed)
 	if err != nil {
-		return "", fmt.Errorf("could not format user config: %w", err)
+		return nil, fmt.Errorf("could not format user config: %w", err)
 	}
-	return string(cfg), nil
+	return cfg, nil
 }
 
 // AccountExists checks if an account with a known name exists. It returns false if the account

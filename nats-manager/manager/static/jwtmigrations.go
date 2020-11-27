@@ -5,7 +5,6 @@ import (
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
-	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
 )
@@ -41,6 +40,6 @@ var jwtMigrations = jwtmigrate.Migrations{
 	},
 }
 
-func RunJWTMigrations(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager, st *secrets.Store) error {
-	return jwtMigrations.Run(log, dbw, mgr, st)
+func RunJWTMigrations(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager) error {
+	return jwtMigrations.Run(log, dbw, mgr)
 }
