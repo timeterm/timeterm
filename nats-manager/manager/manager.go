@@ -451,8 +451,8 @@ func (m *Manager) userExists(ctx context.Context, name, accountName, operatorNam
 	return true, nil
 }
 
-// The Manager is initialized if (1) the operator, the operator account, the operator user,
-// the system account and system account all exist and are valid. When none of these exist,
+// The Manager is initialized if the operator, the operator account, the operator user,
+// the system account and system account all exist (and are valid). When none of these exist,
 // the Manager is free to initialize. Otherwise, the user should decide on what to do
 // (it would likely not be a very good idea to clear the database for the user).
 func (m *Manager) requiresKeysInit(ctx context.Context) (bool, error) {
