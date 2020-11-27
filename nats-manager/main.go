@@ -90,58 +90,63 @@ func realMain(log logr.Logger, start time.Time) error {
 
 	log.Info("started", "took", time.Since(start))
 
-	go func() {
-		mgr.CheckJWTs(ctx)
-	}()
-
-	srv := api.NewServer(log, sst, mgr)
+	go mgr.CheckJWTs(ctx)
 
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
+		srv := api.NewServer(log, sst, mgr)
 		if err := srv.Serve(ctx, cfg.apiAddress); err != nil {
 			return fmt.Errorf("could not serve API: %w", err)
 		}
 		return nil
 	})
 	eg.Go(func() error {
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-
-			func() {
-				nc, err := trySetUpNATS(ctx, log, cfg, mgr)
-				if err != nil {
-					log.Error(err, "error setting up NATS")
-					return
-				}
-				defer func() {
-					if err = nc.Drain(); err != nil {
-						log.Error(err, "error draining NATS connection on shutdown")
-					}
-				}()
-
-				connectedCb := func(nc *nats.Conn) {
-					if err := static.ConfigureStreams(log, nc); err != nil {
-						log.Error(err, "error setting up static streams")
-						return
-					}
-				}
-				nc.SetReconnectHandler(connectedCb)
-				connectedCb(nc)
-
-				tx := transport.New(nc, log, handler.New(nc, mgr))
-				if err := tx.Run(ctx); err != nil {
-					if !errors.Is(err, context.Canceled) {
-						log.Error(err, "error running transport")
-					}
-				}
-			}()
-		}
+		return retry(ctx, func() {
+			tryRunTransport(ctx, log, cfg, mgr)
+		})
 	})
 	return eg.Wait()
+}
+
+// retry runs f indefinitely until ctx is canceled.
+func retry(ctx context.Context, f func()) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			f()
+		}
+	}
+}
+
+func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) {
+	nc, err := trySetUpNATS(ctx, log, cfg, mgr)
+	if err != nil {
+		log.Error(err, "error setting up NATS")
+		return
+	}
+	defer func() {
+		if err = nc.Drain(); err != nil {
+			log.Error(err, "error draining NATS connection on shutdown")
+		}
+	}()
+
+	connectedCb := func(nc *nats.Conn) {
+		if err := static.ConfigureStreams(log, nc); err != nil {
+			log.Error(err, "error setting up static streams")
+			return
+		}
+	}
+	nc.SetReconnectHandler(connectedCb)
+	connectedCb(nc)
+
+	tx := transport.New(nc, log, handler.New(nc, mgr))
+	if err := tx.Run(ctx); err != nil {
+		if !errors.Is(err, context.Canceled) {
+			log.Error(err, "error running transport")
+		}
+	}
 }
 
 func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {
