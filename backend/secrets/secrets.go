@@ -6,18 +6,18 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/vault/api"
+	vault "github.com/hashicorp/vault/api"
 	"google.golang.org/protobuf/proto"
 
 	devcfgpb "gitlab.com/timeterm/timeterm/proto/go/devcfg"
 )
 
 type Wrapper struct {
-	c *api.Client
+	c *vault.Client
 }
 
 func New() (*Wrapper, error) {
-	client, err := api.NewClient(api.DefaultConfig())
+	client, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {
 		return nil, err
 	}
