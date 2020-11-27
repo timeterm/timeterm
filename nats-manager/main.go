@@ -84,7 +84,7 @@ func realMain(log logr.Logger, start time.Time) error {
 		return fmt.Errorf("could not init secrets manager: %w", err)
 	}
 
-	if err = static.RunJWTMigrations(log, dbw, mgr, sst); err != nil {
+	if err = static.RunJWTMigrations(log, dbw, mgr); err != nil {
 		return fmt.Errorf("could not run static JWT migrations: %w", err)
 	}
 

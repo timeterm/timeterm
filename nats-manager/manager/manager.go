@@ -362,22 +362,67 @@ func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors
 	return pk, m.SaveAppCreds(ctx, name, accountName)
 }
 
-func (m *Manager) UpdateUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) error {
-	pk, err := m.dbw.GetUserSubject(ctx, name, accountName, m.operator.Name)
+func (m *Manager) UpdateOperator(ctx context.Context, name string, editors ...OperatorClaimsEditor) error {
+	pk, err := m.dbw.GetOperatorSubject(ctx, name)
+	if err != nil {
+		return fmt.Errorf("could not get operator subject: %w", err)
+	}
+
+	tok, err := m.secrets.ReadOperatorJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteOperatorJWT(tok, pk); err != nil {
+		return fmt.Errorf("could not write operator JWT: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Manager) UpdateAccount(ctx context.Context, name, operatorName string, editors ...AccountClaimsEditor) error {
+	pk, err := m.dbw.GetAccountSubject(ctx, name, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not get account subject: %w", err)
+	}
+
+	opk, err := m.dbw.GetOperatorSubject(ctx, operatorName)
+	if err != nil {
+		return fmt.Errorf("could not get operator public key: %w", err)
+	}
+
+	tok, err := m.secrets.ReadAccountJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteAccountJWT(tok, opk); err != nil {
+		return fmt.Errorf("could not write account JWT: %w", err)
+	}
+
+	return nil
+}
+
+func (m *Manager) UpdateUser(
+	ctx context.Context,
+	name, accountName, operatorName string,
+	editors ...UserClaimsEditor,
+) error {
+	pk, err := m.dbw.GetUserSubject(ctx, name, accountName, operatorName)
 	if err != nil {
 		return fmt.Errorf("could not get user subject: %w", err)
 	}
 
-	apk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
+	apk, err := m.dbw.GetAccountSubject(ctx, accountName, operatorName)
 	if err != nil {
 		return fmt.Errorf("could not fetch user public key: %w", err)
 	}
-
-	akp, err := m.secrets.ReadAccountSeed(apk)
-	if err != nil {
-		return fmt.Errorf("could not fetch account key pair: %w", err)
-	}
-	defer akp.Wipe()
 
 	tok, err := m.secrets.ReadUserJWT(pk)
 	if err != nil {

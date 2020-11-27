@@ -13,7 +13,6 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
-	"gitlab.com/timeterm/timeterm/nats-manager/secrets"
 )
 
 const jwtTagPrefix = "timeterm.migration_version="
@@ -137,7 +136,7 @@ func (m Migrations) Validate() error {
 }
 
 // Run doesn't take a context because migrations should not be aborted (generally).
-func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager, st *secrets.Store) error {
+func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager) error {
 	log = log.WithName("Migrations")
 	log.Info("migrating")
 	defer log.Info("done migrating")
@@ -163,7 +162,7 @@ func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Man
 	}
 
 	for _, migration := range m[currentVer:] {
-		if err = migration.Run(log, dbw, mgr, st); err != nil {
+		if err = migration.Run(log, dbw, mgr); err != nil {
 			return fmt.Errorf("could not run migration %d (%q): %w", migration.Version, migration.Name, err)
 		}
 		if err = dbw.SetJWTMigrationVersion(context.Background(), migration.Version); err != nil {
@@ -174,7 +173,7 @@ func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Man
 	return nil
 }
 
-func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager, st *secrets.Store) error {
+func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager) error {
 	ctx := context.Background()
 
 	log.Info("running migration", "version", m.Version, "name", m.Name)
@@ -199,19 +198,16 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 
 	for _, opm := range m.OperatorsUp {
 		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.NameRegex, func(op database.Operator) bool {
-			tok, err := st.ReadOperatorJWT(op.Subject)
-			if err != nil {
-				log.Error(err, "could not read operator JWT", "subject", op.Subject)
-				return false
-			}
-
-			if v, ok := getMigrationVersionFromOperator(tok); !ok || v == m.Version-1 {
-				jwtpatch.PatchOperatorClaims(tok, opm.Patches)
-				setMigrationVersionInOperator(tok, m.Version)
-
-				if err = st.WriteOperatorJWT(tok, op.Subject); err != nil {
-					log.Error(err, "could not write operator JWT", "subject", op.Subject)
+			if err := mgr.UpdateOperator(ctx, op.Name, func(c *jwt.OperatorClaims) {
+				if v, ok := getMigrationVersionFromOperator(c); !ok || v == m.Version-1 {
+					jwtpatch.PatchOperatorClaims(c, opm.Patches)
+					setMigrationVersionInOperator(c, m.Version)
 				}
+			}); err != nil {
+				log.Error(err, "could not update operator",
+					"name", op.Name,
+					"subject", op.Subject,
+				)
 			}
 
 			return true
@@ -222,19 +218,17 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 
 	for _, acm := range m.AccountsUp {
 		if err := dbw.WalkAccountSubjectsRe(ctx, acm.NameRegex, acm.OperatorNameRegex, func(acc database.Account) bool {
-			tok, err := st.ReadAccountJWT(acc.Subject)
-			if err != nil {
-				log.Error(err, "could not read account JWT", "subject", acc.Subject)
-				return false
-			}
-
-			if v, ok := getMigrationVersionFromAccount(tok); !ok || v == m.Version-1 {
-				jwtpatch.PatchAccountClaims(tok, acm.Patches)
-				setMigrationVersionInAccount(tok, m.Version)
-
-				if err = st.WriteAccountJWT(tok, acc.Subject); err != nil {
-					log.Error(err, "could not write account JWT", "subject", acc.Subject)
+			if err := mgr.UpdateAccount(ctx, acc.Name, acc.OperatorName, func(c *jwt.AccountClaims) {
+				if v, ok := getMigrationVersionFromAccount(c); !ok || v == m.Version-1 {
+					jwtpatch.PatchAccountClaims(c, acm.Patches)
+					setMigrationVersionInAccount(c, m.Version)
 				}
+			}); err != nil {
+				log.Error(err, "could not update account",
+					"name", acc.Name,
+					"operatorName", acc.OperatorName,
+					"subject", acc.Subject,
+				)
 			}
 
 			return true
@@ -250,7 +244,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 			usm.AccountNameRegex,
 			usm.OperatorNameRegex,
 			func(user database.User) bool {
-				if err := mgr.UpdateUser(ctx, user.Name, user.AccountName, func(c *jwt.UserClaims) {
+				if err := mgr.UpdateUser(ctx, user.Name, user.AccountName, user.OperatorName, func(c *jwt.UserClaims) {
 					if v, ok := getMigrationVersionFromUser(c); !ok || v == m.Version-1 {
 						jwtpatch.PatchUserClaims(c, usm.Patches)
 						setMigrationVersionInUser(c, m.Version)
