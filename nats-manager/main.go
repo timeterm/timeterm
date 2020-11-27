@@ -61,8 +61,7 @@ func realMain(log logr.Logger, start time.Time) error {
 		return fmt.Errorf("could not create Vault client: %w", err)
 	}
 
-	firstRun := false
-	dbw, err := database.New(cfg.databaseURL, log, isFirstRunDatabaseOpt(&firstRun))
+	dbw, err := database.New(cfg.databaseURL, log)
 	if err != nil {
 		return fmt.Errorf("could not connect to database: %w", err)
 	}
@@ -81,15 +80,11 @@ func realMain(log logr.Logger, start time.Time) error {
 	ctx, cancel := contextWithShutdown(context.Background(), log)
 	defer cancel()
 
-	if firstRun {
-		log.Info("first run, initializing")
-		if err = setUpOnFirstRun(ctx, mgr); err != nil {
-			return err
-		}
-		log.Info("initialized")
+	if err = mgr.Init(ctx); err != nil {
+		return fmt.Errorf("could not init secrets manager: %w", err)
 	}
 
-	if err := static.RunJWTMigrations(log, dbw, mgr, sst); err != nil {
+	if err = static.RunJWTMigrations(log, dbw, mgr, sst); err != nil {
 		return fmt.Errorf("could not run static JWT migrations: %w", err)
 	}
 
@@ -147,30 +142,6 @@ func realMain(log logr.Logger, start time.Time) error {
 		}
 	})
 	return eg.Wait()
-}
-
-func setUpOnFirstRun(ctx context.Context, mgr *manager.Manager) error {
-	if err := mgr.Init(ctx); err != nil {
-		return fmt.Errorf("could not init secrets manager: %w", err)
-	}
-	return nil
-}
-
-func isFirstRunDatabaseOpt(isFirstRun *bool) database.WrapperOpt {
-	return database.WithMigrationHooks(database.MigrationHooks{
-		After: []database.MigrationHook{
-			isFirstRunMigrationHook(isFirstRun),
-		},
-	})
-}
-
-func isFirstRunMigrationHook(isFirstRun *bool) database.MigrationHook {
-	return func(from, to uint) error {
-		if from == 0 {
-			*isFirstRun = true
-		}
-		return nil
-	}
 }
 
 func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {

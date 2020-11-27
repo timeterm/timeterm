@@ -39,10 +39,14 @@ func (w *bareWrapper) GetUserSubject(ctx context.Context, name, accountName, ope
 	return
 }
 
+type Pagination struct {
+	Total int
+	Limit int
+}
+
 type paginatedJWTs struct {
+	Pagination
 	Subjects []string
-	Total    int
-	Limit    int
 }
 
 func (w *bareWrapper) ListJWTs(ctx context.Context, offset int) (p paginatedJWTs, err error) {
@@ -61,7 +65,17 @@ func (w *bareWrapper) ListJWTs(ctx context.Context, offset int) (p paginatedJWTs
 	`, limit, offset)
 }
 
-func (w *bareWrapper) ListOperatorsRe(ctx context.Context, offset int, regex string) (p paginatedJWTs, err error) {
+type Operator struct {
+	Subject string
+	Name    string
+}
+
+type PaginatedOperators struct {
+	Pagination
+	Operators []Operator
+}
+
+func (w *bareWrapper) ListOperatorsRe(ctx context.Context, offset int, regex string) (p PaginatedOperators, err error) {
 	const limit = 100
 
 	p.Limit = limit
@@ -71,8 +85,8 @@ func (w *bareWrapper) ListOperatorsRe(ctx context.Context, offset int, regex str
 		return p, err
 	}
 
-	return p, sqlx.SelectContext(ctx, w.db, &p.Subjects, `
-		SELECT subject FROM operator
+	return p, sqlx.SelectContext(ctx, w.db, &p.Operators, `
+		SELECT * FROM operator
 		WHERE name ~ $1
 		ORDER BY subject
 		LIMIT $2
@@ -80,12 +94,24 @@ func (w *bareWrapper) ListOperatorsRe(ctx context.Context, offset int, regex str
 	`, regex, limit, offset)
 }
 
+type Account struct {
+	Subject         string
+	Name            string
+	OperatorSubject string
+	OperatorName    string
+}
+
+type PaginatedAccounts struct {
+	Pagination
+	Accounts []Account
+}
+
 func (w *bareWrapper) ListAccountsRe(
 	ctx context.Context,
 	offset int,
 	nameRegex,
 	operatorNameRegex string,
-) (p paginatedJWTs, err error) {
+) (p PaginatedAccounts, err error) {
 	const limit = 100
 
 	p.Limit = limit
@@ -98,8 +124,8 @@ func (w *bareWrapper) ListAccountsRe(
 		return p, err
 	}
 
-	return p, sqlx.SelectContext(ctx, w.db, &p.Subjects, `
-		SELECT a.subject FROM account AS a
+	rows, err := w.db.QueryxContext(ctx, `
+		SELECT a.subject, a.name, a.operator_subject, o.name FROM account AS a
 		INNER JOIN operator o on a.operator_subject = o.subject	
 		WHERE a.name ~ $1
 		AND o.name ~ $2
@@ -107,6 +133,34 @@ func (w *bareWrapper) ListAccountsRe(
 		LIMIT $3
 		OFFSET $4
 	`, nameRegex, operatorNameRegex, limit, offset)
+	if err != nil {
+		return p, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var a Account
+		if err = rows.Scan(&a.Subject, &a.Name, &a.OperatorSubject, &a.OperatorName); err != nil {
+			return p, err
+		}
+		p.Accounts = append(p.Accounts, a)
+	}
+
+	return
+}
+
+type User struct {
+	Subject         string
+	Name            string
+	AccountSubject  string
+	AccountName     string
+	OperatorSubject string
+	OperatorName    string
+}
+
+type PaginatedUsers struct {
+	Pagination
+	Users []User
 }
 
 func (w *bareWrapper) ListUsersRe(
@@ -115,7 +169,7 @@ func (w *bareWrapper) ListUsersRe(
 	nameRegex,
 	accountNameRegex,
 	operatorNameRegex string,
-) (p paginatedJWTs, err error) {
+) (p PaginatedUsers, err error) {
 	const limit = 100
 
 	p.Limit = limit
@@ -130,8 +184,8 @@ func (w *bareWrapper) ListUsersRe(
 		return p, err
 	}
 
-	return p, sqlx.SelectContext(ctx, w.db, &p.Subjects, `
-		SELECT u.subject FROM "user" AS u
+	rows, err := w.db.QueryxContext(ctx, `
+		SELECT u.subject, u.name, u.account_subject, a.name, a.operator_subject, o.name FROM "user" AS u
 		INNER JOIN account a on u.account_subject = a.subject
 		INNER JOIN operator o on a.operator_subject = o.subject	
 		WHERE u.name ~ $1
@@ -141,6 +195,21 @@ func (w *bareWrapper) ListUsersRe(
 		LIMIT $4
 		OFFSET $4
 	`, nameRegex, accountNameRegex, operatorNameRegex, limit, offset)
+	if err != nil {
+		return p, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var u User
+		err = rows.Scan(&u.Subject, &u.Name, &u.AccountSubject, &u.AccountName, &u.OperatorSubject, &u.OperatorName)
+		if err != nil {
+			return p, err
+		}
+		p.Users = append(p.Users, u)
+	}
+
+	return
 }
 
 func (w *bareWrapper) WalkJWTs(ctx context.Context, f func(subj string) bool) error {
@@ -165,20 +234,20 @@ func (w *bareWrapper) WalkJWTs(ctx context.Context, f func(subj string) bool) er
 	return nil
 }
 
-func (w *bareWrapper) WalkOperatorSubjectsRe(ctx context.Context, regex string, f func(subj string) bool) error {
+func (w *bareWrapper) WalkOperatorSubjectsRe(ctx context.Context, regex string, f func(o Operator) bool) error {
 	offset := 0
 	for {
 		jwts, err := w.ListOperatorsRe(ctx, offset, regex)
 		if err != nil {
 			return fmt.Errorf("could not retrieve operators with offset %d: %w", offset, err)
 		}
-		if len(jwts.Subjects) == 0 {
+		if len(jwts.Operators) == 0 {
 			break
 		}
 		offset += jwts.Limit
 
-		for _, sub := range jwts.Subjects {
-			if !f(sub) {
+		for _, o := range jwts.Operators {
+			if !f(o) {
 				return nil
 			}
 		}
@@ -191,7 +260,7 @@ func (w *bareWrapper) WalkAccountSubjectsRe(
 	ctx context.Context,
 	nameRegex,
 	operatorNameRegex string,
-	f func(subj string) bool,
+	f func(a Account) bool,
 ) error {
 	offset := 0
 	for {
@@ -199,13 +268,13 @@ func (w *bareWrapper) WalkAccountSubjectsRe(
 		if err != nil {
 			return fmt.Errorf("could not retrieve accounts with offset %d: %w", offset, err)
 		}
-		if len(jwts.Subjects) == 0 {
+		if len(jwts.Accounts) == 0 {
 			break
 		}
 		offset += jwts.Limit
 
-		for _, sub := range jwts.Subjects {
-			if !f(sub) {
+		for _, a := range jwts.Accounts {
+			if !f(a) {
 				return nil
 			}
 		}
@@ -219,7 +288,7 @@ func (w *bareWrapper) WalkUserSubjectsRe(
 	nameRegex,
 	accountNameRegex,
 	operatorNameRegex string,
-	f func(accountName, userName, subj string) bool,
+	f func(u User) bool,
 ) error {
 	offset := 0
 	for {
@@ -227,13 +296,13 @@ func (w *bareWrapper) WalkUserSubjectsRe(
 		if err != nil {
 			return fmt.Errorf("could not retrieve users with offset %d: %w", offset, err)
 		}
-		if len(jwts.Subjects) == 0 {
+		if len(jwts.Users) == 0 {
 			break
 		}
 		offset += jwts.Limit
 
-		for _, sub := range jwts.Subjects {
-			if !f(sub) {
+		for _, u := range jwts.Users {
+			if !f(u) {
 				return nil
 			}
 		}

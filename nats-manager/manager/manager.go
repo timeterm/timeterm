@@ -89,7 +89,7 @@ func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc Operat
 }
 
 // Init initializes the manager. Only has to run on the first run of the program (ever), as it configures
-// the keys necessary for issueing other accounts and users.
+// the keys necessary for issuing other accounts and users.
 func (m *Manager) Init(ctx context.Context) error {
 	return m.InitKeys(ctx)
 }
@@ -350,16 +350,52 @@ func (m *Manager) newUser(
 
 // NewUser creates a new user issued by an existing account. The default claims can be edited with editors.
 func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) (string, error) {
-	pk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
+	acpk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch account public key: %w", err)
 	}
-	
-	pk, err = m.newUser(ctx, name, pk, editors...)
+
+	pk, err := m.newUser(ctx, name, acpk, editors...)
 	if err != nil {
 		return "", err
 	}
 	return pk, m.SaveAppCreds(ctx, name, accountName)
+}
+
+func (m *Manager) UpdateUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) error {
+	pk, err := m.dbw.GetUserSubject(ctx, name, accountName, m.operator.Name)
+	if err != nil {
+		return fmt.Errorf("could not get user subject: %w", err)
+	}
+
+	apk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
+	if err != nil {
+		return fmt.Errorf("could not fetch user public key: %w", err)
+	}
+
+	akp, err := m.secrets.ReadAccountSeed(apk)
+	if err != nil {
+		return fmt.Errorf("could not fetch account key pair: %w", err)
+	}
+	defer akp.Wipe()
+
+	tok, err := m.secrets.ReadUserJWT(pk)
+	if err != nil {
+		return err
+	}
+	for _, edit := range editors {
+		edit(tok)
+	}
+
+	if err = m.secrets.WriteUserJWT(tok, apk); err != nil {
+		return fmt.Errorf("could not write user JWT: %w", err)
+	}
+
+	if err = m.SaveAppCreds(ctx, name, accountName); err != nil {
+		return fmt.Errorf("could not save app credentials: %w", err)
+	}
+
+	return nil
 }
 
 func (m *Manager) SaveAppCreds(ctx context.Context, userName, accountName string) error {
@@ -385,8 +421,93 @@ func (m *Manager) saveAppCreds(ctx context.Context, appName, userName, accountNa
 	return m.secrets.WriteAppCreds(appName, creds)
 }
 
+func (m *Manager) operatorExists(ctx context.Context, name string) (bool, error) {
+	if _, err := m.dbw.GetOperatorSubject(ctx, name); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *Manager) accountExists(ctx context.Context, name, operatorName string) (bool, error) {
+	if _, err := m.dbw.GetAccountSubject(ctx, name, operatorName); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *Manager) userExists(ctx context.Context, name, accountName, operatorName string) (bool, error) {
+	if _, err := m.dbw.GetUserSubject(ctx, name, accountName, operatorName); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+// The Manager is initialized if (1) the operator, the operator account, the operator user,
+// the system account and system account all exist and are valid. When none of these exist,
+// the Manager is free to initialize. Otherwise, the user should decide on what to do
+// (it would likely not be a very good idea to clear the database for the user).
+func (m *Manager) requiresKeysInit(ctx context.Context) (bool, error) {
+	operatorExists, err := m.operatorExists(ctx, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	operatorAccountExists, err := m.accountExists(ctx, m.operator.AccountName, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	operatorUserExists, err := m.userExists(ctx, m.operator.UserName, m.operator.AccountName, m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	sysAccountExists, err := m.accountExists(ctx, "SYS", m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	sysUserExists, err := m.userExists(ctx, "sys", "SYS", m.operator.Name)
+	if err != nil {
+		return false, err
+	}
+
+	if !boolsEqual(operatorExists, operatorAccountExists, operatorUserExists, sysAccountExists, sysUserExists) {
+		return false, fmt.Errorf("partially initialized")
+	}
+
+	return !operatorExists, nil
+}
+
+func boolsEqual(b0 bool, bs ...bool) bool {
+	for _, b := range bs {
+		if b != b0 {
+			return false
+		}
+		b0 = b
+	}
+	return true
+}
+
 // InitKeys initializes the system account and the operator.
 func (m *Manager) InitKeys(ctx context.Context) error {
+	required, err := m.requiresKeysInit(ctx)
+	if err != nil {
+		return err
+	}
+	if !required {
+		return nil
+	}
+
 	m.log.Info("initializing keys")
 
 	// Create the keys for the system account

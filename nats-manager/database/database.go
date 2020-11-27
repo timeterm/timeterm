@@ -18,7 +18,7 @@ import (
 )
 
 // version describes the current schema version (migration number).
-const version = 2
+const version = 1
 
 // queries is a generic interface for a sqlx database connection (pool) or transaction.
 type querier interface {

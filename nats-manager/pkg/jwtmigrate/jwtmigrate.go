@@ -198,20 +198,20 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 	}
 
 	for _, opm := range m.OperatorsUp {
-		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.NameRegex, func(subject string) bool {
-			tok, err := st.ReadOperatorJWT(subject)
+		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.NameRegex, func(op database.Operator) bool {
+			tok, err := st.ReadOperatorJWT(op.Subject)
 			if err != nil {
-				log.Error(err, "could not read operator JWT", "subject", subject)
+				log.Error(err, "could not read operator JWT", "subject", op.Subject)
 				return false
 			}
 
 			if v, ok := getMigrationVersionFromOperator(tok); !ok || v == m.Version-1 {
 				jwtpatch.PatchOperatorClaims(tok, opm.Patches)
 				setMigrationVersionInOperator(tok, m.Version)
-			}
 
-			if err = st.WriteOperatorJWT(tok, subject); err != nil {
-				log.Error(err, "could not write operator JWT", "subject", subject)
+				if err = st.WriteOperatorJWT(tok, op.Subject); err != nil {
+					log.Error(err, "could not write operator JWT", "subject", op.Subject)
+				}
 			}
 
 			return true
@@ -221,20 +221,20 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 	}
 
 	for _, acm := range m.AccountsUp {
-		if err := dbw.WalkAccountSubjectsRe(ctx, acm.NameRegex, acm.OperatorNameRegex, func(subject string) bool {
-			tok, err := st.ReadAccountJWT(subject)
+		if err := dbw.WalkAccountSubjectsRe(ctx, acm.NameRegex, acm.OperatorNameRegex, func(acc database.Account) bool {
+			tok, err := st.ReadAccountJWT(acc.Subject)
 			if err != nil {
-				log.Error(err, "could not read account JWT", "subject", subject)
+				log.Error(err, "could not read account JWT", "subject", acc.Subject)
 				return false
 			}
 
 			if v, ok := getMigrationVersionFromAccount(tok); !ok || v == m.Version-1 {
 				jwtpatch.PatchAccountClaims(tok, acm.Patches)
 				setMigrationVersionInAccount(tok, m.Version)
-			}
 
-			if err = st.WriteAccountJWT(tok, subject); err != nil {
-				log.Error(err, "could not write account JWT", "subject", subject)
+				if err = st.WriteAccountJWT(tok, acc.Subject); err != nil {
+					log.Error(err, "could not write account JWT", "subject", acc.Subject)
+				}
 			}
 
 			return true
@@ -249,20 +249,19 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 			usm.NameRegex,
 			usm.AccountNameRegex,
 			usm.OperatorNameRegex,
-			func(subject string) bool {
-				tok, err := st.ReadUserJWT(subject)
-				if err != nil {
-					log.Error(err, "could not read user JWT", "subject", subject)
-					return false
-				}
-
-				if v, ok := getMigrationVersionFromUser(tok); !ok || v == m.Version-1 {
-					jwtpatch.PatchUserClaims(tok, usm.Patches)
-					setMigrationVersionInUser(tok, m.Version)
-				}
-
-				if err = st.WriteUserJWT(tok, subject); err != nil {
-					log.Error(err, "could not write user JWT", "subject", subject)
+			func(user database.User) bool {
+				if err := mgr.UpdateUser(ctx, user.Name, user.AccountName, func(c *jwt.UserClaims) {
+					if v, ok := getMigrationVersionFromUser(c); !ok || v == m.Version-1 {
+						jwtpatch.PatchUserClaims(c, usm.Patches)
+						setMigrationVersionInUser(c, m.Version)
+					}
+				}); err != nil {
+					log.Error(err, "could not update user",
+						"name", user.Name,
+						"accountName", user.AccountName,
+						"operatorName", user.OperatorName,
+						"subject", user.Subject,
+					)
 				}
 
 				return true
