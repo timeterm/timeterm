@@ -7,7 +7,7 @@
 class Config: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<ConnManServiceConfig *> ethernetServices READ ethernetServices WRITE setEthernetServices NOTIFY ethernetServicesChanged)
+    Q_PROPERTY(QList<ConnManServiceConfig *> ethernetServices READ networkingServices WRITE setNetworkingServices NOTIFY networkingServicesChanged)
 
 public:
     explicit Config(QObject *parent = nullptr);
@@ -15,14 +15,14 @@ public:
     void read(const QJsonDocument &doc);
     void read(const QJsonObject &root);
 
-    void setEthernetServices(const QList<ConnManServiceConfig *> &ethernetServices);
-    QList<ConnManServiceConfig *> ethernetServices();
+    void setNetworkingServices(const QList<ConnManServiceConfig *> &networkingServices);
+    QList<ConnManServiceConfig *> networkingServices();
 
 signals:
-    void ethernetServicesChanged();
+    void networkingServicesChanged();
 
 private:
-    QList<ConnManServiceConfig *> m_ethernetServices;
+    QList<ConnManServiceConfig *> m_networkingServices;
 };
 
 class ConfigLoader: public QObject

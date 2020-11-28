@@ -485,7 +485,7 @@ func ipv6PrivacyToProto(ipv6Privacy Ipv6Privacy) devcfgpb.Ipv6Privacy {
 	case Ipv6PrivacyPreferred:
 		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_PREFERRED
 	default:
-		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_PREFERRED
+		return devcfgpb.Ipv6Privacy_IPV6_PRIVACY_UNSPECIFIED
 	}
 }
 

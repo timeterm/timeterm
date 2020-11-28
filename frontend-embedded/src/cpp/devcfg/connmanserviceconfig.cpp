@@ -225,8 +225,8 @@ QStringList jsonArrayToQStringList(const QJsonArray &a)
 
 void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::ReadError *error)
 {
-    if (obj.contains("serviceName") && obj["serviceName"].isString())
-        setServiceName(obj["serviceName"].toString());
+    if (obj.contains("setName") && obj["setName"].isString())
+        setName(obj["setName"].toString());
     if (obj.contains("type") && obj["type"].isString())
         setType(readServiceType(obj["type"].toString()));
     if (obj.contains("ipv4Config") && obj["ipv4Config"].isObject())
@@ -369,17 +369,17 @@ ConnManServiceConfig::Phase2Type ConnManServiceConfig::readPhase2Type(const QStr
     return Phase2TypeUndefined;
 }
 
-void ConnManServiceConfig::setServiceName(const QString &serviceName)
+void ConnManServiceConfig::setName(const QString &name)
 {
-    if (serviceName != m_serviceName) {
-        m_serviceName = serviceName;
-        emit serviceNameChanged();
+    if (name != m_name) {
+        m_name = name;
+        emit nameChanged();
     }
 }
 
-QString ConnManServiceConfig::serviceName() const
+QString ConnManServiceConfig::name() const
 {
-    return m_serviceName;
+    return m_name;
 }
 
 void ConnManServiceConfig::setType(ConnManServiceConfig::ServiceType type)
@@ -516,17 +516,17 @@ QString ConnManServiceConfig::domain() const
     return m_domain;
 }
 
-void ConnManServiceConfig::setName(const QString &name)
+void ConnManServiceConfig::setNetworkName(const QString &name)
 {
-    if (name != m_name) {
-        m_name = name;
-        emit nameChanged();
+    if (name != m_networkName) {
+        m_networkName = name;
+        emit networkNameChanged();
     }
 }
 
-QString ConnManServiceConfig::name() const
+QString ConnManServiceConfig::networkName() const
 {
-    return m_name;
+    return m_networkName;
 }
 
 void ConnManServiceConfig::setSsid(const QString &ssid)
@@ -844,14 +844,14 @@ void writeFileBytes(const QString &path, const QByteArray &arr, QFile::FileError
 void ConnManServiceConfig::saveCerts(QFile::FileError *error)
 {
     if (!m_privateKey.isEmpty()) {
-        auto path = createPrivateKeyPath(m_serviceName, m_privateKeyType);
+        auto path = createPrivateKeyPath(m_name, m_privateKeyType);
         writeFileBytes(path, m_privateKey, error);
         if (error != nullptr && *error != QFile::NoError)
             return;
     }
 
     if (!m_caCert.isEmpty()) {
-        auto path = createCaCertPath(m_serviceName, m_caCertType);
+        auto path = createCaCertPath(m_name, m_caCertType);
         writeFileBytes(path, m_caCert, error);
     }
 }
@@ -868,10 +868,10 @@ QString createConnManConfigPath(const QString &serviceName)
 
 void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
 {
-    if (m_serviceName.isEmpty())
+    if (m_name.isEmpty())
         return; // TODO: set error
 
-    auto path = createConnManConfigPath(m_serviceName);
+    auto path = createConnManConfigPath(m_name);
     auto f = QFile(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qCritical() << "Could not open service config file";
@@ -883,7 +883,7 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
     }
     auto strm = QTextStream(&f);
 
-    strm << "[service_" << m_serviceName << "]\n";
+    strm << "[service_" << m_name << "]\n";
     if (m_type != ServiceTypeUndefined)
         writeKv(strm, "Type", serviceTypeToConnManString(m_type));
     if (m_ipv4Config != nullptr)
@@ -905,8 +905,8 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
     if (!m_domain.isEmpty())
         writeKv(strm, "Domain", m_domain);
 
-    if (!m_name.isEmpty())
-        writeKv(strm, "Name", m_name);
+    if (!m_networkName.isEmpty())
+        writeKv(strm, "Name", m_networkName);
     if (!m_ssid.isEmpty())
         writeKv(strm, "SSID", m_ssid);
     if (!m_passphrase.isEmpty())
@@ -918,9 +918,9 @@ void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
     if (m_eap != EapTypeUndefined)
         writeKv(strm, "EAP", eapTypeToConnManString(m_eap));
     if (!m_caCert.isEmpty() && m_caCertType != CaCertTypeUndefined)
-        writeKv(strm, "CaCertFile", createCaCertPath(m_serviceName, m_caCertType));
+        writeKv(strm, "CaCertFile", createCaCertPath(m_name, m_caCertType));
     if (!m_privateKey.isEmpty() && m_privateKeyType != PrivateKeyTypeUndefined)
-        writeKv(strm, "PrivateKeyFile", createPrivateKeyPath(m_serviceName, m_privateKeyType));
+        writeKv(strm, "PrivateKeyFile", createPrivateKeyPath(m_name, m_privateKeyType));
     if (!m_privateKeyPassphrase.isEmpty())
         writeKv(strm, "PrivateKeyPassphrase", m_privateKeyPassphrase);
     if (m_privateKeyPassphraseType != PrivateKeyPassphraseTypeUndefined)

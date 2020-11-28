@@ -145,7 +145,7 @@ private:
 class ConnManServiceConfig: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName NOTIFY serviceNameChanged)
+    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     Q_PROPERTY(ServiceType type READ type WRITE setType NOTIFY typeChanged)
     Q_PROPERTY(ConnManIpv4Config *ipv4Config READ ipv4Config WRITE setIpv4Config NOTIFY ipv4ConfigChanged)
     Q_PROPERTY(ConnManIpv6Config *ipv6Config READ ipv6Config WRITE setIpv6Config NOTIFY ipv6ConfigChanged)
@@ -156,7 +156,7 @@ class ConnManServiceConfig: public QObject
     Q_PROPERTY(QStringList searchDomains READ searchDomains WRITE setSearchDomains NOTIFY searchDomainsChanged)
     Q_PROPERTY(QStringList timeservers READ timeservers WRITE setTimeservers NOTIFY timeserversChanged)
     Q_PROPERTY(QString domain READ domain WRITE setDomain NOTIFY domainChanged)
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+    Q_PROPERTY(QString networkName READ networkName WRITE setNetworkName NOTIFY networkNameChanged)
     Q_PROPERTY(QString ssid READ ssid WRITE setSsid NOTIFY ssidChanged)
     Q_PROPERTY(QString passphrase READ passphrase WRITE setPassphrase NOTIFY passphraseChanged)
     Q_PROPERTY(Security security READ security WRITE setSecurity NOTIFY securityChanged)
@@ -248,8 +248,8 @@ public:
 
     explicit ConnManServiceConfig(QObject *parent = nullptr);
 
-    void setServiceName(const QString &serviceName);
-    [[nodiscard]] QString serviceName() const;
+    void setName(const QString &name);
+    [[nodiscard]] QString name() const;
     void setType(ServiceType type);
     [[nodiscard]] ServiceType type() const;
     void setIpv4Config(ConnManIpv4Config *config);
@@ -271,8 +271,8 @@ public:
     void setDomain(const QString &domain);
     [[nodiscard]] QString domain() const;
 
-    void setName(const QString &name);
-    [[nodiscard]] QString name() const;
+    void setNetworkName(const QString &networkName);
+    [[nodiscard]] QString networkName() const;
     void setSsid(const QString &ssid);
     [[nodiscard]] QString ssid() const;
     void setPassphrase(const QString &passphrase);
@@ -339,7 +339,7 @@ public:
     static QString phase2TypeToConnManString(Phase2Type t, bool isEapBased);
 
 signals:
-    void serviceNameChanged();
+    void nameChanged();
     void typeChanged();
     void ipv4ConfigChanged();
     void ipv6ConfigChanged();
@@ -351,7 +351,7 @@ signals:
     void timeserversChanged();
     void domainChanged();
 
-    void nameChanged();
+    void networkNameChanged();
     void ssidChanged();
     void passphraseChanged();
     void securityChanged();
@@ -376,7 +376,7 @@ signals:
 private:
     /// Mandatory. Interpolated in the [service_*] config section name.
     /// Named 'timeterm' by default.
-    QString m_serviceName = "timeterm";
+    QString m_name = "timeterm";
 
     /// Mandatory. Other types than Ethernet or Wifi are not supported.
     ServiceType m_type = ServiceTypeUndefined;
@@ -409,7 +409,7 @@ private:
     /// A string representation of an network SSID.
     /// If the ssid field is present, the name field is ignored.
     /// If the ssid field is not present, this field is mandatory.
-    QString m_name;
+    QString m_networkName;
     /// SSID: A hexadecimal representation of an 802.11 SSID.
     /// Use this format to encode special characters including starting or ending spaces.
     QString m_ssid;

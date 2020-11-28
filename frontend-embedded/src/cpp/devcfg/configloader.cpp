@@ -24,8 +24,8 @@ void Config::read(const QJsonDocument &doc)
 
 void Config::read(const QJsonObject &obj)
 {
-    if (obj.contains("ethernetServices") && obj["ethernetServices"].isArray()) {
-        auto arr = obj["ethernetServices"].toArray();
+    if (obj.contains("networkingServices") && obj["networkingServices"].isArray()) {
+        auto arr = obj["networkingServices"].toArray();
         auto services = QList<ConnManServiceConfig *>();
         services.reserve(arr.size());
 
@@ -40,21 +40,21 @@ void Config::read(const QJsonObject &obj)
             }
         }
 
-        setEthernetServices(services);
+        setNetworkingServices(services);
     }
 }
 
-void Config::setEthernetServices(const QList<ConnManServiceConfig *> &ethernetServices)
+void Config::setNetworkingServices(const QList<ConnManServiceConfig *> &networkingServices)
 {
-    if (ethernetServices != m_ethernetServices) {
-        m_ethernetServices = ethernetServices;
-        emit ethernetServicesChanged();
+    if (networkingServices != m_networkingServices) {
+        m_networkingServices = networkingServices;
+        emit networkingServicesChanged();
     }
 }
 
-QList<ConnManServiceConfig *> Config::ethernetServices()
+QList<ConnManServiceConfig *> Config::networkingServices()
 {
-    return m_ethernetServices;
+    return m_networkingServices;
 }
 
 ConfigLoader::ConfigLoader(QObject *parent)
@@ -142,11 +142,11 @@ void ConfigLoader::loadConfig()
         config->read(jsonDoc);
         qDebug() << "Config file read";
 
-        for (auto &svc : config->ethernetServices()) {
-            qDebug() << "Configuring ethernet service" << svc->serviceName();
+        for (auto &svc : config->networkingServices()) {
+            qDebug() << "Configuring ethernet service" << svc->name();
             svc->saveCerts();
             svc->saveConnManConf();
-            qDebug() << "Ethernet service" << svc->serviceName() << "configured";
+            qDebug() << "Ethernet service" << svc->name() << "configured";
         }
     } else {
         qDebug() << "Mounting config volume failed";
