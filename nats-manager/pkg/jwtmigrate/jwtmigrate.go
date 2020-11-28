@@ -87,21 +87,47 @@ type UserMigration struct {
 	Patches           *jwtpatch.UserClaimsPatches
 }
 
+type OperatorRef struct {
+	Name string
+}
+
+func (o OperatorRef) Account(name string) AccountRef {
+	return AccountRef{Name: name, Operator: o}
+}
+
+type AccountRef struct {
+	Name     string
+	Operator OperatorRef
+}
+
+func (a AccountRef) User(name string) UserRef {
+	return UserRef{Name: name, Account: a}
+}
+
 type AccountCreate struct {
 	Patches *jwtpatch.AccountClaimsPatches
 }
 
-type UserCreate struct {
-	AccountName string
-	Patches     *jwtpatch.UserClaimsPatches
+type UserRef struct {
+	Name    string
+	Account AccountRef
 }
+
+type UserCreate struct {
+	Patches *jwtpatch.UserClaimsPatches
+}
+
+type (
+	AccountCreates map[AccountRef]AccountCreate
+	UserCreates    map[UserRef]UserCreate
+)
 
 type Migration struct {
 	Name    string
 	Version int
 
-	CreateAccounts map[string]AccountCreate
-	CreateUsers    map[string]UserCreate
+	CreateAccounts map[AccountRef]AccountCreate
+	CreateUsers    map[UserRef]UserCreate
 
 	OperatorsUp []*OperatorMigration
 	AccountsUp  []*AccountMigration
@@ -178,21 +204,23 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 
 	log.Info("running migration", "version", m.Version, "name", m.Name)
 
-	for name, acc := range m.CreateAccounts {
-		if _, err := mgr.NewAccount(ctx, name, func(c *jwt.AccountClaims) {
+	for ref, acc := range m.CreateAccounts {
+		if _, err := mgr.NewAccount(ctx, ref.Name, ref.Operator.Name, func(c *jwt.AccountClaims) {
 			jwtpatch.PatchAccountClaims(c, acc.Patches)
 			setMigrationVersionInAccount(c, m.Version)
 		}); err != nil {
-			return fmt.Errorf("could not create account %s: %w", name, err)
+			return fmt.Errorf("could not create account %s with operator %s: %w", ref.Name, ref.Operator.Name, err)
 		}
 	}
 
-	for name, user := range m.CreateUsers {
-		if _, err := mgr.NewUser(ctx, name, user.AccountName, func(c *jwt.UserClaims) {
+	for ref, user := range m.CreateUsers {
+		if _, err := mgr.NewUser(ctx, ref.Name, ref.Account.Name, ref.Account.Operator.Name, func(c *jwt.UserClaims) {
 			jwtpatch.PatchUserClaims(c, user.Patches)
 			setMigrationVersionInUser(c, m.Version)
 		}); err != nil {
-			return fmt.Errorf("could not create user %s under account %s: %w", name, user.AccountName, err)
+			return fmt.Errorf("could not create user %s under account %s with operator %s: %w",
+				ref.Name, ref.Account.Name, ref.Account.Operator.Name, err,
+			)
 		}
 	}
 

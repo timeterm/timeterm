@@ -13,36 +13,38 @@ import (
 
 type Store struct {
 	log    logr.Logger
+	mount  string
 	prefix string
 	vault  *vault.Client
 }
 
-func NewStore(log logr.Logger, prefix string, c *vault.Client) *Store {
+func NewStore(log logr.Logger, mount, prefix string, c *vault.Client) *Store {
 	return &Store{
 		log:    log.WithName("Store"),
+		mount:  mount,
 		prefix: prefix,
 		vault:  c,
 	}
 }
 
 func (s *Store) operatorSeedPath(pubKey string) string {
-	return path.Join(s.prefix, "/keys/operator/", pubKey)
+	return path.Join(s.mount, "/data/", s.prefix, "/keys/operator/", pubKey)
 }
 
 func (s *Store) accountSeedPath(pubKey string) string {
-	return path.Join(s.prefix, "/keys/account/", pubKey)
+	return path.Join(s.mount, "/data/", s.prefix, "/keys/account/", pubKey)
 }
 
 func (s *Store) userSeedPath(pubKey string) string {
-	return path.Join(s.prefix, "/keys/user/", pubKey)
+	return path.Join(s.mount, "/data/", s.prefix, "/keys/user/", pubKey)
 }
 
 func (s *Store) jwtPath(subject string) string {
-	return path.Join(s.prefix, "/jwts/", subject)
+	return path.Join(s.mount, "/data/", s.prefix, "/jwts/", subject)
 }
 
 func (s *Store) appCredsPath(appName string) string {
-	return path.Join(s.prefix, "/apps/creds/", appName)
+	return path.Join(s.mount, "/data/", s.prefix, "/apps/creds/", appName)
 }
 
 func (s *Store) WriteOperatorSeed(kp nkeys.KeyPair) error {
@@ -148,7 +150,9 @@ func (s *Store) writeJWT(pat string, claims jwt.Claims, kp nkeys.KeyPair) error 
 	}
 
 	_, err = s.vault.Logical().Write(pat, map[string]interface{}{
-		"jwt": encoded,
+		"data": map[string]interface{}{
+			"jwt": encoded,
+		},
 	})
 	return err
 }
@@ -159,7 +163,11 @@ func (s *Store) readJWT(pat string) (string, error) {
 		return "", err
 	}
 
-	token, ok := secret.Data["jwt"].(string)
+	secretData, ok := secret.Data["data"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("invalid secret data: %w", err)
+	}
+	token, ok := secretData["jwt"].(string)
 	if !ok {
 		return "", fmt.Errorf("jwt not present in secret at path %s", pat)
 	}
@@ -253,36 +261,42 @@ func (s *Store) writeSeed(path string, kp nkeys.KeyPair) error {
 	// Converting seed to a string is safe (or should really be safe)
 	// because it should be in Base 32.
 	_, err = s.vault.Logical().Write(path, map[string]interface{}{
-		"seed": string(seed),
+		"data": map[string]interface{}{
+			"seed": string(seed),
+		},
 	})
 	return err
 }
 
 func (s *Store) readSeed(path string) (nkeys.KeyPair, error) {
-	var kp nkeys.KeyPair
-
 	secret, err := s.vault.Logical().Read(path)
 	if err != nil {
-		return kp, err
+		return nil, err
 	}
 
-	seed, ok := secret.Data["seed"].(string)
+	secretData, ok := secret.Data["data"].(map[string]interface{})
 	if !ok {
-		return kp, fmt.Errorf("seed not present in secret at path %s", path)
+		return nil, fmt.Errorf("invalid secret data: %w", err)
+	}
+	seed, ok := secretData["seed"].(string)
+	if !ok {
+		return nil, fmt.Errorf("seed not present in secret at path %s", path)
 	}
 
-	kp, err = nkeys.FromSeed([]byte(seed))
+	kp, err := nkeys.FromSeed([]byte(seed))
 	if err != nil {
-		return kp, fmt.Errorf("could not create key pair from seed: %w", err)
+		return nil, fmt.Errorf("could not create key pair from seed: %w", err)
 	}
 	return kp, nil
 }
 
 func (s *Store) WriteAppCreds(appName string, creds []byte) error {
 	pat := s.appCredsPath(appName)
-	
+
 	_, err := s.vault.Logical().Write(pat, map[string]interface{}{
-		"creds": string(creds),
+		"data": map[string]interface{}{
+			"creds": string(creds),
+		},
 	})
 	return err
 }

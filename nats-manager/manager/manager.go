@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/nats-io/jwt/v2"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nkeys"
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
@@ -252,8 +253,11 @@ func (m *Manager) newAccount(
 // The name for the account must be provided. The required information for validation
 // is automatically registered in the database and Vault.
 // It returns the public key (subject) of the newly created account.
-func (m *Manager) NewAccount(ctx context.Context, name string, editors ...AccountClaimsEditor) (string, error) {
-	pk, err := m.dbw.GetOperatorSubject(ctx, m.operator.Name)
+func (m *Manager) NewAccount(ctx context.Context,
+	name, operatorName string,
+	editors ...AccountClaimsEditor,
+) (string, error) {
+	pk, err := m.dbw.GetOperatorSubject(ctx, operatorName)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch operator public key: %w", err)
 	}
@@ -335,7 +339,7 @@ func (m *Manager) newUser(
 	claims.Issuer = accountPubKey
 	claims.IssuedAt = time.Now().Unix()
 	// Always allow listening for responses
-	claims.Sub.Allow = []string{"INBOX.>"}
+	claims.Sub.Allow = []string{"_INBOX.>"}
 	for _, edit := range editors {
 		edit(claims)
 	}
@@ -349,8 +353,12 @@ func (m *Manager) newUser(
 }
 
 // NewUser creates a new user issued by an existing account. The default claims can be edited with editors.
-func (m *Manager) NewUser(ctx context.Context, name, accountName string, editors ...UserClaimsEditor) (string, error) {
-	acpk, err := m.dbw.GetAccountSubject(ctx, accountName, m.operator.Name)
+func (m *Manager) NewUser(
+	ctx context.Context,
+	name, accountName, operatorName string,
+	editors ...UserClaimsEditor,
+) (string, error) {
+	acpk, err := m.dbw.GetAccountSubject(ctx, accountName, operatorName)
 	if err != nil {
 		return "", fmt.Errorf("could not fetch account public key: %w", err)
 	}
@@ -743,6 +751,26 @@ func (m *Manager) GetUserJWT(ctx context.Context, name, accountName string) (str
 		return "", err
 	}
 	return m.secrets.ReadJWTLiteral(subj)
+}
+
+func (m *Manager) NATSCredsCBs(
+	ctx context.Context,
+	userName, accountName string,
+) (nats.UserJWTHandler, nats.SignatureHandler) {
+	jwtCB := func() (string, error) {
+		return m.GetUserJWT(ctx, userName, accountName)
+	}
+	signCB := func(nonce []byte) ([]byte, error) {
+		kp, err := m.GetUserKeyPair(ctx, userName, accountName)
+		if err != nil {
+			return nil, err
+		}
+		defer kp.Wipe()
+
+		return kp.Sign(nonce)
+	}
+
+	return jwtCB, signCB
 }
 
 // deviceAccountName generates a new name for an (embedded) device account.

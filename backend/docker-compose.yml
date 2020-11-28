@@ -20,7 +20,7 @@ services:
       - "8432:8080"
 
   nats:
-    image: synadia/jsm:nightly-20201121
+    image: synadia/jsm:nightly-20201128
     restart: always
     network_mode: host
     environment:
@@ -29,8 +29,10 @@ services:
         resolver: URL(http://localhost:8086/jwt/v1/accounts/)
 
         jetstream {
-          store_dir: datastore
+          store_dir: /datastore
         }
+    volumes:
+      - ./nats-data:/datastore
     entrypoint: |
       /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && \
       mkdir -p /operator && \
@@ -62,3 +64,4 @@ services:
       - "8300:8300"
     cap_add:
       - IPC_LOCK
+

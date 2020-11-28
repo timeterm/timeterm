@@ -71,7 +71,7 @@ func realMain(log logr.Logger, start time.Time) error {
 		}
 	}()
 
-	sst := secrets.NewStore(log, cfg.vaultPrefix, vc)
+	sst := secrets.NewStore(log, cfg.vaultMount, cfg.vaultPrefix, vc)
 	mgr, err := manager.New(log, sst, dbw, manager.DefaultOperatorConfig())
 	if err != nil {
 		return fmt.Errorf("could not create secrets manager: %w", err)
@@ -133,7 +133,7 @@ func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *man
 	}()
 
 	connectedCb := func(nc *nats.Conn) {
-		if err := static.ConfigureStreams(log, nc); err != nil {
+		if err := static.ConfigureStreams(context.Background(), log, mgr); err != nil {
 			log.Error(err, "error setting up static streams")
 			return
 		}
@@ -141,7 +141,13 @@ func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *man
 	nc.SetReconnectHandler(connectedCb)
 	connectedCb(nc)
 
-	tx := transport.New(nc, log, handler.New(nc, mgr))
+	hdlr, err := handler.New(ctx, nc, mgr)
+	if err != nil {
+		log.Error(err, "could not create handler")
+	}
+	defer hdlr.Close()
+
+	tx := transport.New(nc, log, hdlr)
 	if err := tx.Run(ctx); err != nil {
 		if !errors.Is(err, context.Canceled) {
 			log.Error(err, "error running transport")
@@ -150,20 +156,9 @@ func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *man
 }
 
 func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {
-	jwtCB := func() (string, error) {
-		return mgr.GetUserJWT(ctx, "backend", "BACKEND")
-	}
-	signCB := func(nonce []byte) ([]byte, error) {
-		kp, err := mgr.GetUserKeyPair(ctx, "backend", "BACKEND")
-		if err != nil {
-			return nil, err
-		}
-		defer kp.Wipe()
-
-		return kp.Sign(nonce)
-	}
-
-	nc, err := tryConnectNATS(ctx, log, cfg.natsURL, nats.UserJWT(jwtCB, signCB))
+	nc, err := tryConnectNATS(ctx, log, cfg.natsURL,
+		nats.UserJWT(mgr.NATSCredsCBs(ctx, "nats-manager", "BACKEND")),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
@@ -233,6 +228,7 @@ type config struct {
 	apiAddress   string
 	natsURL      string
 	databaseURL  string
+	vaultMount   string
 	vaultPrefix  string
 	operatorName string
 }
@@ -258,6 +254,11 @@ func loadConfig() (*config, error) {
 		return nil, errors.New("environment variable VAULT_PREFIX is not set")
 	}
 
+	vaultMount := os.Getenv("VAULT_MOUNT")
+	if vaultMount == "" {
+		return nil, errors.New("environment variable VAULT_MOUNT is not set")
+	}
+
 	operatorName := os.Getenv("OPERATOR_NAME")
 	if operatorName == "" {
 		return nil, errors.New("environment variable OPERATOR_NAME is not set")
@@ -267,6 +268,7 @@ func loadConfig() (*config, error) {
 		apiAddress:   apiAddress,
 		natsURL:      natsURL,
 		databaseURL:  databaseURL,
+		vaultMount:   vaultMount,
 		vaultPrefix:  vaultPrefix,
 		operatorName: operatorName,
 	}, nil
