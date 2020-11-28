@@ -25,11 +25,11 @@ require (
 	github.com/nats-io/nats.go v1.10.1-0.20201111151633-9e1f4a0d80d8
 	github.com/nats-io/nkeys v0.2.0
 	github.com/stretchr/testify v1.6.1
-	gitlab.com/timeterm/timeterm/backend/pkg/natspb v0.0.0-20201128102736-5b0f11963b4c
-	gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch v0.0.0-00010101000000-000000000000
-	gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk v0.0.0-20201128102736-5b0f11963b4c
-	gitlab.com/timeterm/timeterm/nats-manager/pkg/vla v0.0.0-00010101000000-000000000000
-	gitlab.com/timeterm/timeterm/proto/go v0.0.0-20201128102736-5b0f11963b4c
+	gitlab.com/timeterm/timeterm/backend/pkg/natspb v0.0.0-20201128103324-08c9faae8dc3
+	gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch v0.0.0-20201128122826-a28891a18473
+	gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk v0.0.0-20201128122826-a28891a18473
+	gitlab.com/timeterm/timeterm/nats-manager/pkg/vla v0.0.0-20201128122826-a28891a18473
+	gitlab.com/timeterm/timeterm/proto/go v0.0.0-20201128103324-08c9faae8dc3
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
