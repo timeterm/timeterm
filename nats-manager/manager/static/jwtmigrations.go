@@ -10,26 +10,34 @@ import (
 	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 )
 
-var (
-	defaultOperator = jwtmigrate.OperatorRef{
+func defaultOperator() jwtmigrate.OperatorRef {
+	return jwtmigrate.OperatorRef{
 		Name: "TIMETERM",
 	}
-	backendAccount = defaultOperator.Account("BACKEND")
-	emdevsAccount  = defaultOperator.Account("EMDEVS")
+}
 
-	jwtMigrations = jwtmigrate.Migrations{
+func backendAccount() jwtmigrate.AccountRef {
+	return defaultOperator().Account("BACKEND")
+}
+
+func emdevsAccount() jwtmigrate.AccountRef {
+	return defaultOperator().Account("EMDEVS")
+}
+
+func jwtMigrations() jwtmigrate.Migrations {
+	return jwtmigrate.Migrations{
 		{
 			Name:    "initial",
 			Version: 1,
 			CreateAccounts: jwtmigrate.AccountCreates{
-				backendAccount: {},
-				emdevsAccount:  {},
+				backendAccount(): {},
+				emdevsAccount():  {},
 			},
 			CreateUsers: jwtmigrate.UserCreates{
-				backendAccount.User("superuser"): {
+				backendAccount().User("superuser"): {
 					Patches: superuserPatches(),
 				},
-				backendAccount.User("backend"): {
+				backendAccount().User("backend"): {
 					Patches: &jwtpatch.UserClaimsPatches{
 						UserPatches: jwtpatch.UserPatches{
 							PermissionsPatches: jwtpatch.PermissionsPatches{
@@ -45,7 +53,7 @@ var (
 						},
 					},
 				},
-				backendAccount.User("nats-manager"): {
+				backendAccount().User("nats-manager"): {
 					Patches: &jwtpatch.UserClaimsPatches{
 						UserPatches: jwtpatch.UserPatches{
 							PermissionsPatches: jwtpatch.PermissionsPatches{
@@ -63,13 +71,13 @@ var (
 						},
 					},
 				},
-				emdevsAccount.User("superuser"): {
+				emdevsAccount().User("superuser"): {
 					Patches: superuserPatches(),
 				},
 			},
 		},
 	}
-)
+}
 
 func superuserPatches() *jwtpatch.UserClaimsPatches {
 	return &jwtpatch.UserClaimsPatches{
@@ -91,5 +99,5 @@ func superuserPatches() *jwtpatch.UserClaimsPatches {
 }
 
 func RunJWTMigrations(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager) error {
-	return jwtMigrations.Run(log, dbw, mgr)
+	return jwtMigrations().Run(log, dbw, mgr)
 }

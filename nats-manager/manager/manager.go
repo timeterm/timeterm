@@ -34,6 +34,7 @@ type Manager struct {
 	secrets *secrets.Store
 	log     logr.Logger
 	dbw     *database.Wrapper
+	apps    appIndex
 
 	operator OperatorConfig
 }
@@ -86,6 +87,7 @@ func New(log logr.Logger, store *secrets.Store, dbw *database.Wrapper, oc Operat
 		secrets:  store,
 		dbw:      dbw,
 		operator: oc,
+		apps:     newAppIndex(),
 	}, nil
 }
 
@@ -452,7 +454,7 @@ func (m *Manager) UpdateUser(
 }
 
 func (m *Manager) SaveAppCreds(ctx context.Context, userName, accountName string) error {
-	if app, ok := GetAppByUser(userName, accountName); ok {
+	if app, ok := m.apps.getAppByUser(userName, accountName); ok {
 		return m.saveAppCreds(ctx, app, userName, accountName)
 	}
 	return nil

@@ -65,7 +65,9 @@ type GetDevicesOpts struct {
 	NameSearch     *string
 }
 
-var searchReplacer = strings.NewReplacer("%", "\\%", "_", "\\_")
+func cleanSearch(s string) string {
+	return strings.NewReplacer("%", "\\%", "_", "\\_").Replace(s)
+}
 
 func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (PaginatedDevices, error) {
 	devs := PaginatedDevices{
@@ -79,7 +81,7 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 		sq.Eq{"organization_id": opts.OrganizationID},
 	}
 	if opts.NameSearch != nil {
-		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", searchReplacer.Replace(*opts.NameSearch)))
+		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", cleanSearch(*opts.NameSearch)))
 	}
 
 	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {

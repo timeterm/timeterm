@@ -9,8 +9,6 @@ import (
 
 type protoEncoder struct{}
 
-var _ nats.Encoder = protoEncoder{}
-
 func NewEncoder() nats.Encoder {
 	return protoEncoder{}
 }

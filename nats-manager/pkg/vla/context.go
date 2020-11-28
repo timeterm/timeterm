@@ -4,10 +4,8 @@ import "context"
 
 type paramsKeyType struct{}
 
-var paramsKey paramsKeyType
-
 func ParamsFromContext(ctx context.Context) Params {
-	params, ok := ctx.Value(paramsKey).(Params)
+	params, ok := ctx.Value(paramsKeyType{}).(Params)
 	if !ok {
 		return nil
 	}
@@ -15,15 +13,13 @@ func ParamsFromContext(ctx context.Context) Params {
 }
 
 func ContextWithParams(ctx context.Context, p Params) context.Context {
-	return context.WithValue(ctx, paramsKey, p)
+	return context.WithValue(ctx, paramsKeyType{}, p)
 }
 
 type routeKeyType struct{}
 
-var routeKey routeKeyType
-
 func RouteFromContext(ctx context.Context) Route {
-	route, ok := ctx.Value(routeKey).(Route)
+	route, ok := ctx.Value(routeKeyType{}).(Route)
 	if !ok {
 		return nil
 	}
@@ -31,5 +27,5 @@ func RouteFromContext(ctx context.Context) Route {
 }
 
 func ContextWithRoute(ctx context.Context, r Route) context.Context {
-	return context.WithValue(ctx, routeKey, r)
+	return context.WithValue(ctx, routeKeyType{}, r)
 }

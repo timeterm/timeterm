@@ -5,13 +5,7 @@ type appUser struct {
 	userName    string
 }
 
-var apps = map[string]appUser{
-	"backend": {accountName: "BACKEND", userName: "backend"},
-}
-
-var appsByUsers = makeAppsByUsers()
-
-func makeAppsByUsers() map[appUser]string {
+func makeAppsByUsers(apps map[string]appUser) map[appUser]string {
 	m := make(map[appUser]string, len(apps))
 	for app, user := range apps {
 		m[user] = app
@@ -19,8 +13,20 @@ func makeAppsByUsers() map[appUser]string {
 	return m
 }
 
-func GetAppByUser(userName, accountName string) (string, bool) {
-	user, ok := appsByUsers[appUser{
+type appIndex struct {
+	apps map[appUser]string
+}
+
+func newAppIndex() appIndex {
+	return appIndex{
+		apps: makeAppsByUsers(map[string]appUser{
+			"backend": {accountName: "BACKEND", userName: "backend"},
+		}),
+	}
+}
+
+func (i appIndex) getAppByUser(userName, accountName string) (string, bool) {
+	user, ok := i.apps[appUser{
 		accountName: accountName,
 		userName:    userName,
 	}]
