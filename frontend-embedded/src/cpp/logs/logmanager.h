@@ -35,4 +35,6 @@ public:
 
     static void handleMessage(QtMsgType type, const QMessageLogContext &context,
                               const QString &buf);
+
+    const int KEEP_MAX_AMOUNT_OF_MESSAGES = 1024;
 };

@@ -35,6 +35,9 @@ void LogManager::_handleMessage(QtMsgType type, const QMessageLogContext &contex
 
     auto msg = qFormatLogMessage(type, context, buf);
     std::cerr << msg.toStdString() << std::endl;
+    if (m_messages.length() == KEEP_MAX_AMOUNT_OF_MESSAGES) {
+        m_messages.removeFirst();
+    }
     m_messages.append(msg);
 
     locker.unlock();
