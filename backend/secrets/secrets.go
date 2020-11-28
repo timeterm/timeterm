@@ -42,7 +42,7 @@ func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingServic
 		return nil, err
 	}
 	if secret == nil {
-		return nil, errors.New("no secret found")
+		return nil, nil
 	}
 
 	secretData, ok := secret.Data["data"].(map[string]interface{})

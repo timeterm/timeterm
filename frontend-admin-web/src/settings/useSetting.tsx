@@ -37,10 +37,13 @@ const useSetting = <T, P extends object>({
   saveInvalidatesQueries,
 }: UseSettingProps<T, P>) => {
   const patch = pageProps.settingsStore.store[settingsKey] as P | undefined;
-  const setPatch = (patch: P | undefined) =>
-    pageProps.settingsStore.update({
-      [settingsKey]: patch,
-    });
+  const setPatch = useCallback(
+    (patch: P | undefined) =>
+      pageProps.settingsStore.update({
+        [settingsKey]: patch,
+      }),
+    [pageProps.settingsStore, settingsKey]
+  );
   const [saved, setSaved] = useState(false);
   const onSuccess = useCallback(
     (original: T) => {
