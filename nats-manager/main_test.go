@@ -8,7 +8,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/require"
 
-	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 )
 
 func TestNatsManager(t *testing.T) {

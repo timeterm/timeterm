@@ -61,7 +61,11 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("could not create (NATS) app credentials retriever: %w", err)
 	}
 
-	nc, err := nats.Connect(os.Getenv("NATS_URL"), nats.UserJWT(acr.NatsCredsCBs()))
+	nc, err := nats.Connect(os.Getenv("NATS_URL"),
+		nats.UserJWT(acr.NatsCredsCBs()),
+		// Never stop trying to reconnect.
+		nats.MaxReconnects(-1),
+	)
 	if err != nil {
 		return fmt.Errorf("could not connect to NATS: %w", err)
 	}

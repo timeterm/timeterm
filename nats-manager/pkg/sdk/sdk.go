@@ -67,7 +67,7 @@ func (c *Client) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) (s
 		return "", err
 	}
 
-	switch data := rsp.Response.(type){
+	switch data := rsp.Response.(type) {
 	case *rpcpb.GenerateDeviceCredentialsResponse_Sucess:
 		return data.Sucess.GetNatsCreds(), nil
 	case *rpcpb.GenerateDeviceCredentialsResponse_Error:

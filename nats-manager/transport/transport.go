@@ -14,7 +14,7 @@ import (
 	rpcpb "gitlab.com/timeterm/timeterm/proto/go/rpc"
 
 	"gitlab.com/timeterm/timeterm/nats-manager/handler"
-	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 )
 
 const requestHandleTimeout = time.Second * 30

@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/nats-io/nats.go"
 
-	"gitlab.com/timeterm/timeterm/nats-manager/sdk"
+	"gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"

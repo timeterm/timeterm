@@ -133,11 +133,21 @@ func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *man
 	}()
 
 	connectedCb := func(nc *nats.Conn) {
+		log.Info("connected to NATS, configuring static streams")
 		if err := static.ConfigureStreams(context.Background(), log, mgr); err != nil {
 			log.Error(err, "error setting up static streams")
 			return
 		}
 	}
+	nc.SetDisconnectErrHandler(func(conn *nats.Conn, err error) {
+		log.Error(err, "disconnected from NATS")
+	})
+	nc.SetClosedHandler(func(conn *nats.Conn) {
+		log.Info("NATS connection closed")
+	})
+	nc.SetErrorHandler(func(conn *nats.Conn, subscription *nats.Subscription, err error) {
+		log.Error(err, "error in NATS connection")
+	})
 	nc.SetReconnectHandler(connectedCb)
 	connectedCb(nc)
 
@@ -158,6 +168,8 @@ func tryRunTransport(ctx context.Context, log logr.Logger, cfg *config, mgr *man
 func trySetUpNATS(ctx context.Context, log logr.Logger, cfg *config, mgr *manager.Manager) (*nats.Conn, error) {
 	nc, err := tryConnectNATS(ctx, log, cfg.natsURL,
 		nats.UserJWT(mgr.NATSCredsCBs(ctx, "nats-manager", "BACKEND")),
+		// Never stop trying to reconnect.
+		nats.MaxReconnects(-1),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)

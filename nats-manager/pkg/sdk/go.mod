@@ -1,10 +1,10 @@
-module gitlab.com/timeterm/timeterm/nats-manager/sdk
+module gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk
 
 go 1.15
 
 replace (
-	gitlab.com/timeterm/timeterm/backend/pkg/natspb => ../../backend/pkg/natspb
-	gitlab.com/timeterm/timeterm/proto/go => ../../proto/go
+	gitlab.com/timeterm/timeterm/backend/pkg/natspb => ./../../../backend/pkg/natspb
+	gitlab.com/timeterm/timeterm/proto/go => ./../../../proto/go
 )
 
 require (

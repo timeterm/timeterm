@@ -4,10 +4,10 @@ import (
 	"github.com/go-logr/logr"
 
 	"gitlab.com/timeterm/timeterm/nats-manager/database"
+	"gitlab.com/timeterm/timeterm/nats-manager/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
-	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
-	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 )
 
 var (
