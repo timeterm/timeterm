@@ -225,8 +225,8 @@ QStringList jsonArrayToQStringList(const QJsonArray &a)
 
 void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::ReadError *error)
 {
-    if (obj.contains("setName") && obj["setName"].isString())
-        setName(obj["setName"].toString());
+    if (obj.contains("name") && obj["name"].isString())
+        setName(obj["name"].toString());
     if (obj.contains("type") && obj["type"].isString())
         setType(readServiceType(obj["type"].toString()));
     if (obj.contains("ipv4Config") && obj["ipv4Config"].isObject())
@@ -246,8 +246,8 @@ void ConnManServiceConfig::read(const QJsonObject &obj, ConnManServiceConfig::Re
     if (obj.contains("domain") && obj["domain"].isString())
         setDomain(obj["domain"].toString());
 
-    if (obj.contains("name") && obj["name"].isString())
-        setName(obj["name"].toString());
+    if (obj.contains("networkName") && obj["networkName"].isString())
+        setNetworkName(obj["networkName"].toString());
     if (obj.contains("ssid") && obj["ssid"].isString())
         setSsid(obj["ssid"].toString());
     if (obj.contains("passphrase") && obj["passphrase"].isString())
