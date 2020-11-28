@@ -32,7 +32,7 @@ services:
           store_dir: /datastore
         }
     volumes:
-      - ./nats-data:/datastore
+      - nats-data:/datastore
     entrypoint: |
       /bin/sh -c "echo \"$$NATS_CONFIG\" > /nats.config && \
       mkdir -p /operator && \
@@ -64,4 +64,7 @@ services:
       - "8300:8300"
     cap_add:
       - IPC_LOCK
+
+volumes:
+  nats-data:
 
