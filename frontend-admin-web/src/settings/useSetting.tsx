@@ -17,7 +17,7 @@ export interface SettingsStore {
 
 export interface UseSettingProps<T, P extends object> {
   fetch: () => Promise<T>;
-  save: (patch: P) => Promise<Response>;
+  save: (patch: P) => Promise<unknown>;
   initPatch: (original: T) => P;
   isModified: (original: T, patch: P) => boolean;
   queryKey: string;
@@ -51,7 +51,7 @@ const useSetting = <T, P extends object>({
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       onSuccess(original) {
-        if (original && !patch) {
+        if (original) {
           setPatch(initPatch(original));
         }
       },

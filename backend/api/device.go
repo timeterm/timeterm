@@ -347,9 +347,7 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
 		}
 
-		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
-		apiNetworkingService.ID = uid
-		apiNetworkingService.Name = networkingService.Name
+		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, networkingService)
 
 		apiNetworkingServices[i] = apiNetworkingService
 	}

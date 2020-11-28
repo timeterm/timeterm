@@ -73,14 +73,14 @@ const (
 )
 
 type Ipv4ConfigSettings struct {
-	Network string `json:"network"`
-	Netmask string `json:"netmask"`
-	Gateway string `json:"gateway"`
+	Network string `json:"network,omitempty"`
+	Netmask string `json:"netmask,omitempty"`
+	Gateway string `json:"gateway,omitempty"`
 }
 
 type Ipv4Config struct {
-	Type     Ipv4ConfigType      `json:"type"`
-	Settings *Ipv4ConfigSettings `json:"settings"`
+	Type     Ipv4ConfigType      `json:"type,omitempty"`
+	Settings *Ipv4ConfigSettings `json:"settings,omitempty"`
 }
 
 type Ipv6ConfigType string
@@ -92,14 +92,14 @@ const (
 )
 
 type Ipv6ConfigSettings struct {
-	Network      string `json:"network"`
-	PrefixLength uint64 `json:"prefixLength"`
-	Gateway      string `json:"gateway"`
+	Network      string `json:"network,omitempty"`
+	PrefixLength uint64 `json:"prefixLength,omitempty"`
+	Gateway      string `json:"gateway,omitempty"`
 }
 
 type Ipv6Config struct {
-	Type     Ipv6ConfigType      `json:"type"`
-	Settings *Ipv6ConfigSettings `json:"settings"`
+	Type     Ipv6ConfigType      `json:"type,omitempty"`
+	Settings *Ipv6ConfigSettings `json:"settings,omitempty"`
 }
 
 type Ipv6Privacy string
@@ -154,38 +154,38 @@ const (
 )
 
 type NetworkingService struct {
-	ID                       uuid.UUID                `json:"id"`
-	OrganizationID           uuid.UUID                `json:"organizationId"`
-	Name                     string                   `json:"name"`
-	Type                     NetworkingServiceType    `json:"type"`
-	Ipv4Config               *Ipv4Config              `json:"ipv4Config"`
-	Ipv6Config               *Ipv6Config              `json:"ipv6Convig"`
-	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy"`
-	Mac                      string                   `json:"mac"`
-	Nameservers              []string                 `json:"nameservers"`
-	SearchDomains            []string                 `json:"searchDomains"`
-	Timeservers              []string                 `json:"timeservers"`
-	Domain                   string                   `json:"domain"`
-	NetworkName              string                   `json:"networkName"`
-	SSID                     string                   `json:"ssid"`
-	Passphrase               string                   `json:"passphrase"`
-	Security                 Security                 `json:"security"`
-	IsHidden                 bool                     `json:"isHidden"`
-	Eap                      Eap                      `json:"eap"`
-	CaCert                   []byte                   `json:"caCert"`
-	CaCertType               CaCertType               `json:"caCertType"`
-	PrivateKey               []byte                   `json:"privateKey"`
-	PrivateKeyType           PrivateKeyType           `json:"privateKeyType"`
-	PrivateKeyPassphrase     string                   `json:"privateKeyPassphrase"`
-	PrivateKeyPassphraseType PrivateKeyPassphraseType `json:"privateKeyPassphraseType"`
-	Identity                 string                   `json:"identity"`
-	AnonymousIdentity        string                   `json:"anonymousIdentify"`
-	SubjectMatch             string                   `json:"subjectMatch"`
-	AltSubjectMatch          string                   `json:"altSubjectMatch"`
-	DomainSuffixMatch        string                   `json:"domainSuffixMatch"`
-	DomainMatch              string                   `json:"domainMatch"`
-	Phase2                   Phase2Type               `json:"phase2"`
-	IsPhase2EapBased         bool                     `json:"isPhase2EapBased"`
+	ID                       uuid.UUID                `json:"id,omitempty"`
+	OrganizationID           uuid.UUID                `json:"organizationId,omitempty"`
+	Name                     string                   `json:"name,omitempty"`
+	Type                     NetworkingServiceType    `json:"type,omitempty"`
+	Ipv4Config               *Ipv4Config              `json:"ipv4Config,omitempty"`
+	Ipv6Config               *Ipv6Config              `json:"ipv6Config,omitempty"`
+	Ipv6Privacy              Ipv6Privacy              `json:"ipv6Privacy,omitempty"`
+	Mac                      string                   `json:"mac,omitempty"`
+	Nameservers              []string                 `json:"nameservers,omitempty"`
+	SearchDomains            []string                 `json:"searchDomains,omitempty"`
+	Timeservers              []string                 `json:"timeservers,omitempty"`
+	Domain                   string                   `json:"domain,omitempty"`
+	NetworkName              string                   `json:"networkName,omitempty"`
+	SSID                     string                   `json:"ssid,omitempty"`
+	Passphrase               string                   `json:"passphrase,omitempty"`
+	Security                 Security                 `json:"security,omitempty"`
+	IsHidden                 bool                     `json:"isHidden,omitempty"`
+	Eap                      Eap                      `json:"eap,omitempty"`
+	CaCert                   []byte                   `json:"caCert,omitempty"`
+	CaCertType               CaCertType               `json:"caCertType,omitempty"`
+	PrivateKey               []byte                   `json:"privateKey,omitempty"`
+	PrivateKeyType           PrivateKeyType           `json:"privateKeyType,omitempty"`
+	PrivateKeyPassphrase     string                   `json:"privateKeyPassphrase,omitempty"`
+	PrivateKeyPassphraseType PrivateKeyPassphraseType `json:"privateKeyPassphraseType,omitempty"`
+	Identity                 string                   `json:"identity,omitempty"`
+	AnonymousIdentity        string                   `json:"anonymousIdentify,omitempty"`
+	SubjectMatch             string                   `json:"subjectMatch,omitempty"`
+	AltSubjectMatch          string                   `json:"altSubjectMatch,omitempty"`
+	DomainSuffixMatch        string                   `json:"domainSuffixMatch,omitempty"`
+	DomainMatch              string                   `json:"domainMatch,omitempty"`
+	Phase2                   Phase2Type               `json:"phase2,omitempty"`
+	IsPhase2EapBased         bool                     `json:"isPhase2EapBased,omitempty"`
 }
 
 func networkingServiceTypeFrom(cfgType devcfgpb.NetworkingServiceType) NetworkingServiceType {
@@ -356,9 +356,11 @@ func phase2TypeFrom(t devcfgpb.Phase2Type) Phase2Type {
 	}
 }
 
-func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, id uuid.UUID) NetworkingService {
+func NetworkingServiceFrom(cfg *devcfgpb.NetworkingService, db database.NetworkingService) NetworkingService {
 	return NetworkingService{
-		ID:                       id,
+		ID:                       db.ID,
+		Name:                     db.Name,
+		OrganizationID:           db.OrganizationID,
 		Type:                     networkingServiceTypeFrom(cfg.GetType()),
 		Ipv4Config:               ipv4ConfigFrom(cfg.GetIpv4Config()),
 		Ipv6Config:               ipv6ConfigFrom(cfg.GetIpv6Config()),

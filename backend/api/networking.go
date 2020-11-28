@@ -49,9 +49,7 @@ func (s *Server) getNetworkingServices(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
 		}
 
-		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
-		apiNetworkingService.ID = uid
-		apiNetworkingService.Name = networkingService.Name
+		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, networkingService)
 
 		apiNetworkingServices[i] = apiNetworkingService
 	}
@@ -69,12 +67,28 @@ func (s *Server) getNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
+	dbNetworkingService, err := s.db.GetNetworkingService(c.Request().Context(), uid)
+	if err != nil {
+		s.log.Error(err, "could not get networking service")
+		return echo.NewHTTPError(http.StatusBadRequest, "Could not get networking service")
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	if dbNetworkingService.OrganizationID != user.OrganizationID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Networking service does not belong to user's organization")
+	}
+
 	secretNetworkingService, err := s.secr.GetNetworkingService(uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
 	}
 
-	apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, uid)
+	apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, dbNetworkingService)
 	return c.JSON(http.StatusOK, apiNetworkingService)
 }
 
@@ -116,6 +130,17 @@ func (s *Server) replaceNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not unmarshal request body")
 	}
 
+	if dbNetworkingService.Name != oldNetworkingService.Name {
+		if err = s.db.ReplaceNetworkingService(c.Request().Context(), database.NetworkingService{
+			ID:             oldNetworkingService.ID,
+			OrganizationID: oldNetworkingService.OrganizationID,
+			Name:           oldNetworkingService.Name,
+		}); err != nil {
+			s.log.Error(err, "could not update networking service")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not update networking service")
+		}
+	}
+
 	oldProtoNetworkingService := NetworkingServiceToProto(oldNetworkingService)
 
 	err = s.secr.UpsertNetworkingService(uid, oldProtoNetworkingService)
@@ -136,7 +161,7 @@ func (s *Server) createNetworkingService(c echo.Context) error {
 	var ns NetworkingService
 	err := c.Bind(&ns)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
+		return echo.NewHTTPError(http.StatusBadRequest, "Could not bind data")
 	}
 
 	dbNetworkingService, err := s.db.CreateNetworkingService(c.Request().Context(),

@@ -14,30 +14,44 @@ import (
 
 type Wrapper struct {
 	c *vault.Client
+
+	mount  string
+	prefix string
 }
 
-func New() (*Wrapper, error) {
+func New(mount, prefix string) (*Wrapper, error) {
 	client, err := vault.NewClient(vault.DefaultConfig())
 	if err != nil {
 		return nil, err
 	}
-	return &Wrapper{client}, nil
+	return &Wrapper{
+		c:      client,
+		mount:  mount,
+		prefix: prefix,
+	}, nil
 }
 
-func createNetworkingServiceSecretPath(id uuid.UUID) string {
-	return fmt.Sprintf("/timeterm/timeterm/networking/service/%s", id)
+func (w *Wrapper) createNetworkingServiceSecretPath(id uuid.UUID) string {
+	return fmt.Sprintf("%s/data/%s/networking/service/%s", w.mount, w.prefix, id)
 }
 
 func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
-	secretPath := createNetworkingServiceSecretPath(id)
+	secretPath := w.createNetworkingServiceSecretPath(id)
 	secret, err := w.c.Logical().Read(secretPath)
 	if err != nil {
 		return nil, err
 	}
+	if secret == nil {
+		return nil, errors.New("no secret found")
+	}
 
-	bytes, ok := secret.Data["config"].(string)
+	secretData, ok := secret.Data["data"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New("could not retrieve config from secret")
+		return nil, errors.New("invalid secret data (may not be present)")
+	}
+	bytes, ok := secretData["config"].(string)
+	if !ok {
+		return nil, errors.New("config not present in secret")
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(bytes)
@@ -55,7 +69,7 @@ func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingServic
 }
 
 func (w *Wrapper) DeleteNetworkingService(id uuid.UUID) error {
-	secretPath := createNetworkingServiceSecretPath(id)
+	secretPath := w.createNetworkingServiceSecretPath(id)
 	_, err := w.c.Logical().Delete(secretPath)
 	return err
 }
@@ -68,10 +82,12 @@ func (w *Wrapper) UpsertNetworkingService(id uuid.UUID, cfg *devcfgpb.Networking
 
 	encoded := base64.StdEncoding.EncodeToString(bytes)
 
-	secretPath := createNetworkingServiceSecretPath(id)
+	secretPath := w.createNetworkingServiceSecretPath(id)
 
 	_, err = w.c.Logical().Write(secretPath, map[string]interface{}{
-		"config": encoded,
+		"data": map[string]interface{}{
+			"config": encoded,
+		},
 	})
 	return err
 }

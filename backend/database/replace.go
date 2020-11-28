@@ -44,8 +44,17 @@ func (w *Wrapper) ReplaceUser(ctx context.Context, user User) error {
 
 func (w *Wrapper) ReplaceDeviceHeartbeat(ctx context.Context, id uuid.UUID) error {
 	_, err := w.db.ExecContext(ctx,
-		`UPDATE "device" SET "last_heartbeat" = TIME.NOW() WHERE "id" = $1`,
+		`UPDATE "device" SET "last_heartbeat" = clock_timestamp() WHERE "id" = $1`,
 		id,
+	)
+
+	return err
+}
+
+func (w *Wrapper) ReplaceNetworkingService(ctx context.Context, s NetworkingService) error {
+	_, err := w.db.ExecContext(ctx,
+		`UPDATE "networking_service" SET "name" = $1 WHERE "id" = $2`,
+		s.Name, s.ID,
 	)
 
 	return err

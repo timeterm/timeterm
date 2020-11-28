@@ -9,6 +9,9 @@ import { Paginated } from "../GeneralTable";
 import { Button } from "@rmwc/button";
 import useSetting, { SettingPageProps } from "./useSetting";
 import { Icon } from "@rmwc/icon";
+import deepEqual from "deep-equal";
+import { v4 as uuidv4 } from "uuid";
+import useFileImporter from "./useFileImporter";
 
 enum NetworkingServiceType {
   Ethernet = "Ethernet",
@@ -35,7 +38,7 @@ enum Ipv6Privacy {
 
 enum Security {
   Psk = "Psk",
-  Ieee8021x = "ieee8021x",
+  Ieee8021x = "Ieee8021x",
   None = "None",
   Wep = "Wep",
 }
@@ -127,41 +130,84 @@ interface NetworkingService {
 
 interface NetworkingServicesPatch {
   services?: NetworkingService[];
+  deleted?: string[];
 }
 
-const getNetworkingServices = () =>
-  fetchAuthnd(`/networking/service`, {
+const getNetworkingServices: (
+  offset?: number
+) => Promise<NetworkingService[]> = async (offset: number = 0) => {
+  const rsp = await fetchAuthnd(`/networking/service?offset=${offset}`, {
     method: "GET",
   })
     .then((response) => response.json())
     .then((json) => json as Paginated<NetworkingService>);
 
-const saveNetworkingServices = (patch: NetworkingServicesPatch) =>
-  fetchAuthnd(`/user/${patch}`, {
-    method: "PATCH",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(patch),
-  });
+  if (rsp.offset + rsp.maxAmount < rsp.total) {
+    return [
+      ...rsp.data,
+      ...(await getNetworkingServices(rsp.offset + rsp.maxAmount)),
+    ];
+  }
+
+  return rsp.data;
+};
+
+const saveNetworkingServices = async (patch: NetworkingServicesPatch) => {
+  for (const service of patch.services || []) {
+    if (service.id?.startsWith("new-")) {
+      const uuidlessService = {
+        ...service,
+        id: null,
+      };
+      await fetchAuthnd(`/networking/service`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(uuidlessService),
+      });
+    } else {
+      await fetchAuthnd(`/networking/service/${service.id}`, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(service),
+      });
+    }
+  }
+
+  for (const id of patch.deleted || []) {
+    if (!id.startsWith("new-")) {
+      await fetchAuthnd(`/networking/service/${id}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+    }
+  }
+};
 
 interface NetworkSettingsProps extends SettingPageProps {}
 
 const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
   const { patch, setPatch } = useSetting<
-    Paginated<NetworkingService>,
+    NetworkingService[],
     NetworkingServicesPatch
   >({
     pageProps: props,
     isModified: (original, patch) => {
-      return true;
+      return !deepEqual(original, patch.services);
     },
-    fetch(): Promise<Paginated<NetworkingService>> {
+    fetch(): Promise<NetworkingService[]> {
       return getNetworkingServices();
     },
-    initPatch(original: Paginated<NetworkingService>): NetworkingServicesPatch {
-      return { services: original.data };
+    initPatch(original: NetworkingService[]): NetworkingServicesPatch {
+      return { services: [...original], deleted: [] };
     },
     queryKey: "networkingServices",
     save: saveNetworkingServices,
@@ -172,9 +218,85 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
     const services = patch?.services || [];
     services[i] = s;
     setPatch({
+      ...patch,
       services: services,
     });
   };
+
+  const deleteService = (i: number) => {
+    const services = patch?.services || [];
+    if (services.length <= i) {
+      return;
+    }
+    const service = patch?.services?.[i];
+
+    setPatch({
+      ...patch,
+      services: [
+        ...services.slice(0, i),
+        ...services.slice(i + 1, services.length),
+      ],
+      deleted: [
+        ...(patch?.deleted || []),
+        ...(service?.id ? [service.id] : []),
+      ],
+    });
+  };
+
+  const caCertImporter = useFileImporter<number>(
+    [".pem", ".der"],
+    (filename, contents, svci) => {
+      if (svci !== undefined && (patch?.services?.length || 0) > svci) {
+        console.log("TTT");
+        const type = filename.endsWith(".pem")
+          ? CaCertType.Pem
+          : filename.endsWith(".der")
+          ? CaCertType.Der
+          : undefined;
+
+        console.log("converting");
+        const b64Cert = btoa(
+          new Uint8Array(contents as ArrayBuffer).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ""
+          )
+        );
+        updateService(svci, {
+          ...patch?.services?.[svci],
+          caCert: b64Cert,
+          caCertType: type,
+        });
+      }
+    }
+  );
+
+  const privateKeyImporter = useFileImporter<number>(
+    [".pfx", ".pem", ".der"],
+    (filename, contents, svci) => {
+      if (svci !== undefined && (patch?.services?.length || 0) > svci) {
+        const type = filename.endsWith(".pfx")
+          ? PrivateKeyType.Pfx
+          : filename.endsWith(".pem")
+          ? PrivateKeyType.Pem
+          : filename.endsWith(".der")
+          ? PrivateKeyType.Der
+          : undefined;
+
+        const b64Key = btoa(
+          new Uint8Array(contents as ArrayBuffer).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ""
+          )
+        );
+
+        updateService(svci, {
+          ...patch?.services?.[svci],
+          privateKey: b64Key,
+          privateKeyType: type,
+        });
+      }
+    }
+  );
 
   return (
     <div
@@ -209,6 +331,10 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
               services: [
                 ...(patch?.services || []),
                 {
+                  // Generate a UUID (even though the backend assigns another one)
+                  // Doing this prevents the service below this one from opening after the deletion of this one
+                  // (when using the index as the key in the list instead of the id)
+                  id: "new-" + uuidv4(),
                   name: "Nieuw netwerk",
                 },
               ],
@@ -229,284 +355,484 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
           height: "100%",
         }}
       >
-        {patch?.services?.map((service, i) => (
-          <CollapsibleList
-            style={{
-              borderBottom:
-                "1px solid var(--mdc-theme-text-hint-on-background, rgba(0, 0, 0, 0.38))",
-            }}
-            handle={
-              <SimpleListItem
-                text={service.name}
-                metaIcon={<Icon icon="chevron_right" />}
-              />
-            }
-          >
-            <div
+        {patch?.services?.map((service, i) => {
+          return (
+            <CollapsibleList
               style={{
-                display: "flex",
-                flexDirection: "column",
-                margin: 16,
-                marginTop: 0,
-                height: "100%",
+                borderBottom:
+                  "1px solid var(--mdc-theme-text-hint-on-background, rgba(0, 0, 0, 0.38))",
               }}
+              handle={
+                <SimpleListItem
+                  text={service.name}
+                  metaIcon={<Icon icon="chevron_right" />}
+                />
+              }
+              key={service.id}
             >
-              <TextField
-                style={{
-                  marginTop: 16,
-                }}
-                label={"Naam"}
-                outlined
-                value={service.name}
-                onInput={(evt) => {
-                  updateService(i, {
-                    ...service,
-                    name: (evt.target as HTMLInputElement).value,
-                  });
-                }}
-              />
-
               <div
                 style={{
-                  marginTop: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  margin: 16,
+                  marginTop: 0,
+                  height: "100%",
                 }}
               >
-                <Select
-                  label={"Netwerktype"}
-                  enhanced
-                  outlined
-                  options={{
-                    [NetworkingServiceType.Ethernet]: "Ethernet",
-                    [NetworkingServiceType.Wifi]: "Wi-Fi",
+                <TextField
+                  style={{
+                    marginTop: 16,
                   }}
-                  onChange={(evt) => {
+                  label={"Naam"}
+                  outlined
+                  value={service.name}
+                  onInput={(evt) => {
                     updateService(i, {
                       ...service,
-                      type: (evt.target as HTMLSelectElement)
-                        .value as NetworkingServiceType,
+                      name: (evt.target as HTMLInputElement).value,
                     });
                   }}
                 />
-              </div>
 
-              <div
-                style={{
-                  marginTop: 16,
-                }}
-              >
-                <Select
-                  label={"IPv4"}
-                  enhanced
-                  outlined
-                  placeholder={"Automatisch"}
-                  options={{
-                    [Ipv4ConfigType.Off]: "Uit",
-                    [Ipv4ConfigType.Dhcp]: "DHCP",
-                    [Ipv4ConfigType.Custom]: "Handmatig",
-                  }}
-                  onChange={(evt) => {
-                    updateService(i, {
-                      ...service,
-                      ipv4Config: {
-                        ...service.ipv4Config,
-                        type: (evt.target as HTMLSelectElement)
-                          .value as Ipv4ConfigType,
-                      },
-                    });
-                  }}
-                />
-              </div>
-
-              {service?.ipv4Config?.type === Ipv4ConfigType.Custom && (
-                <>
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                    }}
-                    label={"IPv4-netwerk"}
-                    outlined
-                  />
-
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                    }}
-                    label={"IPv4-netmask"}
-                    outlined
-                  />
-
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                    }}
-                    label={"IPv4-gateway"}
-                    outlined
-                  />
-                </>
-              )}
-
-              <div
-                style={{
-                  marginTop: 16,
-                }}
-              >
-                <Select
-                  label={"IPv6"}
-                  enhanced
-                  outlined
-                  placeholder={"Automatisch"}
-                  options={{
-                    [Ipv6ConfigType.Off]: "Uit",
-                    [Ipv6ConfigType.Auto]: "Automatisch",
-                    [Ipv6ConfigType.Custom]: "Handmatig",
-                  }}
-                  onChange={(evt) => {
-                    updateService(i, {
-                      ...service,
-                      ipv6Config: {
-                        ...service.ipv6Config,
-                        type: (evt.target as HTMLSelectElement)
-                          .value as Ipv6ConfigType,
-                      },
-                    });
-                  }}
-                />
-              </div>
-
-              {service?.ipv6Config?.type !== Ipv6ConfigType.Off && (
                 <div
                   style={{
                     marginTop: 16,
                   }}
                 >
                   <Select
-                    label={"IPv6-privacy"}
+                    label={"Netwerktype"}
                     enhanced
                     outlined
-                    placeholder={"Automatisch"}
                     options={{
-                      [Ipv6Privacy.Disabled]: "Uit",
-                      [Ipv6Privacy.Enabled]: "Aan",
-                      [Ipv6Privacy.Preferred]: "Bij voorkeur",
+                      [NetworkingServiceType.Ethernet]: "Ethernet",
+                      [NetworkingServiceType.Wifi]: "Wi-Fi",
                     }}
                     onChange={(evt) => {
                       updateService(i, {
                         ...service,
-                        ipv6Privacy: (evt.target as HTMLSelectElement)
-                          .value as Ipv6Privacy,
+                        type: (evt.target as HTMLSelectElement)
+                          .value as NetworkingServiceType,
                       });
                     }}
                   />
                 </div>
-              )}
 
-              {service?.ipv6Config?.type === Ipv6ConfigType.Custom && (
-                <>
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                    }}
-                    label={"IPv6-netwerk"}
+                <div
+                  style={{
+                    marginTop: 16,
+                  }}
+                >
+                  <Select
+                    label={"IPv4"}
+                    enhanced
                     outlined
-                  />
-
-                  <TextField
-                    style={{
-                      marginTop: 16,
+                    placeholder={"Automatisch"}
+                    options={{
+                      [Ipv4ConfigType.Off]: "Uit",
+                      [Ipv4ConfigType.Dhcp]: "DHCP",
+                      [Ipv4ConfigType.Custom]: "Handmatig",
                     }}
-                    label={"IPv6-prefixlengte"}
-                    type={"number"}
-                    outlined
-                  />
-
-                  <TextField
-                    style={{
-                      marginTop: 16,
+                    onChange={(evt) => {
+                      updateService(i, {
+                        ...service,
+                        ipv4Config: {
+                          ...service.ipv4Config,
+                          type: (evt.target as HTMLSelectElement)
+                            .value as Ipv4ConfigType,
+                        },
+                      });
                     }}
-                    label={"IPv6-gateway"}
-                    outlined
                   />
-                </>
-              )}
+                </div>
 
-              {service?.type === NetworkingServiceType.Wifi && (
-                <>
-                  <TextField
-                    style={{
-                      marginTop: 16,
+                {service?.ipv4Config?.type === Ipv4ConfigType.Custom && (
+                  <>
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv4-netwerk"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv4Config: {
+                            ...service.ipv4Config,
+                            settings: {
+                              ...service.ipv4Config?.settings,
+                              network: (evt.target as HTMLInputElement).value,
+                            },
+                          },
+                        })
+                      }
+                    />
+
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv4-netmask"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv4Config: {
+                            ...service.ipv4Config,
+                            settings: {
+                              ...service.ipv4Config?.settings,
+                              netmask: (evt.target as HTMLInputElement).value,
+                            },
+                          },
+                        })
+                      }
+                    />
+
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv4-gateway"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv4Config: {
+                            ...service.ipv4Config,
+                            settings: {
+                              ...service.ipv4Config?.settings,
+                              gateway: (evt.target as HTMLInputElement).value,
+                            },
+                          },
+                        })
+                      }
+                    />
+                  </>
+                )}
+
+                <div
+                  style={{
+                    marginTop: 16,
+                  }}
+                >
+                  <Select
+                    label={"IPv6"}
+                    enhanced
+                    outlined
+                    placeholder={"Automatisch"}
+                    options={{
+                      [Ipv6ConfigType.Off]: "Uit",
+                      [Ipv6ConfigType.Auto]: "Automatisch",
+                      [Ipv6ConfigType.Custom]: "Handmatig",
                     }}
-                    label={"Netwerknaam"}
-                    outlined
+                    onChange={(evt) => {
+                      updateService(i, {
+                        ...service,
+                        ipv6Config: {
+                          ...service.ipv6Config,
+                          type: (evt.target as HTMLSelectElement)
+                            .value as Ipv6ConfigType,
+                        },
+                      });
+                    }}
                   />
+                </div>
 
+                {service?.ipv6Config?.type !== Ipv6ConfigType.Off && (
                   <div
                     style={{
                       marginTop: 16,
                     }}
                   >
                     <Select
-                      label={"Beveiliging"}
+                      label={"IPv6-privacy"}
                       enhanced
                       outlined
+                      placeholder={"Automatisch"}
                       options={{
-                        [Security.Psk]: "WPA",
-                        [Security.Ieee8021x]: "WPA-Enterprise",
-                        [Security.Wep]: "WEP",
+                        [Ipv6Privacy.Disabled]: "Uit",
+                        [Ipv6Privacy.Enabled]: "Aan",
+                        [Ipv6Privacy.Preferred]: "Bij voorkeur",
                       }}
                       onChange={(evt) => {
                         updateService(i, {
                           ...service,
-                          security: (evt.target as HTMLSelectElement)
-                            .value as Security,
+                          ipv6Privacy: (evt.target as HTMLSelectElement)
+                            .value as Ipv6Privacy,
                         });
                       }}
                     />
                   </div>
+                )}
 
-                  <TextField
-                    style={{
-                      marginTop: 16,
-                    }}
-                    label={"Wachtwoord"}
-                    outlined
-                  />
+                {service?.ipv6Config?.type === Ipv6ConfigType.Custom && (
+                  <>
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv6-netwerk"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv6Config: {
+                            ...service.ipv6Config,
+                            settings: {
+                              ...service.ipv6Config?.settings,
+                              network: (evt.target as HTMLInputElement).value,
+                            },
+                          },
+                        })
+                      }
+                    />
 
-                  <Switch
-                    style={{
-                      marginTop: 16,
-                    }}
-                  >
-                    Netwerk is verborgen
-                  </Switch>
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv6-prefixlengte"}
+                      type={"number"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv6Config: {
+                            ...service.ipv6Config,
+                            settings: {
+                              ...service.ipv6Config?.settings,
+                              prefixLength: Number(
+                                (evt.target as HTMLInputElement).value
+                              ),
+                            },
+                          },
+                        })
+                      }
+                    />
 
-                  {service?.security === Security.Ieee8021x && (
-                    <>
-                      <TextField
-                        style={{
-                          marginTop: 16,
-                        }}
-                        label={"Identiteit"}
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"IPv6-gateway"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          ipv6Config: {
+                            ...service.ipv6Config,
+                            settings: {
+                              ...service.ipv6Config?.settings,
+                              gateway: (evt.target as HTMLInputElement).value,
+                            },
+                          },
+                        })
+                      }
+                    />
+                  </>
+                )}
+
+                {service?.type === NetworkingServiceType.Wifi && (
+                  <>
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"Netwerknaam"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          networkName: (evt.target as HTMLInputElement).value,
+                        })
+                      }
+                    />
+
+                    <div
+                      style={{
+                        marginTop: 16,
+                      }}
+                    >
+                      <Select
+                        label={"Beveiliging"}
+                        enhanced
                         outlined
-                      />
-
-                      <TextField
-                        style={{
-                          marginTop: 16,
+                        options={{
+                          [Security.Psk]: "WPA",
+                          [Security.Ieee8021x]: "WPA-Enterprise",
+                          [Security.Wep]: "WEP",
                         }}
-                        label={"Anonieme identiteit"}
-                        outlined
+                        onChange={(evt) => {
+                          updateService(i, {
+                            ...service,
+                            security: (evt.target as HTMLSelectElement)
+                              .value as Security,
+                          });
+                        }}
                       />
-                    </>
-                  )}
-                </>
-              )}
+                    </div>
 
-              <Button danger raised icon={"delete"} style={{ marginTop: 16 }}>
-                Netwerk verwijderen
-              </Button>
-            </div>
-          </CollapsibleList>
-        ))}
+                    <TextField
+                      style={{
+                        marginTop: 16,
+                      }}
+                      label={"Wachtwoord"}
+                      outlined
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          passphrase: (evt.target as HTMLInputElement).value,
+                        })
+                      }
+                    />
+
+                    <Switch
+                      style={{
+                        marginTop: 16,
+                      }}
+                      onChange={(evt) =>
+                        updateService(i, {
+                          ...service,
+                          isHidden: (evt.target as HTMLInputElement).checked,
+                        })
+                      }
+                    >
+                      Netwerk is verborgen
+                    </Switch>
+
+                    {service?.security === Security.Ieee8021x && (
+                      <>
+                        <TextField
+                          style={{
+                            marginTop: 16,
+                          }}
+                          label={"Identiteit"}
+                          outlined
+                          onChange={(evt) =>
+                            updateService(i, {
+                              ...service,
+                              identity: (evt.target as HTMLInputElement).value,
+                            })
+                          }
+                        />
+
+                        <TextField
+                          style={{
+                            marginTop: 16,
+                          }}
+                          label={"Anonieme identiteit"}
+                          outlined
+                          onChange={(evt) =>
+                            updateService(i, {
+                              ...service,
+                              anonymousIdentity: (evt.target as HTMLInputElement)
+                                .value,
+                            })
+                          }
+                        />
+
+                        <div
+                          style={{
+                            marginTop: 16,
+                          }}
+                        >
+                          <Select
+                            label={"EAP"}
+                            enhanced
+                            outlined
+                            options={{
+                              [EapType.Peap]: "PEAP",
+                              [EapType.Tls]: "TLS",
+                              [EapType.Ttls]: "TTLS",
+                            }}
+                            onChange={(evt) => {
+                              updateService(i, {
+                                ...service,
+                                eap: (evt.target as HTMLSelectElement)
+                                  .value as EapType,
+                              });
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 16,
+                          }}
+                        >
+                          <Select
+                            label={"Phase 2"}
+                            enhanced
+                            outlined
+                            options={{
+                              [Phase2Type.Gtc]: "GTC",
+                              [Phase2Type.MschapV2]: "MSCHAPv2",
+                            }}
+                            onChange={(evt) => {
+                              updateService(i, {
+                                ...service,
+                                phase2: (evt.target as HTMLSelectElement)
+                                  .value as Phase2Type,
+                              });
+                            }}
+                          />
+                        </div>
+
+                        {service?.eap === EapType.Ttls && (
+                          <>
+                            <Switch
+                              style={{
+                                marginTop: 16,
+                              }}
+                              onChange={(evt) =>
+                                updateService(i, {
+                                  ...service,
+                                  isPhase2EapBased: (evt.target as HTMLInputElement)
+                                    .checked,
+                                })
+                              }
+                            >
+                              Phase 2 maakt gebruik van EAP
+                            </Switch>
+                          </>
+                        )}
+
+                        <Button
+                          style={{
+                            marginTop: 16,
+                          }}
+                          raised
+                          onClick={() => caCertImporter(i)}
+                        >
+                          CA-certificaat uploaden
+                        </Button>
+
+                        <Button
+                          style={{
+                            marginTop: 16,
+                          }}
+                          raised
+                          onClick={() => privateKeyImporter(i)}
+                        >
+                          Privésleutel uploaden
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
+
+                <Button
+                  danger
+                  raised
+                  icon={"delete"}
+                  style={{ marginTop: 16 }}
+                  onClick={() => deleteService(i)}
+                >
+                  Netwerk verwijderen
+                </Button>
+              </div>
+            </CollapsibleList>
+          );
+        })}
       </List>
     </div>
   );

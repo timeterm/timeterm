@@ -22,7 +22,10 @@
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
     "@testing-library/user-event": "^12.2.2",
+    "@types/deep-equal": "^1.0.1",
     "@types/file-saver": "^2.0.1",
+    "@types/uuid": "^8.3.0",
+    "deep-equal": "^2.0.4",
     "file-saver": "^2.0.2",
     "immutable": "^4.0.0-rc.12",
     "node-sass": "^4.0.0",
@@ -33,7 +36,8 @@
     "react-scripts": "4.0.1",
     "react-table": "^7.6.1",
     "typescript": "^4.0.5",
-    "universal-cookie": "^4.0.4"
+    "universal-cookie": "^4.0.4",
+    "uuid": "^8.3.1"
   },
   "scripts": {
     "start": "react-scripts start",

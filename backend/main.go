@@ -51,7 +51,7 @@ func realMain(log logr.Logger) error {
 		}
 	}()
 
-	secr, err := secrets.New()
+	secr, err := secrets.New(os.Getenv("VAULT_MOUNT"), os.Getenv("VAULT_PREFIX"))
 	if err != nil {
 		return fmt.Errorf("could not create secrets wrapper: %w", err)
 	}
