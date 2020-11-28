@@ -407,6 +407,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       [NetworkingServiceType.Ethernet]: "Ethernet",
                       [NetworkingServiceType.Wifi]: "Wi-Fi",
                     }}
+                    value={service.type}
                     onChange={(evt) => {
                       updateService(i, {
                         ...service,
@@ -432,6 +433,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       [Ipv4ConfigType.Dhcp]: "DHCP",
                       [Ipv4ConfigType.Custom]: "Handmatig",
                     }}
+                    value={service.ipv4Config?.type}
                     onChange={(evt) => {
                       updateService(i, {
                         ...service,
@@ -453,6 +455,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"IPv4-netwerk"}
                       outlined
+                      value={service.ipv4Config.settings?.network}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -473,6 +476,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"IPv4-netmask"}
                       outlined
+                      value={service.ipv4Config.settings?.netmask}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -493,6 +497,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"IPv4-gateway"}
                       outlined
+                      value={service.ipv4Config.settings?.gateway}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -524,6 +529,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       [Ipv6ConfigType.Auto]: "Automatisch",
                       [Ipv6ConfigType.Custom]: "Handmatig",
                     }}
+                    value={service.ipv6Config?.type}
                     onChange={(evt) => {
                       updateService(i, {
                         ...service,
@@ -553,6 +559,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                         [Ipv6Privacy.Enabled]: "Aan",
                         [Ipv6Privacy.Preferred]: "Bij voorkeur",
                       }}
+                      value={service.ipv6Privacy}
                       onChange={(evt) => {
                         updateService(i, {
                           ...service,
@@ -572,6 +579,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"IPv6-netwerk"}
                       outlined
+                      value={service.ipv6Config.settings?.network}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -593,6 +601,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       label={"IPv6-prefixlengte"}
                       type={"number"}
                       outlined
+                      value={service.ipv6Config.settings?.prefixLength}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -615,6 +624,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"IPv6-gateway"}
                       outlined
+                      value={service.ipv6Config.settings?.gateway}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -639,6 +649,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"Netwerknaam"}
                       outlined
+                      value={service.networkName}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -661,6 +672,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                           [Security.Ieee8021x]: "WPA-Enterprise",
                           [Security.Wep]: "WEP",
                         }}
+                        value={service.security}
                         onChange={(evt) => {
                           updateService(i, {
                             ...service,
@@ -677,6 +689,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       }}
                       label={"Wachtwoord"}
                       outlined
+                      value={service.passphrase}
+                      type={"password"}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -689,6 +703,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                       style={{
                         marginTop: 16,
                       }}
+                      checked={service.isHidden}
                       onChange={(evt) =>
                         updateService(i, {
                           ...service,
@@ -707,6 +722,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                           }}
                           label={"Identiteit"}
                           outlined
+                          value={service.identity}
                           onChange={(evt) =>
                             updateService(i, {
                               ...service,
@@ -721,6 +737,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                           }}
                           label={"Anonieme identiteit"}
                           outlined
+                          value={service.anonymousIdentity}
                           onChange={(evt) =>
                             updateService(i, {
                               ...service,
@@ -744,6 +761,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                               [EapType.Tls]: "TLS",
                               [EapType.Ttls]: "TTLS",
                             }}
+                            value={service.eap}
                             onChange={(evt) => {
                               updateService(i, {
                                 ...service,
@@ -767,6 +785,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                               [Phase2Type.Gtc]: "GTC",
                               [Phase2Type.MschapV2]: "MSCHAPv2",
                             }}
+                            value={service.phase2}
                             onChange={(evt) => {
                               updateService(i, {
                                 ...service,
@@ -783,6 +802,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                               style={{
                                 marginTop: 16,
                               }}
+                              checked={service.isPhase2EapBased}
                               onChange={(evt) =>
                                 updateService(i, {
                                   ...service,

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { queryCache } from "../App";
 import { snackbarQueue } from "../snackbarQueue";
@@ -41,6 +41,16 @@ const useSetting = <T, P extends object>({
     pageProps.settingsStore.update({
       [settingsKey]: patch,
     });
+  const [saved, setSaved] = useState(false);
+  const onSuccess = useCallback(
+    (original: T) => {
+      if (original && (!patch || saved)) {
+        setPatch(initPatch(original));
+        setSaved(false);
+      }
+    },
+    [patch, saved, setPatch, initPatch]
+  );
 
   const { isLoading, error, data: original } = useQuery<T>(
     queryKey,
@@ -50,16 +60,13 @@ const useSetting = <T, P extends object>({
       refetchOnMount: true,
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
-      onSuccess(original) {
-        if (original) {
-          setPatch(initPatch(original));
-        }
-      },
+      onSuccess,
     }
   );
 
   const [saveMut] = useMutation(save, {
     onSuccess: async () => {
+      setSaved(true);
       await queryCache.invalidateQueries([
         ...(saveInvalidatesQueries || []),
         queryKey,
