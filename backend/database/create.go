@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+const DefaultTokenExpiration = time.Hour * 24
+
 type Organization struct {
 	ID                 uuid.UUID
 	Name               string

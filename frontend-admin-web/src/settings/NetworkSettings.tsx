@@ -702,6 +702,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                     <Switch
                       style={{
                         marginTop: 16,
+                        marginLeft: 8,
                       }}
                       checked={service.isHidden}
                       onChange={(evt) =>
@@ -711,7 +712,9 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                         })
                       }
                     >
-                      Netwerk is verborgen
+                      <span style={{ marginLeft: 16 }}>
+                        Netwerk is verborgen
+                      </span>
                     </Switch>
 
                     {service?.security === Security.Ieee8021x && (
@@ -801,6 +804,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                             <Switch
                               style={{
                                 marginTop: 16,
+                                marginLeft: 8,
                               }}
                               checked={service.isPhase2EapBased}
                               onChange={(evt) =>
@@ -811,7 +815,9 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = (props) => {
                                 })
                               }
                             >
-                              Phase 2 maakt gebruik van EAP
+                              <span style={{ marginLeft: 16 }}>
+                                Phase 2 maakt gebruik van EAP
+                              </span>
                             </Switch>
                           </>
                         )}

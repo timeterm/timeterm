@@ -17,10 +17,13 @@ const LoginDonePage: React.FC = (props) => {
 
   const status = query.get("status");
   const token = query.get("token");
-  if (status === "ok" && token) {
+  const expiresUnix = Number(query.get("expires"));
+  if (status === "ok" && token && expiresUnix) {
+    const expires = new Date(expiresUnix * 1000);
     const tokenDec = atob(token);
     new Cookies().set("ttsess", tokenDec, {
       path: "/",
+      expires: expires,
     });
     history.push("/devices");
   }

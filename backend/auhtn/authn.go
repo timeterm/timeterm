@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/go-logr/logr"
@@ -137,9 +139,14 @@ func errorMsg(msg string) url.Values {
 }
 
 func tokenData(token string) url.Values {
-	return url.Values{"token": []string{
-		base64.URLEncoding.EncodeToString([]byte(token)),
-	}}
+	return url.Values{
+		"token": []string{
+			base64.URLEncoding.EncodeToString([]byte(token)),
+		},
+		"expires": []string{
+			strconv.FormatInt(time.Now().Add(database.DefaultTokenExpiration).Unix(), 10),
+		},
+	}
 }
 
 func redirectToOrigin(c echo.Context, redirectTo *url.URL, status Status, data url.Values) error {
