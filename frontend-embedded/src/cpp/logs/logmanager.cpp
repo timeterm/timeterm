@@ -40,6 +40,8 @@ void LogManager::_handleMessage(QtMsgType type, const QMessageLogContext &contex
     }
     m_messages.append(msg);
 
+    // Unlock the locker because otherwise messagesChanged() being handled synchronously
+    // could cause a deadlock (due to the handler wanting access to m_mut too).
     locker.unlock();
 
     emit messagesChanged();
