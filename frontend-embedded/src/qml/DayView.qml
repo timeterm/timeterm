@@ -23,16 +23,16 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (typeof startOfDay === 'undefined' || typeof endOfDay === 'undefined') {
+            if (!startOfDay || !endOfDay) {
                 startOfDay = new Date().setHours(0, 0, 0, 0)
                 endOfDay = new Date().setHours(24, 0, 0, 0)
             }
 
             if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
-                if (typeof dayAppointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
+                if (!dayAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
                     dayAppointments.startFirstAppointment = timetable.data[i].startTime
                 }
-                if (typeof dayAppointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment.getMillisecondsInDay()) {
+                if (!dayAppointments.endLastAppointment || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment.getMillisecondsInDay()) {
                     dayAppointments.endLastAppointment = timetable.data[i].endTime
                     dayAppointments.contentHeight = (dayAppointments.endLastAppointment.getMillisecondsInDay()
                                                 - dayAppointments.startFirstAppointment.getMillisecondsInDay())
@@ -59,9 +59,10 @@ Page {
                 }
             }
         }
-        if (typeof dayAppointments.startFirstAppointment !== "undefined") {
+        if (!!dayAppointments.startFirstAppointment) {
             fillDayTimeLine()
         }
+        dayAppointments.visible = true
     }
 
     function fillDayTimeLine() {
@@ -102,11 +103,11 @@ Page {
 
     Rectangle {
         id: dayHeader
-        width: parent.width * 0.8
+        width: parent.width - dayPage.width * 0.15 - dayPage.height * 0.06
         height: parent.height * 0.06
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.margins: parent.height * 0.02
+        anchors.margins: dayPage.height * 0.02
         color: "#b5b5b5"
         radius: 5
         Text {
@@ -114,30 +115,30 @@ Page {
             anchors.verticalCenter: parent.verticalCenter
             anchors.centerIn: parent
             font.pixelSize: textSize
+            font.capitalization: Font.Capitalize
         }
     }
 
     Flickable {
         id: dayAppointments
-        anchors.margins: parent.height * 0.02
-        anchors.top: dayHeader.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.margins: dayPage.height * 0.02
+        anchors.topMargin: dayPage.height * 0.1
+        anchors.fill: parent
+        visible: false // made visible if there are appointments to display
+
+        property var startFirstAppointment
+        property var endLastAppointment
 
         contentWidth: width
         flickableDirection: Flickable.VerticalFlick
         clip: true
-
-        property var startFirstAppointment
-        property var endLastAppointment
 
         Rectangle {
             id: dayTimeLine
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            width: parent.width - dayHeader.width - dayHeader.anchors.margins
+            width: dayPage.width * 0.15
             color: "#D6E6FF"
             radius: 5
 
@@ -151,7 +152,7 @@ Page {
 
                 function setCurrentdayTimeLine() {
                     let currTime = new Date()
-                    if (typeof dayAppointments.startFirstAppointment !== 'undefined' && currTime.getTime() > dayAppointments.startFirstAppointment.getTime() && currTime.getTime() < dayAppointments.endLastAppointment.getTime()) {
+                    if (!!dayAppointments.startFirstAppointment && currTime.getTime() > dayAppointments.startFirstAppointment.getTime() && currTime.getTime() < dayAppointments.endLastAppointment.getTime()) {
                         let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
@@ -173,7 +174,5 @@ Page {
 
             Component.onCompleted: currentTime.secToPixRatio = dayPage.secondToPixelRatio
         }
-
-        Component.onCompleted: dayAppointments.visible = typeof dayAppointments.startFirstAppointment !== 'undefined' // If there are no dayAppointments, don't show the dayAppointments and dayTimeLine
     }
 }

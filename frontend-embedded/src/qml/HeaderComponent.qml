@@ -16,7 +16,7 @@ Item {
         target: header
 
         function onTitleChanged() {
-            titleLabel.text = "Timeterm-" + title
+            titleLabel.text = "Timeterm" + (title === "" ? "" : "-"+title)
         }
     }
 

@@ -25,7 +25,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: weekPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize/2
+        font.pixelSize: weekPage.textSize * 0.75
         text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + " - " + appointment.endTimeSlot)
     }
 
@@ -33,7 +33,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: -parent.width / 6 + weekPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize/2
+        font.pixelSize: weekPage.textSize * 0.75
         text: appointment.subjects.join(", ")
     }
 
@@ -41,7 +41,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: parent.width / 6 - weekPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize/2
+        font.pixelSize: weekPage.textSize * 0.75
         text: appointment.locations.join(", ")
     }
     
@@ -49,7 +49,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: weekPage.customMargin
-        font.pixelSize: weekPage.textSize/2
+        font.pixelSize: weekPage.textSize * 0.75
         color: "#666666"
         text: appointment.teachers.join(", ")
     }

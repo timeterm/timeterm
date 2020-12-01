@@ -12,8 +12,8 @@ Page {
     height: stack.height
 
     property int textSize: weekPage.height * 0.04
-    property int customMargin: weekPage.height * 0.05
-    property var secondToPixelRatio: weekAppointments.height * 0.000037
+    property int customMargin: weekPage.height * 0.025
+    property var secondToPixelRatio: (weekAppointments.height - weekPage.height * 0.08) * 0.000037
     property var startOfWeek
     property var endOfWeek
 
@@ -23,16 +23,16 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (typeof startOfWeek === 'undefined' || typeof endOfWeek === 'undefined') {
+            if (!startOfWeek || !endOfWeek) {
                 startOfWeek = new Date().setHours(0, 0, 0, 0)
-                endOfWeek = new Date().setHours(24, 0, 0, 0)
+                endOfWeek = new Date().setHours(120, 0, 0, 0)
             }
 
             if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
-                if (typeof weekAppointments.startFirstAppointment === 'undefined' || timetable.data[i].startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first weekAppointment in the list
+                if (!weekAppointments.startFirstAppointment || timetable.data[i].startTime < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
                     weekAppointments.startFirstAppointment = timetable.data[i].startTime
                 }
-                if (typeof weekAppointments.endLastAppointment === 'undefined' || timetable.data[i].endTime.getMillisecondsInDay() > weekAppointments.endLastAppointment.getMillisecondsInDay()) {
+                if (!weekAppointments.endLastAppointment || timetable.data[i].endTime > weekAppointments.endLastAppointment) {
                     weekAppointments.endLastAppointment = timetable.data[i].endTime
                     weekAppointments.contentHeight = (weekAppointments.endLastAppointment.getMillisecondsInDay()
                                                 - weekAppointments.startFirstAppointment.getMillisecondsInDay())
@@ -61,9 +61,10 @@ Page {
                 }
             }
         }
-        if (typeof weekAppointments.startFirstAppointment !== 'undefined') {
+        if (!!weekAppointments.startFirstAppointment) {
             fillWeekTimeLine()
         }
+        weekAppointments.visible = true
     }
 
     function fillWeekTimeLine() {
@@ -106,12 +107,13 @@ Page {
         id: weekAppointments
         anchors.margins: parent.height * 0.02
         anchors.fill: parent
+        visible: false // made visible if there are appointments to display
 
         property var startFirstAppointment
         property var endLastAppointment
         property var weekAppointmentWidth: weekPage.width * 0.8 / 3.5
 
-        contentWidth: weekPage.width * 0.15 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 4
+        contentWidth: weekPage.width * 0.15 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 5
         flickableDirection: Flickable.HorizontalAndVerticalFlick 
         clip: true
 
@@ -135,7 +137,8 @@ Page {
 
                 function setCurrentweekTimeLine() {
                     let currTime = new Date()
-                    if (typeof weekAppointments.startFirstAppointment !== 'undefined' && currTime.getTime() > weekAppointments.startFirstAppointment.getTime() && currTime.getTime() < weekAppointments.endLastAppointment.getTime()) {
+
+                    if (!!weekAppointments.startFirstAppointment && !!weekAppointments.endLastAppointment && currTime > weekAppointments.startFirstAppointment && currTime < weekAppointments.endLastAppointment) {
                         let offset = (currTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
@@ -158,6 +161,84 @@ Page {
             Component.onCompleted: currentTime.secToPixRatio = weekPage.secondToPixelRatio
         }
 
-        Component.onCompleted: weekAppointments.visible = typeof weekAppointments.startFirstAppointment !== 'undefined' // If there are no weekAppointments, don't show the weekAppointments and weekTimeLine
+        Rectangle {
+            id: monday
+            anchors.top: parent.top
+            x: weekTimeLine.width + weekPage.height * 0.02
+            width: weekPage.width * 0.8 / 3.5
+            height: weekPage.height * 0.06
+            color: "#b5b5b5"
+            radius: 5
+            Text {
+                text: "Maandag"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                font.pixelSize: textSize
+            }
+        }
+
+        Rectangle {
+            id: tuesday
+            anchors.top: parent.top
+            x: weekTimeLine.width + weekPage.height * 0.02 * 2 + (weekPage.width * 0.8 / 3.5) * 1
+            width: weekPage.width * 0.8 / 3.5
+            height: weekPage.height * 0.06
+            color: "#b5b5b5"
+            radius: 5
+            Text {
+                text: "Dinsdag"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                font.pixelSize: textSize
+            }
+        }
+
+        Rectangle {
+            id: wednesday
+            anchors.top: parent.top
+            x: weekTimeLine.width + weekPage.height * 0.02 * 3 + (weekPage.width * 0.8 / 3.5) * 2
+            width: weekPage.width * 0.8 / 3.5
+            height: weekPage.height * 0.06
+            color: "#b5b5b5"
+            radius: 5
+            Text {
+                text: "Woensdag"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                font.pixelSize: textSize
+            }
+        }
+
+        Rectangle {
+            id: thursday
+            anchors.top: parent.top
+            x: weekTimeLine.width + weekPage.height * 0.02 * 4 + (weekPage.width * 0.8 / 3.5) * 3
+            width: weekPage.width * 0.8 / 3.5
+            height: weekPage.height * 0.06
+            color: "#b5b5b5"
+            radius: 5
+            Text {
+                text: "Donderdag"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                font.pixelSize: textSize
+            }
+        }
+
+        Rectangle {
+            id: friday
+            anchors.top: parent.top
+            x: weekTimeLine.width + weekPage.height * 0.02 * 5 + (weekPage.width * 0.8 / 3.5) * 4
+            width: weekPage.width * 0.8 / 3.5
+            height: weekPage.height * 0.06
+            color: "#b5b5b5"
+            radius: 5
+            Text {
+                text: "Vrijdag"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                font.pixelSize: textSize
+            }
+        }
     }
 }

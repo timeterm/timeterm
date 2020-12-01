@@ -7,14 +7,14 @@ Item {
 
     Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width * 0.9
+        width: parent.width * 0.8
         height: 2
         color: "#666666"
         border.color: "#666666"
         border.width: 2
     }
     Text {
-        x: parent.width * 0.05
+        anchors.horizontalCenter: parent.horizontalCenter
         text: time
         font.pixelSize: textSize
     }
