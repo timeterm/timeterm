@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	_ "time/tzdata"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
