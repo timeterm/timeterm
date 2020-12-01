@@ -184,6 +184,10 @@ func (t UnixTime) MarshalJSON() ([]byte, error) {
 
 type AllowedStudentActions string
 
+func (a AllowedStudentActions) CanSwitch() bool {
+	return a == AllowedStudentActionsSwitch || a == AllowedStudentActionsAll
+}
+
 const (
 	AllowedStudentActionsNone   AllowedStudentActions = "none"
 	AllowedStudentActionsSwitch AllowedStudentActions = "switch"
@@ -191,18 +195,18 @@ const (
 )
 
 type AppointmentParticipation struct {
-	ID                    int    `json:"id"`
-	AppointmentInstance   int    `json:"appointmentInstance"`
-	StudentInDepartment   int    `json:"studentInDepartment"`
-	IsOptional            bool   `json:"optional"`
-	IsStudentEnrolled     bool   `json:"StudentEnrolled"`
-	Content               string `json:"content"`
-	IsOnline              bool   `json:"online"`
-	IsAttendancePlanned   bool   `json:"plannedAttendance"`
-	Capacity              int    `json:"capacity"`
-	AllowedStudentActions string `json:"allowedStudentActions"`
-	StudentCode           string `json:"studentCode"`
-	AvailableSpace        int    `json:"availableSpace"`
+	ID                    int                   `json:"id"`
+	AppointmentInstance   int                   `json:"appointmentInstance"`
+	StudentInDepartment   int                   `json:"studentInDepartment"`
+	IsOptional            bool                  `json:"optional"`
+	IsStudentEnrolled     bool                  `json:"StudentEnrolled"`
+	Content               string                `json:"content"`
+	IsOnline              bool                  `json:"online"`
+	IsAttendancePlanned   bool                  `json:"plannedAttendance"`
+	Capacity              int                   `json:"capacity"`
+	AllowedStudentActions AllowedStudentActions `json:"allowedStudentActions"`
+	StudentCode           string                `json:"studentCode"`
+	AvailableSpace        int                   `json:"availableSpace"`
 }
 
 type AppointmentParticipationsResponse struct {
@@ -312,6 +316,10 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 	}
 	defer func() { _ = hrsp.Body.Close() }()
 
+	if hrsp.StatusCode != http.StatusOK {
+		return nil, StatusError{Code: hrsp.StatusCode}
+	}
+
 	var rsp AppointmentParticipation
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
 		return nil, fmt.Errorf("could not decode Zermelo response: %w", err)
@@ -325,11 +333,11 @@ type ChangeParticipationRequest struct {
 }
 
 type StatusError struct {
-	Status int
+	Code int
 }
 
 func (e StatusError) Error() string {
-	return fmt.Sprintf("got HTTP status %d", e.Status)
+	return fmt.Sprintf("got HTTP status %d", e.Code)
 }
 
 func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *ChangeParticipationRequest) error {
@@ -352,7 +360,7 @@ func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *Chang
 		return fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	if hrsp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to change participation: %w", StatusError{Status: hrsp.StatusCode})
+		return fmt.Errorf("failed to change participation: %w", StatusError{Code: hrsp.StatusCode})
 	}
 
 	return nil

@@ -121,6 +121,10 @@ func (s *Server) registerRoutes() {
 	zappGroup := s.echo.Group("/zermelo/appointment")
 	zappGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log), authn.StudentLoginMiddleware(s.db, s.log))
 	zappGroup.GET("", s.getZermeloAppointments)
+
+	zenrGroup := s.echo.Group("/zermelo/enrollment")
+	zenrGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log), authn.StudentLoginMiddleware(s.db, s.log))
+	zenrGroup.POST("", s.enrollZermelo)
 }
 
 func (s *Server) Run(ctx context.Context) error {
