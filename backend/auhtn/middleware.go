@@ -3,7 +3,6 @@ package authn
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/go-logr/logr"
@@ -141,7 +140,10 @@ func StudentLoginMiddleware(db *database.Wrapper, log logr.Logger) echo.Middlewa
 		Validator: func(uid string, c echo.Context) (bool, error) {
 			dev, ok := DeviceFromContext(c)
 			if !ok {
-				return false, fmt.Errorf("must be logged in with a device for an organization")
+				return false, echo.NewHTTPError(
+					http.StatusUnauthorized,
+					"Must be logged in with a device for an organization",
+				)
 			}
 
 			student, err := db.GetStudentByCard(c.Request().Context(), []byte(uid), dev.OrganizationID)
