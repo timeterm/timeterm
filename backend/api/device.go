@@ -331,7 +331,7 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
 	}
 
-	dbNetworkingServices, err := s.db.GetAllNetworkingServices(c.Request().Context())
+	dbNetworkingServices, err := s.db.GetAllNetworkingServices(c.Request().Context(), user.OrganizationID)
 	if err != nil {
 		s.log.Error(err, "could not read networking services from database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")

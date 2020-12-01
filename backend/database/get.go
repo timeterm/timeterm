@@ -347,10 +347,12 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 	return netwServices, nil
 }
 
-func (w *Wrapper) GetAllNetworkingServices(ctx context.Context) ([]NetworkingService, error) {
+func (w *Wrapper) GetAllNetworkingServices(ctx context.Context, organizationID uuid.UUID) ([]NetworkingService, error) {
 	var networkingServices []NetworkingService
 
-	err := w.db.SelectContext(ctx, &networkingServices, `SELECT * FROM "networking_service"`)
+	err := w.db.SelectContext(ctx, &networkingServices, `
+		SELECT * FROM "networking_service" WHERE "organization_id" = $1
+	`, organizationID)
 
 	return networkingServices, err
 }
