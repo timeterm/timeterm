@@ -35,6 +35,10 @@ func (w *Wrapper) createNetworkingServiceSecretPath(id uuid.UUID) string {
 	return fmt.Sprintf("%s/data/%s/networking/service/%s", w.mount, w.prefix, id)
 }
 
+func (w *Wrapper) createOrganizationZermeloTokenSecretPath(organizationID uuid.UUID) string {
+	return fmt.Sprintf("%s/data/%s/zermelo/tokens/organization/%s", w.mount, w.prefix, organizationID)
+}
+
 func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
 	secretPath := w.createNetworkingServiceSecretPath(id)
 	secret, err := w.c.Logical().Read(secretPath)
@@ -87,6 +91,39 @@ func (w *Wrapper) UpsertNetworkingService(id uuid.UUID, cfg *devcfgpb.Networking
 	_, err = w.c.Logical().Write(secretPath, map[string]interface{}{
 		"data": map[string]interface{}{
 			"config": encoded,
+		},
+	})
+	return err
+}
+
+func (w *Wrapper) GetOrganizationZermeloToken(organizationID uuid.UUID) ([]byte, error) {
+	secretPath := w.createOrganizationZermeloTokenSecretPath(organizationID)
+	secret, err := w.c.Logical().Read(secretPath)
+	if err != nil {
+		return nil, err
+	}
+	if secret == nil {
+		return nil, err
+	}
+
+	secretData, ok := secret.Data["data"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid secret data (may not be present)")
+	}
+	token, ok := secretData["token"].(string)
+	if !ok {
+		return nil, errors.New("token not present in secret")
+	}
+
+	return []byte(token), nil
+}
+
+func (w *Wrapper) UpsertOrganizationZermeloToken(id uuid.UUID, token []byte) error {
+	secretPath := w.createOrganizationZermeloTokenSecretPath(id)
+
+	_, err := w.c.Logical().Write(secretPath, map[string]interface{}{
+		"data": map[string]interface{}{
+			"token": string(token),
 		},
 	})
 	return err

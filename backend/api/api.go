@@ -45,6 +45,8 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 }
 
 func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secrets.Wrapper) (Server, error) {
+	log = log.WithName("Server")
+
 	e, err := newEcho(log)
 	if err != nil {
 		return Server{}, err
@@ -115,6 +117,10 @@ func (s *Server) registerRoutes() {
 	netServGroup.POST("", s.createNetworkingService)
 	netServGroup.PUT("/:id", s.replaceNetworkingService)
 	netServGroup.DELETE("/:id", s.deleteNetworkingService)
+
+	zappGroup := s.echo.Group("/zermelo/appointment")
+	zappGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log), authn.StudentLoginMiddleware(s.db, s.log))
+	zappGroup.GET("", s.getZermeloAppointments)
 }
 
 func (s *Server) Run(ctx context.Context) error {

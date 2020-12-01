@@ -81,7 +81,7 @@ type AppointmentsResponse struct {
 
 type AppointmentsResponseData struct {
 	ResponseMetadata
-	Data []Appointment `json:"data"`
+	Data []*Appointment `json:"data"`
 }
 
 type ResponseMetadata struct {
@@ -129,11 +129,11 @@ type Appointment struct {
 }
 
 func structJSONFields(s interface{}) (fields []string) {
-	at := reflect.TypeOf(s)
-	for i := 0; i < at.NumField(); i++ {
-		ft := at.Field(i)
-		name := ft.Name
-		if tag, ok := ft.Tag.Lookup("json"); ok {
+	structTy := reflect.TypeOf(s)
+	for i := 0; i < structTy.NumField(); i++ {
+		field := structTy.Field(i)
+		name := field.Name
+		if tag, ok := field.Tag.Lookup("json"); ok {
 			parts := strings.Split(tag, ",")
 			if len(parts) > 0 {
 				if parts[0] == "-" {
@@ -156,6 +156,10 @@ func appointmentParticipationJSONFields() []string {
 }
 
 type UnixTime time.Time
+
+func (t UnixTime) Time() time.Time {
+	return time.Time(t)
+}
 
 func (t UnixTime) String() string {
 	return strconv.FormatInt(time.Time(t).Unix(), 10)
@@ -191,11 +195,13 @@ type AppointmentParticipation struct {
 	StudentInDepartment   int    `json:"studentInDepartment"`
 	IsOptional            bool   `json:"optional"`
 	IsStudentEnrolled     bool   `json:"StudentEnrolled"`
-	PublicComment         string `json:"publicComment"`
+	Content               string `json:"content"`
 	IsOnline              bool   `json:"online"`
 	IsAttendancePlanned   bool   `json:"plannedAttendance"`
 	Capacity              int    `json:"capacity"`
 	AllowedStudentActions string `json:"allowedStudentActions"`
+	StudentCode           string `json:"studentCode"`
+	AvailableSpace        int    `json:"availableSpace"`
 }
 
 type AppointmentParticipationsResponse struct {
@@ -204,7 +210,7 @@ type AppointmentParticipationsResponse struct {
 
 type AppointmentParticipationsResponseData struct {
 	ResponseMetadata
-	Data []AppointmentParticipation `json:"data"`
+	Data []*AppointmentParticipation `json:"data"`
 }
 
 type AppointmentsRequest struct {

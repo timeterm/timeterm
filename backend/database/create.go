@@ -287,8 +287,12 @@ func (w *Wrapper) CreateDeviceRegistrationToken(ctx context.Context, organizatio
 }
 
 func hashToken(token uuid.UUID) ([]byte, error) {
+	return hashBytes(token[:])
+}
+
+func hashBytes(b []byte) ([]byte, error) {
 	h := sha3.NewShake256()
-	_, err := h.Write(token[:])
+	_, err := h.Write(b)
 	if err != nil {
 		return nil, err
 	}

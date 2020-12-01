@@ -792,3 +792,25 @@ type paginationParams struct {
 	Offset    *uint64 `query:"offset"`
 	MaxAmount *uint64 `query:"maxAmount"`
 }
+
+type ZermeloAppointment struct {
+	ID                  int                   `json:"id"`
+	AppointmentInstance int                   `json:"appointmentInstance"`
+	IsOnline            bool                  `json:"isOnline"`
+	IsOptional          bool                  `json:"isOptional"`
+	IsStudentEnrolled   bool                  `json:"isStudentEnrolled"`
+	IsCanceled          bool                  `json:"isCanceled"`
+	StartTimeSlotName   string                `json:"startTimeSlotName"`
+	EndTimeSlotName     string                `json:"endTimeSlotName"`
+	Subjects            []string              `json:"subjects"`
+	Locations           []string              `json:"locations"`
+	Teachers            []string              `json:"teachers"`
+	StartTime           time.Time             `json:"startTime"`
+	EndTime             time.Time             `json:"endTime"`
+	Content             string                `json:"content"`
+	Alternatives        []*ZermeloAppointment `json:"alternatives"`
+}
+
+type ZermeloAppointmentsResponse struct {
+	Data []*ZermeloAppointment `json:"data"`
+}
