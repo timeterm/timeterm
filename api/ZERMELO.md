@@ -59,6 +59,21 @@ Properties:
 * <kbd>en</kbd>: <kbd>string</kbd>
   Message localized in English. See examples above.
 
+### Making choices
+
+1. <kbd>PUT</kbd> `https://{institution}.zportal.nl/api/v3/appointmentparticipations/{id}`  
+   Request body (JSON): 
+   ```json
+   {"id": <id>, "studentEnrolled": false}
+   ```
+   The ID in both the request URL and the request body is the ID of the <kbd>AppointmentParticipation</kbd>. When requesting the live schedule, the ID in the <kbd>Appointment</kbd> for which the participation has to be changed.
+2. <kbd>PUT</kbd> `https://{institution}.zportal.nl/api/v3/appointmentparticipations/{id}`  
+   Request body (JSON):
+   ```json
+   {"id": <id>, "studentEnrolled": true}
+   ```
+   The ID in both the request URL and the request body is the ID of the <kbd>AppointmentParticipation</kbd>. When requesting the live schedule, the ID in the <kbd>Appointment</kbd> in the <kbd>Action</kbd> for which must be enrolled can be used.
+
 #### Notes
 
 The properties <kbd>nl</kbd> and <kbd>en</kbd> may actually not be static, but ISO 639-1 language codes (think OpenAPI 3's `additionalProperties`).
