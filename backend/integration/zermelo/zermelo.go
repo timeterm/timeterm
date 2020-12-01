@@ -185,8 +185,9 @@ func (t UnixTime) MarshalJSON() ([]byte, error) {
 type AllowedStudentActions string
 
 const (
-	AllowedStudentActionsNone AllowedStudentActions = "none"
-	AllowedStudentActionsAll  AllowedStudentActions = "all"
+	AllowedStudentActionsNone   AllowedStudentActions = "none"
+	AllowedStudentActionsSwitch AllowedStudentActions = "switch"
+	AllowedStudentActionsAll    AllowedStudentActions = "all"
 )
 
 type AppointmentParticipation struct {
@@ -283,6 +284,35 @@ func (c *OrganizationClient) GetAppointmentParticipations(
 	defer func() { _ = hrsp.Body.Close() }()
 
 	var rsp AppointmentParticipationsResponse
+	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
+		return nil, fmt.Errorf("could not decode Zermelo response: %w", err)
+	}
+	return &rsp, nil
+}
+
+func (c *OrganizationClient) GetAppointmentParticipation(
+	ctx context.Context,
+	id int,
+) (*AppointmentParticipation, error) {
+	uri := c.BaseURL.ResolveReference(&url.URL{
+		Path: fmt.Sprintf("/appointmentparticipations/%d", id),
+		RawQuery: url.Values{
+			"fields": {strings.Join(appointmentParticipationJSONFields(), ",")},
+		}.Encode(),
+	})
+
+	hreq, err := http.NewRequestWithContext(ctx, http.MethodGet, uri.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %w", err)
+	}
+
+	hrsp, err := c.Client.Do(hreq)
+	if err != nil {
+		return nil, fmt.Errorf("could not do request to Zermelo: %w", err)
+	}
+	defer func() { _ = hrsp.Body.Close() }()
+
+	var rsp AppointmentParticipation
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
 		return nil, fmt.Errorf("could not decode Zermelo response: %w", err)
 	}
