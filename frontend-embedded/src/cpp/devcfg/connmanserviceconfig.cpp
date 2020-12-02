@@ -1,5 +1,7 @@
 #include "connmanserviceconfig.h"
 
+#include <QDir>
+
 ConnManIpv4Config::ConnManIpv4Config(QObject *parent)
     : QObject(parent)
 {}
@@ -809,24 +811,34 @@ QString caCertTypeExtension(ConnManServiceConfig::CaCertType t)
 
 QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::PrivateKeyType type)
 {
-    auto suffix = "pkey." + privateKeyTypeExtension(type);
-    auto relative = QStringLiteral("keys/%1/%2").arg(serviceName, suffix);
+    auto filename = "pkey." + privateKeyTypeExtension(type);
+    auto relative = QStringLiteral("keys/%1").arg(serviceName);
 
 #if TIMETERMOS
-    return "/opt/frontend-embedded/keys/" + relative;
+    QString dir = "/opt/frontend-embedded/" + relative;
+#else
+    const QString& dir = relative;
 #endif
-    return relative;
+
+    QDir(dir).mkpath(dir);
+
+    return dir + filename;
 }
 
 QString createCaCertPath(const QString &serviceName, ConnManServiceConfig::CaCertType type)
 {
-    auto suffix = "cacert." + caCertTypeExtension(type);
-    auto relative = QStringLiteral("keys/%1/%2").arg(serviceName, suffix);
+    auto filename = "cacert." + caCertTypeExtension(type);
+    auto relative = QStringLiteral("keys/%1").arg(serviceName);
 
 #if TIMETERMOS
-    return "/opt/frontend-embedded/" + relative;
+    QString dir = "/opt/frontend-embedded/" + relative;
+#else
+    const QString& dir = relative;
 #endif
-    return relative;
+
+    QDir(dir).mkpath(dir);
+
+    return dir + filename;
 }
 
 void writeFileBytes(const QString &path, const QByteArray &arr, QFile::FileError *error = nullptr)

@@ -7,6 +7,7 @@
 
 #include <QJsonDocument>
 
+#include <QDir>
 #include <util/scopeguard.h>
 
 Config::Config(QObject *parent)
@@ -55,6 +56,48 @@ void Config::setNetworkingServices(const QList<ConnManServiceConfig *> &networki
 QList<ConnManServiceConfig *> Config::networkingServices()
 {
     return m_networkingServices;
+}
+
+void Config::setToken(const QString &token)
+{
+    if (token != m_token) {
+        m_token = token;
+        emit tokenChanged();
+    }
+}
+
+QString Config::token() const
+{
+    return m_token;
+}
+
+QString createSignupTokenPath() {
+    const QString filename = QStringLiteral("signup-token");
+    auto relative = QStringLiteral("tokens");
+
+#if TIMETERMOS
+    return "/opt/frontend-embedded/" + relative;
+#else
+    const QString &dir = relative;
+#endif
+
+    QDir(dir).mkpath(dir);
+
+    return dir + relative;
+}
+
+void Config::saveSignupToken()
+{
+    auto path = createSignupTokenPath();
+    auto f = QFile(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qCritical() << "Could not open signup token file";
+        return;
+    }
+
+    auto tokenBytes = m_token.toLocal8Bit();
+    f.write(tokenBytes);
+    f.close();
 }
 
 ConfigLoader::ConfigLoader(QObject *parent)
@@ -141,6 +184,8 @@ void ConfigLoader::loadConfig()
         auto config = new Config(this);
         config->read(jsonDoc);
         qDebug() << "Config file read";
+
+        config->saveSignupToken();
 
         for (auto &svc : config->networkingServices()) {
             qDebug() << "Configuring ethernet service" << svc->name();

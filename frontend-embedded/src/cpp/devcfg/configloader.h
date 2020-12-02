@@ -7,6 +7,7 @@
 class Config: public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString token READ token WRITE setToken NOTIFY tokenChanged)
     Q_PROPERTY(QList<ConnManServiceConfig *> ethernetServices READ networkingServices WRITE setNetworkingServices NOTIFY networkingServicesChanged)
 
 public:
@@ -17,12 +18,18 @@ public:
 
     void setNetworkingServices(const QList<ConnManServiceConfig *> &networkingServices);
     QList<ConnManServiceConfig *> networkingServices();
+    void setToken(const QString &token);
+    [[nodiscard]] QString token() const;
+
+    void saveSignupToken();
 
 signals:
     void networkingServicesChanged();
+    void tokenChanged();
 
 private:
     QList<ConnManServiceConfig *> m_networkingServices;
+    QString m_token;
 };
 
 class ConfigLoader: public QObject
