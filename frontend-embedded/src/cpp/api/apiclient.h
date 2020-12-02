@@ -1,5 +1,7 @@
 #pragma once
 
+#include "createdevice.h"
+#include "natscreds.h"
 #include "timetermuser.h"
 #include "zermeloappointments.h"
 
@@ -26,12 +28,16 @@ public:
 
     Q_INVOKABLE void getCurrentUser();
     Q_INVOKABLE void getAppointments(const QDateTime &start, const QDateTime &end);
+    Q_INVOKABLE void createDevice();
+    Q_INVOKABLE void getNatsCreds(const QString& deviceId);
 
 signals:
     void cardIdChanged();
     void apiKeyChanged();
     void currentUserReceived(TimetermUser);
     void timetableReceived(ZermeloAppointments);
+    void deviceCreated(CreateDeviceResponse);
+    void natsCredsReceived(NatsCredsResponse);
 
 private slots:
     void replyFinished();
@@ -41,6 +47,8 @@ private:
     void connectReply(QNetworkReply *reply, ReplyHandler handler);
     void handleGetCurrentUserReply(QNetworkReply *reply);
     void handleGetAppointmentsReply(QNetworkReply *reply);
+    void handleCreateDeviceReply(QNetworkReply *reply);
+    void handleNatsCredsReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");

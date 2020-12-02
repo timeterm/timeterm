@@ -67,7 +67,7 @@ Item {
         id: natsConn
         options: NatsOptions {
             id: connOpts
-            url: "localhost"
+            url: "nats.timeterm.nl"
             credsFilePath: "EMDEV.creds"
         }
 
@@ -83,7 +83,7 @@ Item {
         }
 
         onErrorOccurred: function (code, msg) {
-            console.log()
+            console.log(`An error occurred in the NATS connection: ${msg} (error code ${code})`)
             disownSub.stop()
             rebootSub.stop()
 
@@ -92,7 +92,9 @@ Item {
         }
 
         onLastStatusChanged: {
-            console.log("NATS connection status changed")
+            const status = natsConn.lastStatus
+            const statusText = NatsStatusStringer.stringify(status)
+            console.log(`NATS connection status changed to ${status} (${statusText})`)
         }
 
         onConnectionLost: {

@@ -1,4 +1,5 @@
 #include "apiclient.h"
+#include "createdevice.h"
 
 #include <optional>
 #include <utility>
@@ -88,7 +89,8 @@ void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 void ApiClient::setAuthHeaders(QNetworkRequest &req)
 {
     req.setRawHeader("X-Api-Key", m_apiKey.toLocal8Bit());
-    req.setRawHeader("X-Card-Uid", m_cardId.toLocal8Bit());
+    if (m_cardId != "")
+        req.setRawHeader("X-Card-Uid", m_cardId.toLocal8Bit());
 }
 
 void ApiClient::replyFinished()
@@ -143,4 +145,52 @@ void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
     m_handlers.remove(reply);
 
     reply->deleteLater();
+}
+
+void ApiClient::createDevice()
+{
+    auto reqData = CreateDeviceRequest();
+    reqData.name = "Nieuw apparaat";
+
+    QJsonObject reqJson;
+    reqData.write(reqJson);
+
+    auto reqBytes = QJsonDocument(reqJson).toJson();
+    auto req = QNetworkRequest(m_baseUrl.resolved(QUrl("device")));
+    setAuthHeaders(req);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    auto reply = m_qnam->post(req, reqBytes);
+    connectReply(reply, [this](QNetworkReply *reply) {
+      handleCreateDeviceReply(reply);
+    });
+}
+
+void ApiClient::handleCreateDeviceReply(QNetworkReply *reply)
+{
+    auto rsp = readJsonObject<CreateDeviceResponse>(reply);
+    if (!rsp.has_value())
+        return;
+
+    emit deviceCreated(rsp.value());
+}
+
+void ApiClient::getNatsCreds(const QString& deviceId)
+{
+    auto url = m_baseUrl.resolved(QUrl(QStringLiteral("device/%1/config/natscreds").arg(deviceId)));
+    auto req = QNetworkRequest(url);
+    setAuthHeaders(req);
+
+    auto reply = m_qnam->get(req);
+    connectReply(reply, [this](QNetworkReply *reply) {
+      return handleNatsCredsReply(reply);
+    });
+}
+
+void ApiClient::handleNatsCredsReply(QNetworkReply *reply) {
+    auto rsp = readJsonObject<NatsCredsResponse>(reply);
+    if (!rsp.has_value())
+        return;
+
+    emit natsCredsReceived(rsp.value());
 }

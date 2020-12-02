@@ -1,6 +1,7 @@
 #include "networkmanager.h"
 
 #include <QDebug>
+#include <QTimerEvent>
 
 #ifdef TIMETERMOS
 #include <QNetworkSettingsInterface>
@@ -21,6 +22,8 @@ NetworkManager::NetworkManager(QObject *parent)
     QObject::connect(m_manager, &QNetworkSettingsManager::interfacesChanged, this, &NetworkManager::networkingInterfacesChanged);
     QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManager::servicesChanged);
 #endif
+
+    m_checkNetworkStateTimerId = startTimer(5000);
 }
 
 void NetworkManager::configLoaded()
@@ -46,9 +49,9 @@ void NetworkManager::activateInactiveNetworkingInterfaces()
         i++;
 
         if (iface->type() == QNetworkSettingsType::Wifi)
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless network";
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless interface";
         else {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not a wireless network";
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not a wireless interface";
             continue;
         }
 
@@ -110,4 +113,54 @@ void NetworkManager::servicesChanged()
         qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "currently has state" << stateString;
     }
 #endif
+}
+
+NetworkState NetworkManager::getNetworkState()
+{
+    auto state = NetworkState();
+#ifdef TIMETERMOS
+    auto *svc = m_manager->currentWifiConnection();
+    if (svc != nullptr) {
+        state.isOnline = svc->state() == QNetworkSettingsState::Online;
+        state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
+        state.signalStrength = svc->wirelessConfig()->signalStrength();
+    }
+
+    svc = m_manager->currentWiredConnection();
+    if (svc != nullptr && !state.isOnline) {
+        state.isOnline = svc->state() == QNetworkSettingsState::Online;
+        if (!state.isConnected) {
+            state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
+        }
+    }
+#endif
+    return state;
+}
+
+void NetworkManager::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_checkNetworkStateTimerId) {
+        auto state = getNetworkState();
+        if (*m_lastState != state) {
+            if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
+                emit onlineChanged(state.isOnline);
+            }
+
+            m_lastState = state;
+            emit stateChanged(state);
+        }
+    }
+}
+
+bool operator==(const NetworkState &a, const NetworkState &b)
+{
+    return a.isConnected == b.isConnected
+        && a.isOnline == b.isOnline
+        && a.isWired == b.isWired
+        && a.signalStrength == b.signalStrength;
+}
+
+bool operator!=(const NetworkState &a, const NetworkState &b)
+{
+    return !(a == b);
 }
