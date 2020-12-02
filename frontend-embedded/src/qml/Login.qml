@@ -4,7 +4,8 @@ import QtGraphicalEffects 1.0
 
 Page {
     id: loginPage
-    anchors.fill: parent
+    width: stackView.width
+    height: stackView.height
 
     Image {
         id: card

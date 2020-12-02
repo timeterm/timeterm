@@ -5,7 +5,8 @@ import QtGraphicalEffects 1.0
 
 Page {
     id: router
-    anchors.fill: parent
+    width: stackView.width
+    height: stackView.height
 
     function redirectTimetable(timetable) {
         dayView.setTimetable(timetable)
