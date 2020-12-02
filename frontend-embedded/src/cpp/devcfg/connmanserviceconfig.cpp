@@ -812,7 +812,7 @@ QString caCertTypeExtension(ConnManServiceConfig::CaCertType t)
 QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::PrivateKeyType type)
 {
     auto filename = "pkey." + privateKeyTypeExtension(type);
-    auto relative = QStringLiteral("keys/%1").arg(serviceName);
+    auto relative = QStringLiteral("keys/%1/").arg(serviceName);
 
 #if TIMETERMOS
     QString dir = "/opt/frontend-embedded/" + relative;
@@ -828,7 +828,7 @@ QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::P
 QString createCaCertPath(const QString &serviceName, ConnManServiceConfig::CaCertType type)
 {
     auto filename = "cacert." + caCertTypeExtension(type);
-    auto relative = QStringLiteral("keys/%1").arg(serviceName);
+    auto relative = QStringLiteral("keys/%1/").arg(serviceName);
 
 #if TIMETERMOS
     QString dir = "/opt/frontend-embedded/" + relative;

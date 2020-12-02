@@ -73,7 +73,7 @@ QString Config::token() const
 
 QString createSignupTokenPath() {
     const QString filename = QStringLiteral("signup-token");
-    auto relative = QStringLiteral("tokens");
+    auto relative = QStringLiteral("tokens/");
 
 #if TIMETERMOS
     return "/opt/frontend-embedded/" + relative;
@@ -83,7 +83,7 @@ QString createSignupTokenPath() {
 
     QDir(dir).mkpath(dir);
 
-    return dir + relative;
+    return dir + filename;
 }
 
 void Config::saveSignupToken()
