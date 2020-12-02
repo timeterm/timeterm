@@ -21,6 +21,10 @@ body {
     no-repeat center !important;
 }
 
+.mdc-checkbox__native-control:indeterminate~.mdc-checkbox__background .mdc-checkbox__mixedmark {
+  background-color: white;
+}
+
 *:focus {
   outline: none;
 }
