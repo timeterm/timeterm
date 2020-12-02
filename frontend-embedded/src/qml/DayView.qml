@@ -152,7 +152,7 @@ Page {
 
                 function setCurrentdayTimeLine() {
                     let currTime = new Date()
-                    if (!!dayAppointments.startFirstAppointment && currTime.getTime() > dayAppointments.startFirstAppointment.getTime() && currTime.getTime() < dayAppointments.endLastAppointment.getTime()) {
+                    if (!!dayAppointments.startFirstAppointment && currTime > dayAppointments.startFirstAppointment && currTime < dayAppointments.endLastAppointment) {
                         let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset

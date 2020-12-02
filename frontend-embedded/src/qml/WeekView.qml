@@ -138,7 +138,12 @@ Page {
                 function setCurrentweekTimeLine() {
                     let currTime = new Date()
 
-                    if (!!weekAppointments.startFirstAppointment && !!weekAppointments.endLastAppointment && currTime > weekAppointments.startFirstAppointment && currTime < weekAppointments.endLastAppointment) {
+                    if (!!weekAppointments.startFirstAppointment
+                            && !!weekAppointments.endLastAppointment
+                            && currTime > weekAppointments.startFirstAppointment
+                            && currTime < weekAppointments.endLastAppointment
+                            && currTime.getMillisecondsInDay() > weekAppointments.startFirstAppointment.getMillisecondsInDay()
+                            && currTime.getMillisecondsInDay() < weekAppointments.endLastAppointment.getMillisecondsInDay()) {
                         let offset = (currTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
