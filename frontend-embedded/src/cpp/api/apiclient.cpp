@@ -162,7 +162,7 @@ void ApiClient::createDevice()
 
     auto reply = m_qnam->post(req, reqBytes);
     connectReply(reply, [this](QNetworkReply *reply) {
-      handleCreateDeviceReply(reply);
+        handleCreateDeviceReply(reply);
     });
 }
 
@@ -175,7 +175,7 @@ void ApiClient::handleCreateDeviceReply(QNetworkReply *reply)
     emit deviceCreated(rsp.value());
 }
 
-void ApiClient::getNatsCreds(const QString& deviceId)
+void ApiClient::getNatsCreds(const QString &deviceId)
 {
     auto url = m_baseUrl.resolved(QUrl(QStringLiteral("device/%1/config/natscreds").arg(deviceId)));
     auto req = QNetworkRequest(url);
@@ -183,14 +183,26 @@ void ApiClient::getNatsCreds(const QString& deviceId)
 
     auto reply = m_qnam->get(req);
     connectReply(reply, [this](QNetworkReply *reply) {
-      return handleNatsCredsReply(reply);
+        return handleNatsCredsReply(reply);
     });
 }
 
-void ApiClient::handleNatsCredsReply(QNetworkReply *reply) {
+void ApiClient::handleNatsCredsReply(QNetworkReply *reply)
+{
     auto rsp = readJsonObject<NatsCredsResponse>(reply);
     if (!rsp.has_value())
         return;
 
     emit natsCredsReceived(rsp.value());
+}
+
+void ApiClient::doHeartbeat(const QString &deviceId)
+{
+    auto url = m_baseUrl.resolved(QUrl(QStringLiteral("device/%1/heartbeat").arg(deviceId)));
+    auto req = QNetworkRequest(url);
+    setAuthHeaders(req);
+
+    auto reqBytes = QByteArray();
+    auto reply = m_qnam->put(req, reqBytes);
+    connectReply(reply, [](QNetworkReply *) {});
 }

@@ -30,6 +30,7 @@ public:
     Q_INVOKABLE void getAppointments(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void createDevice();
     Q_INVOKABLE void getNatsCreds(const QString& deviceId);
+    Q_INVOKABLE void doHeartbeat(const QString& deviceId);
 
 signals:
     void cardIdChanged();
