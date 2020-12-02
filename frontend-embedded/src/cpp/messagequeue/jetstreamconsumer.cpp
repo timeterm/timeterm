@@ -92,12 +92,12 @@ void JetStreamConsumer::handleMessage(natsMsg *msg)
     auto subject = QString::fromUtf8(natsMsg_GetSubject(msg));
     qDebug() << "Handling message with subject" << subject;
 
-    if (subject == QString("FEDEV.%1.DISOWN-TOKEN").arg(m_consumerId)) {
+    if (subject == QString("EMDEV.%1.DISOWN-TOKEN").arg(m_consumerId)) {
         timeterm_proto::mq::DisownTokenMessage m;
 
         if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))
             handleDisownTokenProto(m);
-    } else if (subject == QString("FEDEV.%1.RETRIEVE-NEW-TOKEN").arg(m_consumerId)) {
+    } else if (subject == QString("EMDEV.%1.RETRIEVE-NEW-TOKEN").arg(m_consumerId)) {
         timeterm_proto::mq::RetrieveNewTokenMessage m;
 
         if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))

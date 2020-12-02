@@ -40,6 +40,12 @@ NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
         CHECK_NATS_STATUS(s);
     }
 
+    if (m_credsFilePath != "") {
+        auto credsFilePathCstr = asUtf8CString(m_credsFilePath);
+        s = natsOptions_SetUserCredentialsFromFiles(pOpts, credsFilePathCstr.get(), nullptr);
+        CHECK_NATS_STATUS(s);
+    }
+
     s = natsOptions_UseOldRequestStyle(pOpts, true);
     CHECK_NATS_STATUS(s);
 
@@ -58,6 +64,19 @@ void NatsOptions::setUrl(const QString &url)
     if (url != m_url) {
         m_url = url;
         emit urlChanged();
+    }
+}
+
+QString NatsOptions::credsFilePath() const
+{
+    return m_credsFilePath;
+}
+
+void NatsOptions::setCredsFilePath(const QString &path)
+{
+    if (path != m_credsFilePath) {
+        m_credsFilePath = path;
+        emit credsFilePathChanged();
     }
 }
 

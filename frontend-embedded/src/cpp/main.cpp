@@ -14,19 +14,20 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "api/zermeloappointment.h"
 #include <devcfg/configloader.h>
 #include <logs/logmanager.h>
+#include <messagequeue/natssubscription.h>
 #include <networking/networkmanager.h>
 #include <timeterm_proto/mq/mq.pb.h>
 #include <util/scopeguard.h>
-#include "api/zermeloappointment.h"
 
 void installDefaultFont()
 {
     qint32 fontId = QFontDatabase::addApplicationFont(":/assets/fonts/Roboto/Roboto-Regular.ttf");
     QStringList fontList = QFontDatabase::applicationFontFamilies(fontId);
 
-    QString family = fontList.at(0);
+    const QString& family = fontList.at(0);
     QGuiApplication::setFont(QFont(family));
 }
 
@@ -57,6 +58,10 @@ int runApp(int argc, char *argv[])
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
     qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
     qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");
+    qmlRegisterType<MessageQueue::NatsSubscription>("Timeterm.MessageQueue", 1, 0, "NatsSubscription");
+    qmlRegisterType<MessageQueue::Decoder>("Timeterm.MessageQueue", 1, 0, "Decoder");
+    qmlRegisterType<MessageQueue::DisownTokenMessageDecoder>("Timeterm.MessageQueue", 1, 0, "DisownTokenMessageDecoder");
+    qmlRegisterType<MessageQueue::RetrieveNewTokenMessageDecoder>("Timeterm.MessageQueue", 1, 0, "RetrieveNewTokenMessageDecoder");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
     qmlRegisterType<ConfigLoader>("Timeterm.Config", 1, 0, "ConfigLoader");

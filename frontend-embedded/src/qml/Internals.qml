@@ -68,6 +68,7 @@ Item {
         options: NatsOptions {
             id: connOpts
             url: "localhost"
+            credsFilePath: "EMDEV.creds"
         }
 
         Component.onCompleted: {
@@ -75,14 +76,16 @@ Item {
         }
 
         onConnected: {
-            console.log("Connect to NATS")
+            console.log("Connected to NATS")
 
             disownSub.start()
+            rebootSub.start()
         }
 
         onErrorOccurred: function (code, msg) {
             console.log()
             disownSub.stop()
+            rebootSub.stop()
 
             // Try to reconnect
             natsConnReconnectWait.restart()
@@ -95,10 +98,17 @@ Item {
         onConnectionLost: {
             console.log("Connection lost")
             disownSub.stop()
+            rebootSub.stop()
 
             // Try to reconnect
             natsConnReconnectWait.restart()
         }
+    }
+
+    NatsSubscription {
+        id: rebootSub
+        subject: "EMDEV.asdfasdfasdf.REBOOT"
+        connection: natsConn
     }
 
     JetStreamConsumer {
