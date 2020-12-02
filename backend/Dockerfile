@@ -1,6 +1,6 @@
 FROM alpine:edge AS runtime
 
-RUN apk add --update --no-cache ca-certificates zoneinfo
+RUN apk add --update --no-cache ca-certificates tzdata
 
 FROM scratch
 
