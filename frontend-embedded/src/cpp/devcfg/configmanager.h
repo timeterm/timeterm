@@ -32,21 +32,28 @@ private:
     QString m_token;
 };
 
-class ConfigLoader: public QObject
+class ConfigManager: public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString apiToken READ apiToken WRITE setDeviceInfo NOTIFY apiTokenChanged)
 
 public:
-    explicit ConfigLoader(QObject *parent = nullptr);
+    explicit ConfigManager(QObject *parent = nullptr);
+
+    void setDeviceInfo(const QString &deviceId, const QString &token);
+    [[nodiscard]] QString apiToken() const;
 
 public slots:
     void loadConfig();
 
 signals:
     void configLoaded();
+    void apiTokenChanged();
 
 private:
     void reloadSystem();
+
+    QString m_apiToken;
 };
 
 Q_DECLARE_METATYPE(Config *)

@@ -41,7 +41,7 @@ Item {
         }
     }
 
-    ConfigLoader {
+    ConfigManager {
         id: configLoader
 
         Component.onCompleted: {

@@ -204,5 +204,12 @@ void ApiClient::doHeartbeat(const QString &deviceId)
 
     auto reqBytes = QByteArray();
     auto reply = m_qnam->put(req, reqBytes);
-    connectReply(reply, [](QNetworkReply *) {});
+    connectReply(reply, [this](QNetworkReply *reply) {
+        return handleHeartbeatReply(reply);
+    });
+}
+
+void ApiClient::handleHeartbeatReply(QNetworkReply *)
+{
+    emit heartbeatSucceeded();
 }

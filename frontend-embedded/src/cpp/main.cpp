@@ -15,7 +15,7 @@
 #include <QQmlApplicationEngine>
 
 #include "api/zermeloappointment.h"
-#include <devcfg/configloader.h>
+#include <devcfg/configmanager.h>
 #include <logs/logmanager.h>
 #include <messagequeue/natssubscription.h>
 #include <networking/networkmanager.h>
@@ -64,7 +64,7 @@ int runApp(int argc, char *argv[])
     qmlRegisterType<MessageQueue::RetrieveNewTokenMessageDecoder>("Timeterm.MessageQueue", 1, 0, "RetrieveNewTokenMessageDecoder");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
-    qmlRegisterType<ConfigLoader>("Timeterm.Config", 1, 0, "ConfigLoader");
+    qmlRegisterType<ConfigManager>("Timeterm.Config", 1, 0, "ConfigManager");
     qmlRegisterSingletonType<QObject>("Timeterm.Logging", 1, 0, "LogManager", [](QQmlEngine *e, QJSEngine *se) {
         auto logMgr = LogManager::singleton();
 

@@ -1,4 +1,4 @@
-#include "configloader.h"
+#include "configmanager.h"
 #include "usbmount.h"
 
 #ifdef TIMETERMOS
@@ -86,6 +86,30 @@ QString createSignupTokenPath() {
     return dir + filename;
 }
 
+QString createDeviceTokenPath() {
+    const QString filename = QStringLiteral("device-token");
+    auto relative = QStringLiteral("tokens/");
+
+#if TIMETERMOS
+    return "/opt/frontend-embedded/" + relative;
+#else
+    const QString &dir = relative;
+#endif
+
+    QDir(dir).mkpath(dir);
+
+    return dir + filename;
+}
+
+QString createDeviceIdPath() {
+    QString filename = QStringLiteral("device-id");
+
+#if TIMETERMOS
+    return "/opt/frontend-embedded/" + filename;
+#endif
+    return filename;
+}
+
 void Config::saveSignupToken()
 {
     auto path = createSignupTokenPath();
@@ -100,7 +124,7 @@ void Config::saveSignupToken()
     f.close();
 }
 
-ConfigLoader::ConfigLoader(QObject *parent)
+ConfigManager::ConfigManager(QObject *parent)
     : QObject(parent)
 {
 }
@@ -114,7 +138,7 @@ QString configLocation()
 #endif
 }
 
-void ConfigLoader::reloadSystem()
+void ConfigManager::reloadSystem()
 {
 #ifdef TIMETERMOS
     auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus(), this);
@@ -138,7 +162,7 @@ void ConfigLoader::reloadSystem()
 #endif
 }
 
-void ConfigLoader::loadConfig()
+void ConfigManager::loadConfig()
 {
     qDebug() << "Loading configuration";
     auto _loadedGuard = onScopeExit([this]() {
@@ -199,4 +223,9 @@ void ConfigLoader::loadConfig()
 
     qDebug() << "Reloading system...";
     reloadSystem();
+}
+
+void ConfigManager::setDeviceInfo(const QString &token)
+{
+
 }

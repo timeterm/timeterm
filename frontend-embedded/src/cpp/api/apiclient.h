@@ -39,6 +39,7 @@ signals:
     void timetableReceived(ZermeloAppointments);
     void deviceCreated(CreateDeviceResponse);
     void natsCredsReceived(NatsCredsResponse);
+    void heartbeatSucceeded();
 
 private slots:
     void replyFinished();
@@ -50,6 +51,7 @@ private:
     void handleGetAppointmentsReply(QNetworkReply *reply);
     void handleCreateDeviceReply(QNetworkReply *reply);
     void handleNatsCredsReply(QNetworkReply *reply);
+    void handleHeartbeatReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
