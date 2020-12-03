@@ -42,17 +42,13 @@ Item {
     }
 
     ConfigManager {
-        id: configLoader
+        id: configManager
 
         Component.onCompleted: {
-            configLoader.loadConfig()
+            configManager.loadConfig()
         }
-    }
 
-    Connections {
-        target: configLoader
-
-        function onConfigLoaded() {
+        onConfigLoaded: {
             console.log("Config loaded, triggering TtNetworkManager")
 
             networkManager.configLoaded()

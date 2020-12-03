@@ -1,5 +1,5 @@
 #include "configmanager.h"
-#include "deviceinfo.h"
+#include "deviceconfig.h"
 #include "usbmount.h"
 
 #ifdef TIMETERMOS
@@ -11,12 +11,12 @@
 #include <QDir>
 #include <util/scopeguard.h>
 
-Config::Config(QObject *parent)
+SetupConfig::SetupConfig(QObject *parent)
     : QObject(parent)
 {
 }
 
-void Config::read(const QJsonDocument &doc)
+void SetupConfig::read(const QJsonDocument &doc)
 {
     if (!doc.isObject())
         return; // TODO: return error
@@ -24,8 +24,10 @@ void Config::read(const QJsonDocument &doc)
     read(doc.object());
 }
 
-void Config::read(const QJsonObject &obj)
+void SetupConfig::read(const QJsonObject &obj)
 {
+    if (obj.contains("token") && obj["token"].isString())
+        setToken(obj["token"].toString());
     if (obj.contains("networkingServices") && obj["networkingServices"].isArray()) {
         auto arr = obj["networkingServices"].toArray();
         auto services = QList<ConnManServiceConfig *>();
@@ -46,7 +48,7 @@ void Config::read(const QJsonObject &obj)
     }
 }
 
-void Config::setNetworkingServices(const QList<ConnManServiceConfig *> &networkingServices)
+void SetupConfig::setNetworkingServices(const QList<ConnManServiceConfig *> &networkingServices)
 {
     if (networkingServices != m_networkingServices) {
         m_networkingServices = networkingServices;
@@ -54,12 +56,12 @@ void Config::setNetworkingServices(const QList<ConnManServiceConfig *> &networki
     }
 }
 
-QList<ConnManServiceConfig *> Config::networkingServices()
+QList<ConnManServiceConfig *> SetupConfig::networkingServices()
 {
     return m_networkingServices;
 }
 
-void Config::setToken(const QString &token)
+void SetupConfig::setToken(const QString &token)
 {
     if (token != m_token) {
         m_token = token;
@@ -67,14 +69,14 @@ void Config::setToken(const QString &token)
     }
 }
 
-QString Config::token() const
+QString SetupConfig::token() const
 {
     return m_token;
 }
 
 ConfigManager::ConfigManager(QObject *parent)
     : QObject(parent)
-    , m_deviceInfo(new DeviceInfo())
+    , m_deviceConfig(new DeviceConfig())
 {
 }
 
@@ -154,13 +156,14 @@ void ConfigManager::loadConfig()
         qDebug() << "Parsed config file";
 
         qDebug() << "Reading config file...";
-        auto config = new Config(this);
-        config->read(jsonDoc);
+        auto setupConfig = new SetupConfig(this);
+        setupConfig->read(jsonDoc);
         qDebug() << "Config file read";
 
-        saveDeviceInfo();
+        m_deviceConfig->setSetupToken(setupConfig->token());
+        saveDeviceConfig();
 
-        for (auto &svc : config->networkingServices()) {
+        for (auto &svc : setupConfig->networkingServices()) {
             qDebug() << "Configuring ethernet service" << svc->name();
             svc->saveCerts();
             svc->saveConnManConf();
@@ -170,14 +173,14 @@ void ConfigManager::loadConfig()
         qDebug() << "Mounting config volume failed";
     }
 
-    loadDeviceInfo();
+    loadDeviceConfig();
     qDebug() << "Reloading system...";
     reloadSystem();
 }
 
 QString createDeviceInfoPath()
 {
-    QString filename = QStringLiteral("device-info.json");
+    QString filename = QStringLiteral("device-config.json");
 
 #if TIMETERMOS
     return "/opt/frontend-embedded/" + filename;
@@ -185,7 +188,7 @@ QString createDeviceInfoPath()
     return filename;
 }
 
-void ConfigManager::saveDeviceInfo()
+void ConfigManager::saveDeviceConfig()
 {
     auto path = createDeviceInfoPath();
     auto f = QFile(path);
@@ -195,14 +198,14 @@ void ConfigManager::saveDeviceInfo()
     }
 
     auto obj = QJsonObject();
-    m_deviceInfo->write(obj);
+    m_deviceConfig->write(obj);
     auto bytes = QJsonDocument(obj).toJson();
 
     f.write(bytes);
     f.close();
 }
 
-void ConfigManager::loadDeviceInfo()
+void ConfigManager::loadDeviceConfig()
 {
     auto path = createDeviceInfoPath();
     auto f = QFile(path);
@@ -223,10 +226,10 @@ void ConfigManager::loadDeviceInfo()
     if (!jsonDoc.isObject())
         return; // TODO: return error
 
-    m_deviceInfo->read(jsonDoc.object());
+    m_deviceConfig->read(jsonDoc.object());
 }
 
-DeviceInfo *ConfigManager::deviceInfo() const
+DeviceConfig *ConfigManager::deviceConfig() const
 {
-    return m_deviceInfo;
+    return m_deviceConfig;
 }

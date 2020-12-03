@@ -3,16 +3,16 @@
 #include <QObject>
 
 #include "connmanserviceconfig.h"
-#include "deviceinfo.h"
+#include "deviceconfig.h"
 
-class Config: public QObject
+class SetupConfig: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString token READ token WRITE setToken NOTIFY tokenChanged)
     Q_PROPERTY(QList<ConnManServiceConfig *> ethernetServices READ networkingServices WRITE setNetworkingServices NOTIFY networkingServicesChanged)
 
 public:
-    explicit Config(QObject *parent = nullptr);
+    explicit SetupConfig(QObject *parent = nullptr);
 
     void read(const QJsonDocument &doc);
     void read(const QJsonObject &root);
@@ -21,8 +21,6 @@ public:
     QList<ConnManServiceConfig *> networkingServices();
     void setToken(const QString &token);
     [[nodiscard]] QString token() const;
-
-    void saveSignupToken();
 
 signals:
     void networkingServicesChanged();
@@ -36,12 +34,12 @@ private:
 class ConfigManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(DeviceInfo *deviceInfo READ deviceInfo)
+    Q_PROPERTY(DeviceConfig *deviceConfig READ deviceConfig)
 
 public:
     explicit ConfigManager(QObject *parent = nullptr);
 
-    [[nodiscard]] DeviceInfo *deviceInfo() const;
+    [[nodiscard]] DeviceConfig *deviceConfig() const;
 
 public slots:
     void loadConfig();
@@ -51,10 +49,10 @@ signals:
 
 private:
     void reloadSystem();
-    void saveDeviceInfo();
-    void loadDeviceInfo();
+    void saveDeviceConfig();
+    void loadDeviceConfig();
 
-    DeviceInfo *m_deviceInfo;
+    DeviceConfig *m_deviceConfig;
 };
 
-Q_DECLARE_METATYPE(Config *)
+Q_DECLARE_METATYPE(SetupConfig *)
