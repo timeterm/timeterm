@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QObject>
 #include <QJsonObject>
+#include <QObject>
 
 class DeviceInfo: public QObject
 {

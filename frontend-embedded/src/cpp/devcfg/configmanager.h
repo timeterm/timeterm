@@ -51,7 +51,8 @@ signals:
 
 private:
     void reloadSystem();
-    void loadDeviceConfig();
+    void saveDeviceInfo();
+    void loadDeviceInfo();
 
     DeviceInfo *m_deviceInfo;
 };

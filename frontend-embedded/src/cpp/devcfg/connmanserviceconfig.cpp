@@ -817,7 +817,7 @@ QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::P
 #if TIMETERMOS
     QString dir = "/opt/frontend-embedded/" + relative;
 #else
-    const QString& dir = relative;
+    const QString &dir = relative;
 #endif
 
     QDir(dir).mkpath(dir);
@@ -833,7 +833,7 @@ QString createCaCertPath(const QString &serviceName, ConnManServiceConfig::CaCer
 #if TIMETERMOS
     QString dir = "/opt/frontend-embedded/" + relative;
 #else
-    const QString& dir = relative;
+    const QString &dir = relative;
 #endif
 
     QDir(dir).mkpath(dir);

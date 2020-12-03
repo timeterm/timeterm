@@ -175,18 +175,14 @@ void ConfigManager::loadConfig()
     reloadSystem();
 }
 
-QString createDeviceInfoPath() {
-    const QString filename = QStringLiteral("devinfo.json");
+QString createDeviceInfoPath()
+{
+    QString filename = QStringLiteral("device-info.json");
 
 #if TIMETERMOS
-    return "/opt/frontend-embedded/" + relative;
-#else
-    const QString &dir = relative;
+    return "/opt/frontend-embedded/" + filename;
 #endif
-
-    QDir(dir).mkpath(dir);
-
-    return dir + filename;
+    return filename;
 }
 
 void ConfigManager::saveDeviceInfo()
@@ -200,8 +196,7 @@ void ConfigManager::saveDeviceInfo()
 
     auto obj = QJsonObject();
     m_deviceInfo->write(obj);
-    auto doc = QJsonDocument(obj);
-    auto bytes = QJsonDocument(reqJson).toJson();
+    auto bytes = QJsonDocument(obj).toJson();
 
     f.write(bytes);
     f.close();
@@ -225,8 +220,13 @@ void ConfigManager::loadDeviceInfo()
         return;
     }
 
-    if (!json.isObject())
+    if (!jsonDoc.isObject())
         return; // TODO: return error
 
-    m_deviceInfo->read(json.object());
+    m_deviceInfo->read(jsonDoc.object());
+}
+
+DeviceInfo *ConfigManager::deviceInfo() const
+{
+    return m_deviceInfo;
 }
