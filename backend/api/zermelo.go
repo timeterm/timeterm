@@ -13,6 +13,7 @@ import (
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/integration/zermelo"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 )
 
 type GetZermeloAppointmentsParams struct {
@@ -284,4 +285,30 @@ func (s *Server) newOrganizationZermeloClient(ctx context.Context, organizationI
 	}
 
 	return zermelo.NewOrganizationClient(org.ZermeloInstitution, token)
+}
+
+type connectZermeloOranizationParams struct {
+	token string `json:"token"`
+}
+
+func (s *Server) connectZermeloOrganization(c echo.Context) error {
+	var params connectZermeloOranizationParams
+
+	err := c.Bind(&params)
+	if err != nil {
+		return err
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	err = s.secr.UpsertOrganizationZermeloToken(user.OrganizationID, []byte(params.token))
+	if err != nil {
+		s.log.Error(err, "could not upsert organization Zermelo token", "organizationId", user.OrganizationID)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not save Zermelo token")
+	}	
+
+	return c.NoContent(http.StatusOK)
 }
