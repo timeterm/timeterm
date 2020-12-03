@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include "connmanserviceconfig.h"
+#include "deviceinfo.h"
 
 class Config: public QObject
 {
@@ -35,25 +36,24 @@ private:
 class ConfigManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString apiToken READ apiToken WRITE setDeviceInfo NOTIFY apiTokenChanged)
+    Q_PROPERTY(DeviceInfo *deviceInfo READ deviceInfo)
 
 public:
     explicit ConfigManager(QObject *parent = nullptr);
 
-    void setDeviceInfo(const QString &deviceId, const QString &token);
-    [[nodiscard]] QString apiToken() const;
+    [[nodiscard]] DeviceInfo *deviceInfo() const;
 
 public slots:
     void loadConfig();
 
 signals:
     void configLoaded();
-    void apiTokenChanged();
 
 private:
     void reloadSystem();
+    void loadDeviceConfig();
 
-    QString m_apiToken;
+    DeviceInfo *m_deviceInfo;
 };
 
 Q_DECLARE_METATYPE(Config *)

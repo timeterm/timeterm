@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QJsonObject>
 
 class DeviceInfo: public QObject
 {
@@ -18,6 +19,9 @@ public:
     [[nodiscard]] QString name() const;
     void setToken(const QString &token);
     [[nodiscard]] QString token() const;
+
+    void write(QJsonObject &json) const;
+    void read(const QJsonObject &json);
 
 signals:
     void idChanged();

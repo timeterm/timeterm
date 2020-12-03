@@ -1,4 +1,5 @@
 #include "configmanager.h"
+#include "deviceinfo.h"
 #include "usbmount.h"
 
 #ifdef TIMETERMOS
@@ -71,61 +72,9 @@ QString Config::token() const
     return m_token;
 }
 
-QString createSignupTokenPath() {
-    const QString filename = QStringLiteral("signup-token");
-    auto relative = QStringLiteral("tokens/");
-
-#if TIMETERMOS
-    return "/opt/frontend-embedded/" + relative;
-#else
-    const QString &dir = relative;
-#endif
-
-    QDir(dir).mkpath(dir);
-
-    return dir + filename;
-}
-
-QString createDeviceTokenPath() {
-    const QString filename = QStringLiteral("device-token");
-    auto relative = QStringLiteral("tokens/");
-
-#if TIMETERMOS
-    return "/opt/frontend-embedded/" + relative;
-#else
-    const QString &dir = relative;
-#endif
-
-    QDir(dir).mkpath(dir);
-
-    return dir + filename;
-}
-
-QString createDeviceIdPath() {
-    QString filename = QStringLiteral("device-id");
-
-#if TIMETERMOS
-    return "/opt/frontend-embedded/" + filename;
-#endif
-    return filename;
-}
-
-void Config::saveSignupToken()
-{
-    auto path = createSignupTokenPath();
-    auto f = QFile(path);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        qCritical() << "Could not open signup token file";
-        return;
-    }
-
-    auto tokenBytes = m_token.toLocal8Bit();
-    f.write(tokenBytes);
-    f.close();
-}
-
 ConfigManager::ConfigManager(QObject *parent)
     : QObject(parent)
+    , m_deviceInfo(new DeviceInfo())
 {
 }
 
@@ -209,7 +158,7 @@ void ConfigManager::loadConfig()
         config->read(jsonDoc);
         qDebug() << "Config file read";
 
-        config->saveSignupToken();
+        saveDeviceInfo();
 
         for (auto &svc : config->networkingServices()) {
             qDebug() << "Configuring ethernet service" << svc->name();
@@ -221,11 +170,63 @@ void ConfigManager::loadConfig()
         qDebug() << "Mounting config volume failed";
     }
 
+    loadDeviceInfo();
     qDebug() << "Reloading system...";
     reloadSystem();
 }
 
-void ConfigManager::setDeviceInfo(const QString &token)
-{
+QString createDeviceInfoPath() {
+    const QString filename = QStringLiteral("devinfo.json");
 
+#if TIMETERMOS
+    return "/opt/frontend-embedded/" + relative;
+#else
+    const QString &dir = relative;
+#endif
+
+    QDir(dir).mkpath(dir);
+
+    return dir + filename;
+}
+
+void ConfigManager::saveDeviceInfo()
+{
+    auto path = createDeviceInfoPath();
+    auto f = QFile(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qCritical() << "Could not open device info file";
+        return;
+    }
+
+    auto obj = QJsonObject();
+    m_deviceInfo->write(obj);
+    auto doc = QJsonDocument(obj);
+    auto bytes = QJsonDocument(reqJson).toJson();
+
+    f.write(bytes);
+    f.close();
+}
+
+void ConfigManager::loadDeviceInfo()
+{
+    auto path = createDeviceInfoPath();
+    auto f = QFile(path);
+    if (!f.open(QIODevice::ReadOnly)) {
+        qCritical() << "Could not open device info file";
+        return;
+    }
+    auto bytes = f.readAll();
+    f.close();
+
+    auto parseError = QJsonParseError();
+    auto jsonDoc = QJsonDocument::fromJson(bytes, &parseError);
+    if (parseError.error) {
+        qDebug() << "Invalid device info file";
+        return;
+    }
+
+    if (!json.isObject())
+        return; // TODO: return error
+
+    m_deviceInfo->read(json.object());
 }
