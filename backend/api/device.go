@@ -354,6 +354,7 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 
 	rsp := RegistrationConfig{
 		Token:              token,
+		OrganizationID:     user.OrganizationID,
 		NetworkingServices: apiNetworkingServices,
 	}
 	return c.JSON(http.StatusOK, rsp)

@@ -65,7 +65,7 @@ void DeviceConfig::write(QJsonObject &json) const
     json["name"] = m_name;
     json["setupToken"] = m_setupToken;
     json["deviceToken"] = m_deviceToken;
-    json["deviceTokenSetupTokenHash"] = m_deviceTokenSetupTokenHash;
+    json["deviceTokenOrganizationId"] = m_deviceTokenOrganizationId;
 }
 
 void DeviceConfig::read(const QJsonObject &json)
@@ -78,40 +78,24 @@ void DeviceConfig::read(const QJsonObject &json)
         setSetupToken(json["setupToken"].toString());
     if (json.contains("deviceToken") && json["deviceToken"].isString())
         setDeviceToken(json["deviceToken"].toString());
-    if (json.contains("deviceTokenSetupTokenHash") && json["deviceTokenSetupTokenHash"].isString())
-        setDeviceTokenSetupTokenHash(json["deviceTokenSetupTokenHash"].toString());
+    if (json.contains("deviceTokenOrganizationId") && json["deviceTokenOrganizationId"].isString())
+        setDeviceTokenOrganizationId(json["deviceTokenOrganizationId"].toString());
 }
 
-void DeviceConfig::setDeviceTokenSetupToken(const QString &token)
+void DeviceConfig::setDeviceTokenOrganizationId(const QString &hash)
 {
-    setDeviceTokenSetupTokenHash(hashToken(token));
-}
-
-void DeviceConfig::setDeviceTokenSetupTokenHash(const QString &hash)
-{
-    if (hash != m_deviceTokenSetupTokenHash) {
-        m_deviceTokenSetupTokenHash = hash;
-        emit deviceTokenSetupTokenHashChanged();
+    if (hash != m_deviceTokenOrganizationId) {
+        m_deviceTokenOrganizationId = hash;
+        emit deviceTokenOrganizationIdChanged();
     }
 }
 
 QString DeviceConfig::deviceTokenSetupTokenHash() const
 {
-    return m_deviceTokenSetupTokenHash;
-}
-
-QString DeviceConfig::hashToken(const QString &token)
-{
-    auto bytes = token.toUtf8();
-    auto hash = QCryptographicHash(QCryptographicHash::Sha3_256);
-    hash.addData(bytes);
-
-    auto hashBytes = hash.result();
-    auto hashString = QString(hashBytes.toHex());
-    return hashString;
+    return m_deviceTokenOrganizationId;
 }
 
 bool DeviceConfig::needsRegistration()
 {
-    return m_setupToken != "" && hashToken(m_setupToken) != m_deviceTokenSetupTokenHash;
+    return m_setupToken != "" && hashToken(m_organizationId) != m_deviceTokenOrganizationId;
 }

@@ -635,6 +635,7 @@ type GenerateNATSCredentialsResponse struct {
 
 type RegistrationConfig struct {
 	Token              uuid.UUID           `json:"token"`
+	OrganizationID     uuid.UUID           `json:"organizationId"`
 	NetworkingServices []NetworkingService `json:"networkingServices"`
 }
 

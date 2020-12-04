@@ -25,8 +25,8 @@ public:
     void setDeviceToken(const QString &token);
     [[nodiscard]] QString deviceToken() const;
     Q_INVOKABLE void setDeviceTokenSetupToken(const QString &token);
-    void setDeviceTokenSetupTokenHash(const QString &hash);
-    [[nodiscard]] QString deviceTokenSetupTokenHash() const;
+    void setDeviceTokenOrganizationId(const QString &id);
+    [[nodiscard]] QString deviceTokenOrganizationId() const;
 
     void write(QJsonObject &json) const;
     void read(const QJsonObject &json);
@@ -38,7 +38,7 @@ signals:
     void nameChanged();
     void setupTokenChanged();
     void deviceTokenChanged();
-    void deviceTokenSetupTokenHashChanged();
+    void deviceTokenOrganizationIdChanged();
 
 private:
     static QString hashToken(const QString &token);
@@ -46,6 +46,7 @@ private:
     QString m_id;
     QString m_name;
     QString m_setupToken;
+    QString m_setupTokenOrganizationId;
     QString m_deviceToken;
-    QString m_deviceTokenSetupTokenHash;
+    QString m_deviceTokenOrganizationId;
 };
