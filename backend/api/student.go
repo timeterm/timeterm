@@ -71,10 +71,6 @@ func (s *Server) createStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
 	}
 
-	if user.OrganizationID != user.OrganizationID {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Organization does not belong to user's organization")
-	}
-
 	dbStudent, err := s.db.CreateStudent(c.Request().Context(), user.OrganizationID)
 	if err != nil {
 		s.log.Error(err, "could not create student")
