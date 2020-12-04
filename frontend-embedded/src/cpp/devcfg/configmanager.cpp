@@ -28,6 +28,8 @@ void SetupConfig::read(const QJsonObject &obj)
 {
     if (obj.contains("token") && obj["token"].isString())
         setToken(obj["token"].toString());
+    if (obj.contains("organizationId") && obj["organizationId"].isString())
+        setOrganizationId(obj["organizationId"].toString());
     if (obj.contains("networkingServices") && obj["networkingServices"].isArray()) {
         auto arr = obj["networkingServices"].toArray();
         auto services = QList<ConnManServiceConfig *>();
@@ -72,6 +74,19 @@ void SetupConfig::setToken(const QString &token)
 QString SetupConfig::token() const
 {
     return m_token;
+}
+
+void SetupConfig::setOrganizationId(const QString &id)
+{
+    if (id != m_organizationId) {
+        m_organizationId = id;
+        emit organizationIdChanged();
+    }
+}
+
+QString SetupConfig::organizationId() const
+{
+    return m_organizationId;
 }
 
 ConfigManager::ConfigManager(QObject *parent)
@@ -162,6 +177,7 @@ void ConfigManager::loadConfig()
         qDebug() << "Config file read";
 
         m_deviceConfig->setSetupToken(setupConfig->token());
+        m_deviceConfig->setSetupTokenOrganizationId(setupConfig->organizationId());
         saveDeviceConfig();
 
         for (auto &svc : setupConfig->networkingServices()) {

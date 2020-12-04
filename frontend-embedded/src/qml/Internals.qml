@@ -41,7 +41,7 @@ Item {
             configManager.deviceConfig.id = response.device.id
             configManager.deviceConfig.name = response.device.name
             configManager.deviceConfig.deviceToken = response.token
-            configManager.deviceConfig.setDeviceTokenSetupToken(configManager.deviceConfig.setupToken)
+            configManager.deviceConfig.deviceTokenOrganizationId = response.device.organizationId
             apiClient.apiKey = configManager.deviceConfig.deviceToken
 
             console.log("Saving device configuration")
@@ -78,7 +78,7 @@ Item {
         id: networkManager
 
         onOnlineChanged: function (online) {
-            console.log(`Online changed to: ${online}`)
+            console.log(`Online changed to ${online}`)
             if (online && configManager.deviceConfig.needsRegistration) {
                 console.log("Registering")
                 apiClient.apiKey = configManager.deviceConfig.setupToken

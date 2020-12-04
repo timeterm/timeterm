@@ -66,6 +66,7 @@ void DeviceConfig::write(QJsonObject &json) const
     json["setupToken"] = m_setupToken;
     json["deviceToken"] = m_deviceToken;
     json["deviceTokenOrganizationId"] = m_deviceTokenOrganizationId;
+    json["setupTokenOrganizationId"] = m_setupTokenOrganizationId;
 }
 
 void DeviceConfig::read(const QJsonObject &json)
@@ -80,22 +81,37 @@ void DeviceConfig::read(const QJsonObject &json)
         setDeviceToken(json["deviceToken"].toString());
     if (json.contains("deviceTokenOrganizationId") && json["deviceTokenOrganizationId"].isString())
         setDeviceTokenOrganizationId(json["deviceTokenOrganizationId"].toString());
+    if (json.contains("setupTokenOrganizationId") && json["setupTokenOrganizationId"].isString())
+        setSetupTokenOrganizationId(json["setupTokenOrganizationId"].toString());
 }
 
-void DeviceConfig::setDeviceTokenOrganizationId(const QString &hash)
+void DeviceConfig::setDeviceTokenOrganizationId(const QString &id)
 {
-    if (hash != m_deviceTokenOrganizationId) {
-        m_deviceTokenOrganizationId = hash;
+    if (id != m_deviceTokenOrganizationId) {
+        m_deviceTokenOrganizationId = id;
         emit deviceTokenOrganizationIdChanged();
     }
 }
 
-QString DeviceConfig::deviceTokenSetupTokenHash() const
+QString DeviceConfig::deviceTokenOrganizationId() const
 {
     return m_deviceTokenOrganizationId;
 }
 
 bool DeviceConfig::needsRegistration()
 {
-    return m_setupToken != "" && hashToken(m_organizationId) != m_deviceTokenOrganizationId;
+    return m_setupToken != "" && m_setupTokenOrganizationId != m_deviceTokenOrganizationId;
+}
+
+void DeviceConfig::setSetupTokenOrganizationId(const QString &id)
+{
+    if (id != m_setupTokenOrganizationId) {
+        m_setupTokenOrganizationId = id;
+        emit setupTokenOrganizationIdChanged();
+    }
+}
+
+QString DeviceConfig::setupTokenOrganizationId() const
+{
+    return m_deviceTokenOrganizationId;
 }
