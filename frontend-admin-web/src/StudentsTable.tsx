@@ -16,7 +16,7 @@ import { dialogQueue } from "./dialogQueue";
 export interface Student {
   id: string;
   zermelo: StudentZermeloInfo;
-  hasCardId: boolean;
+  hasCardAssociated: boolean;
 }
 
 export interface StudentZermeloInfo {
@@ -27,7 +27,7 @@ interface PrimaryDeviceStatusIconProps {
   hasCardCode: boolean;
 }
 
-const UserHasCardCodeIcon: React.FC<PrimaryDeviceStatusIconProps> = ({
+const UserHasCardAssociated: React.FC<PrimaryDeviceStatusIconProps> = ({
   hasCardCode,
 }) => {
   return (
@@ -75,12 +75,12 @@ const StudentsTable: React.FC<StudentsTableProps> = ({ setSelectedItems }) => {
       },
       {
         id: "hasCardCode",
-        Header: "Heeft pascode",
+        Header: "Heeft gekoppeld pas",
         accessor: (student) => (
           <div style={{ display: "flex", alignItems: "center" }}>
-            <UserHasCardCodeIcon hasCardCode={student.hasCardId} />
+            <UserHasCardAssociated hasCardCode={student.hasCardAssociated} />
             &nbsp;
-            {boolToYesNoStringDutch(student.hasCardId)}
+            {boolToYesNoStringDutch(student.hasCardAssociated)}
             &nbsp;&nbsp;&nbsp;
             <Theme use={"onSurface"} wrap>
               <Button

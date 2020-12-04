@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { useMutation } from "react-query";
 import { queryCache } from "./App";
 import { fetchAuthnd } from "./DevicesPage";
-import StudentsTable, { Student } from "./StudentsTable";
+import StudentsTable, { Student, StudentZermeloInfo } from "./StudentsTable";
 
 const removeStudent = (students: Student[]) =>
   fetchAuthnd("/student", {
@@ -19,6 +19,20 @@ const removeStudent = (students: Student[]) =>
     }),
   });
 
+const createStudent = () =>
+  fetchAuthnd("/student", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      zermelo: {
+        user: "Zermelo-gebruiker hier",
+      } as StudentZermeloInfo,
+    }),
+  });
+
 const DevicesPage: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState([] as Student[]);
 
@@ -28,9 +42,21 @@ const DevicesPage: React.FC = () => {
     },
   });
 
+  const [newStudent] = useMutation(createStudent, {
+    onSuccess: async () => {
+      await queryCache.invalidateQueries("students");
+    },
+  });
+
   const onDeleteStudents = async () => {
     try {
       await deleteStudents(selectedItems);
+    } catch (error) {}
+  };
+
+  const onAddStudent = async () => {
+    try {
+      await newStudent();
     } catch (error) {}
   };
 
@@ -55,8 +81,8 @@ const DevicesPage: React.FC = () => {
       >
         <h1 style={{ marginTop: 0 }}>Leerlingen</h1>
         <div>
-          <Button icon={"publish"} raised>
-            Importeren
+          <Button icon={"add"} raised onClick={() => onAddStudent()}>
+            Toevoegen
           </Button>
           <Button
             icon={"delete"}

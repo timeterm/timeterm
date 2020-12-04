@@ -126,7 +126,7 @@ func (s *Server) registerRoutes() {
 	zenrGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log), authn.StudentLoginMiddleware(s.db, s.log))
 	zenrGroup.POST("", s.enrollZermelo)
 
-	zconnGroup := s.echo.Group("/zermelo/connect")
+	zconnGroup := g.Group("/zermelo/connect")
 	zconnGroup.POST("", s.connectZermeloOrganization)
 }
 

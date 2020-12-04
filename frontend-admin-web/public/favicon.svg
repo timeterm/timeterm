@@ -12,11 +12,11 @@
    viewBox="0 0 270.93333 270.93334"
    version="1.1"
    id="svg8"
-   sodipodi:docname="logo.svg"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   inkscape:export-filename="/home/rutgerbrf/timeterm.png"
-   inkscape:export-xdpi="48.000004"
-   inkscape:export-ydpi="48.000004">
+   sodipodi:docname="favicon.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   inkscape:export-filename="/home/rutgerbrf/Code/S/timeterm/frontend-admin-web/public/favicon.png"
+   inkscape:export-xdpi="6"
+   inkscape:export-ydpi="6">
   <defs
      id="defs2">
     <filter
@@ -143,8 +143,8 @@
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1051"
-     inkscape:window-x="0"
+     inkscape:window-height="1019"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      units="px" />

@@ -20,6 +20,8 @@ import "@rmwc/switch/styles";
 import UserSettings from "./settings/UserSettings";
 import NetworkSettings from "./settings/NetworkSettings";
 import OrganizationSettings from "./settings/OrganizationSettings";
+import ZermeloSettings from "./settings/ZermeloSettings";
+import { SettingPageProps } from "./settings/useSetting";
 
 interface SettingsStore {
   [key: string]: object | undefined;
@@ -36,6 +38,13 @@ const SettingsPage: React.FC = () => {
     store: settingsStore,
     update: (store: SettingsStore) =>
       setSettingsStore({ ...settingsStore, ...store }),
+  };
+
+  const settingsProps: SettingPageProps = {
+    setIsLoading: setIsLoading,
+    setIsModified: setAreContentsModified,
+    settingsStore: store,
+    setSaveChanges: setSaveChanges,
   };
 
   return (
@@ -171,62 +180,22 @@ const SettingsPage: React.FC = () => {
                   </Route>
 
                   <Route exact path="/settings/account">
-                    <UserSettings
-                      setIsLoading={setIsLoading}
-                      setIsModified={setAreContentsModified}
-                      settingsStore={store}
-                      setSaveChanges={setSaveChanges}
-                    />
+                    <UserSettings {...settingsProps} />
                   </Route>
 
                   <Route exact path="/settings/organization/information">
-                    <OrganizationSettings
-                      setIsModified={setAreContentsModified}
-                      setIsLoading={setIsLoading}
-                      settingsStore={store}
-                      setSaveChanges={setSaveChanges}
-                    />
+                    <OrganizationSettings {...settingsProps} />
                   </Route>
 
                   <Route exact path="/settings/organization/networking">
-                    <NetworkSettings
-                      setIsModified={setAreContentsModified}
-                      setIsLoading={setIsLoading}
-                      settingsStore={store}
-                      setSaveChanges={setSaveChanges}
-                    />
+                    <NetworkSettings {...settingsProps} />
                   </Route>
 
                   <Route
                     exact
                     path="/settings/organization/integration/zermelo"
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <Typography use="headline5">Zermelo-koppeling</Typography>
-
-                      <TextField
-                        style={{
-                          marginTop: 16,
-                          width: "25em",
-                        }}
-                        label={"Zermelo-institutie"}
-                        outlined
-                      />
-
-                      <TextField
-                        style={{
-                          marginTop: 16,
-                          width: "25em",
-                        }}
-                        label={"Token van Timeterm-gebruiker in Zermelo"}
-                        outlined
-                      />
-                    </div>
+                    <ZermeloSettings {...settingsProps} />
                   </Route>
                 </RouterSwitch>
               </div>

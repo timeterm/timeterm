@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
+
+	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
 var ams = mustLoadLocation("Europe/Amsterdam")
@@ -101,31 +101,31 @@ const (
 )
 
 type Appointment struct {
-	ID                         int             `json:"id"`
-	AppointmentInstance        int             `json:"appointmentInstance"`
-	Start                      UnixTime        `json:"start"`
-	End                        UnixTime        `json:"end"`
-	StartTimeSlot              int             `json:"startTimeSlot"`
-	EndTimeSlot                int             `json:"endTimeSlot"`
-	BranchOfSchool             int             `json:"branchOfSchool"`
-	Type                       AppointmentType `json:"type"`
-	Teachers                   []string        `json:"teachers"`
-	Groups                     []string        `json:"groups"`
-	GroupsInDepartments        []int           `json:"groupsInDepartments"`
-	Locations                  []string        `json:"locations"`
-	LocationsOfBranch          []int           `json:"locationsOfBranch"`
-	IsOptional                 bool            `json:"optional"`
-	IsValid                    bool            `json:"valid"`
-	IsCanceled                 bool            `json:"cancelled"`
-	HasTeacherChanged          bool            `json:"teacherChanged"`
-	HasGroupChanged            bool            `json:"groupChanged"`
-	HasLocationChanged         bool            `json:"locationChanged"`
-	HasTimeChanged             bool            `json:"timeChanged"`
-	ChangeDescription          string          `json:"changeDescription"`
-	SchedulerRemark            string          `json:"schedulerRemark"`
-	ChoosableInDepartmentCodes []string        `json:"choosableInDepartmentCodes"`
-	Remark                     string          `json:"remark"`
-	Subjects                   []string        `json:"subjects"`
+	ID                         int                `json:"id"`
+	AppointmentInstance        int                `json:"appointmentInstance"`
+	Start                      jsontypes.UnixTime `json:"start"`
+	End                        jsontypes.UnixTime `json:"end"`
+	StartTimeSlot              int                `json:"startTimeSlot"`
+	EndTimeSlot                int                `json:"endTimeSlot"`
+	BranchOfSchool             int                `json:"branchOfSchool"`
+	Type                       AppointmentType    `json:"type"`
+	Teachers                   []string           `json:"teachers"`
+	Groups                     []string           `json:"groups"`
+	GroupsInDepartments        []int              `json:"groupsInDepartments"`
+	Locations                  []string           `json:"locations"`
+	LocationsOfBranch          []int              `json:"locationsOfBranch"`
+	IsOptional                 bool               `json:"optional"`
+	IsValid                    bool               `json:"valid"`
+	IsCanceled                 bool               `json:"cancelled"`
+	HasTeacherChanged          bool               `json:"teacherChanged"`
+	HasGroupChanged            bool               `json:"groupChanged"`
+	HasLocationChanged         bool               `json:"locationChanged"`
+	HasTimeChanged             bool               `json:"timeChanged"`
+	ChangeDescription          string             `json:"changeDescription"`
+	SchedulerRemark            string             `json:"schedulerRemark"`
+	ChoosableInDepartmentCodes []string           `json:"choosableInDepartmentCodes"`
+	Remark                     string             `json:"remark"`
+	Subjects                   []string           `json:"subjects"`
 }
 
 func structJSONFields(s interface{}) (fields []string) {
@@ -153,33 +153,6 @@ func appointmentJSONFields() []string {
 
 func appointmentParticipationJSONFields() []string {
 	return structJSONFields(AppointmentParticipation{})
-}
-
-type UnixTime time.Time
-
-func (t UnixTime) Time() time.Time {
-	return time.Time(t)
-}
-
-func (t UnixTime) String() string {
-	return strconv.FormatInt(time.Time(t).Unix(), 10)
-}
-
-func (t *UnixTime) UnmarshalJSON(b []byte) error {
-	if t == nil {
-		return errors.New("UnixTime is nil")
-	}
-	ts, err := strconv.ParseInt(string(b), 10, 64)
-	if err != nil {
-		return err
-	}
-	*t = UnixTime(time.Unix(ts, 0))
-	return nil
-}
-
-func (t UnixTime) MarshalJSON() ([]byte, error) {
-	str := strconv.FormatInt(time.Time(t).Unix(), 10)
-	return []byte(str), nil
 }
 
 type AllowedStudentActions string

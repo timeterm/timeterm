@@ -46,8 +46,8 @@ void setTimetableQueryParams(QUrl &url, const QDateTime &start, const QDateTime 
 {
     auto query = QUrlQuery(url);
     query.setQueryItems({
-        {"startTime", start.toString()},
-        {"endTime", end.toString()},
+        {"startTime", QString::number(start.toSecsSinceEpoch())},
+        {"endTime", QString::number(end.toSecsSinceEpoch())},
     });
     url.setQuery(query);
 }
@@ -88,9 +88,11 @@ void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 
 void ApiClient::setAuthHeaders(QNetworkRequest &req)
 {
+    qDebug() << "Setting X-Api-Key to" << m_apiKey.toUtf8();
     req.setRawHeader("X-Api-Key", m_apiKey.toUtf8());
     if (m_cardId != "") {
         req.setRawHeader("X-Card-Uid", m_cardId.toUtf8());
+        qDebug() << "Setting X-Card-Uid to" << m_cardId.toUtf8();
     }
 }
 
@@ -149,9 +151,8 @@ void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
     if (!parseError.error && jsonDoc.isObject()) {
         auto err = ApiError();
         err.read(jsonDoc.object());
-        auto message = "\'" + err.message + "\'";
 
-        qDebug() << "An error occurred with status code" << error << "and message" << message << "in a network request to" << reply->request().url().toString();
+        qDebug() << "An error occurred with status code" << error << "and message" << err.message << "in a network request to" << reply->request().url().toString();
     } else {
         qDebug() << "An error occurred with status code" << error << "in a network request to" << reply->request().url().toString();
     }

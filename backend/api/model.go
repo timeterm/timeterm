@@ -10,6 +10,7 @@ import (
 	devcfgpb "gitlab.com/timeterm/timeterm/proto/go/devcfg"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
 type Organization struct {
@@ -826,8 +827,8 @@ type ZermeloAppointment struct {
 	Subjects            []string              `json:"subjects"`
 	Locations           []string              `json:"locations"`
 	Teachers            []string              `json:"teachers"`
-	StartTime           time.Time             `json:"startTime"`
-	EndTime             time.Time             `json:"endTime"`
+	StartTime           jsontypes.UnixTime    `json:"startTime"`
+	EndTime             jsontypes.UnixTime    `json:"endTime"`
 	Content             string                `json:"content"`
 	Alternatives        []*ZermeloAppointment `json:"alternatives"`
 }

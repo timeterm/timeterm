@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/integration/zermelo"
+	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
 type GetZermeloAppointmentsParams struct {
-	StartTime time.Time `query:"startTime"`
-	EndTime   time.Time `query:"endTime"`
+	StartTime jsontypes.UnixTime `query:"startTime"`
+	EndTime   jsontypes.UnixTime `query:"endTime"`
 }
 
 func (s *Server) getZermeloAppointments(c echo.Context) error {
@@ -54,14 +54,15 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 	}
 
 	if !student.ZermeloUser.Valid {
+		log.Error(nil, "user has no Zermelo user associated")
 		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
 	}
 
 	appointments, err := client.GetAppointments(
 		c.Request().Context(),
 		&zermelo.AppointmentsRequest{
-			Start:            params.StartTime,
-			End:              params.EndTime,
+			Start:            params.StartTime.Time(),
+			End:              params.EndTime.Time(),
 			PossibleStudents: []string{student.ZermeloUser.String},
 		},
 	)
@@ -70,11 +71,12 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not request appointments")
 	}
 
+	middle := params.StartTime.Time().Add(params.EndTime.Time().Sub(params.StartTime.Time()) / 2)
 	participation, err := client.GetAppointmentParticipations(
 		c.Request().Context(),
 		&zermelo.AppointmentParticipationsRequest{
 			Student: student.ZermeloUser.String,
-			Week:    zermelo.YearWeekFromTime(params.StartTime.Add(params.StartTime.Sub(params.EndTime) / 2)),
+			Week:    zermelo.YearWeekFromTime(middle),
 		},
 	)
 	if err != nil {
@@ -270,8 +272,8 @@ func (a *CombinedAppointment) ToAPI() *ZermeloAppointment {
 		Subjects:            a.Appointment.Subjects,
 		Locations:           a.Appointment.Locations,
 		Teachers:            a.Appointment.Teachers,
-		StartTime:           a.Appointment.Start.Time(),
-		EndTime:             a.Appointment.End.Time(),
+		StartTime:           a.Appointment.Start,
+		EndTime:             a.Appointment.End,
 		Content:             a.Participation.Content,
 	}
 }
@@ -289,6 +291,13 @@ func (s *Server) newOrganizationZermeloClient(ctx context.Context, organizationI
 	org, err := s.db.GetOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve organization: %w", err)
+	}
+
+	if org.ZermeloInstitution == "" {
+		return nil, errors.New("organization has no Zermelo institution configured")
+	}
+	if len(token) == 0 {
+		return nil, errors.New("organization has no Zermelo token configured")
 	}
 
 	return zermelo.NewOrganizationClient(org.ZermeloInstitution, token)

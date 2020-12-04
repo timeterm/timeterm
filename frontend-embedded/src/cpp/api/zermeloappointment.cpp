@@ -209,11 +209,11 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("availableSpace") && json["availableSpace"].isDouble())
         m_availableSpace = json["availableSpace"].toInt();
 
-    if (json.contains("startTime") && json["startTime"].isString())
-        m_startTime = QDateTime::fromString(json["startTime"].toString());
+    if (json.contains("startTime") && json["startTime"].isDouble())
+        m_startTime = QDateTime::fromSecsSinceEpoch(json["startTime"].toDouble());
 
-    if (json.contains("endTime") && json["endTime"].isString())
-        m_endTime = QDateTime::fromString(json["endTime"].toString());
+    if (json.contains("endTime") && json["endTime"].isDouble())
+        m_endTime = QDateTime::fromSecsSinceEpoch(json["endTime"].toDouble());
 
     if (json.contains("subjects") && json["subjects"].isArray())
         readStringArray(json["subjects"].toArray(), m_subjects);
