@@ -9,6 +9,6 @@ void CreateDeviceResponse::read(const QJsonObject &json)
 {
     if (json.contains("device") && json["device"].isObject())
         device.read(json["device"].toObject());
-    if (json.contains("setupToken") && json["setupToken"].isString())
-        token = json["setupToken"].toString();
+    if (json.contains("token") && json["token"].isString())
+        token = json["token"].toString();
 }

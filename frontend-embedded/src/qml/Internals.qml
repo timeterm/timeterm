@@ -23,11 +23,26 @@ Item {
         }
     }
 
-    FakeApiClient {
+    // FakeApiClient {
+    //     id: apiClient
+    //
+    //     onTimetableReceived: function (timetable) {
+    //         internalsItem.timetableReceived(timetable)
+    //     }
+    // }
+
+    ApiClient {
         id: apiClient
 
-        onTimetableReceived: function (timetable) {
-            internalsItem.timetableReceived(timetable)
+        onDeviceCreated: function (response) {
+            console.log("Device registered")
+            configManager.deviceConfig.id = response.device.id
+            configManager.deviceConfig.name = response.device.name
+            configManager.deviceConfig.deviceToken = response.token
+            configManager.deviceConfig.setDeviceTokenSetupToken(configManager.deviceConfig.setupToken)
+
+            console.log("Saving device configuration")
+            configManager.saveDeviceConfig()
         }
     }
 
@@ -57,6 +72,15 @@ Item {
 
     NetworkManager {
         id: networkManager
+
+        onOnlineChanged: function (online) {
+            console.log(`Online changed to: ${online}`)
+            if (online && configManager.deviceConfig.needsRegistration) {
+                console.log("Registering")
+                apiClient.apiKey = configManager.deviceConfig.setupToken
+                apiClient.createDevice()
+            }
+        }
     }
 
     NatsConnection {

@@ -15,6 +15,7 @@
 #include <QQmlApplicationEngine>
 
 #include "api/zermeloappointment.h"
+#include <api/apiclient.h>
 #include <devcfg/configmanager.h>
 #include <logs/logmanager.h>
 #include <messagequeue/natssubscription.h>
@@ -41,6 +42,7 @@ int runApp(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Timeterm.Rfid", 1, 0, "CardReaderController", cardReader.get());
     qmlRegisterUncreatableType<CardReaderController>("Timeterm.Rfid", 1, 0, "CardReaderControllerType", "singleton");
+    qmlRegisterType<ApiClient>("Timeterm.Api", 1, 0, "ApiClient");
     qmlRegisterType<FakeApiClient>("Timeterm.Api", 1, 0, "FakeApiClient");
     qmlRegisterUncreatableMetaObject(MessageQueue::NatsStatus::staticMetaObject,
                                      "Timeterm.MessageQueue", 1, 0, "NatsStatus",

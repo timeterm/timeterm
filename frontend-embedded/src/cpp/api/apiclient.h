@@ -8,6 +8,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
+#include <QJsonObject>
 
 class ApiClient: public QObject
 {
@@ -29,8 +30,8 @@ public:
     Q_INVOKABLE void getCurrentUser();
     Q_INVOKABLE void getAppointments(const QDateTime &start, const QDateTime &end);
     Q_INVOKABLE void createDevice();
-    Q_INVOKABLE void getNatsCreds(const QString& deviceId);
-    Q_INVOKABLE void doHeartbeat(const QString& deviceId);
+    Q_INVOKABLE void getNatsCreds(const QString &deviceId);
+    Q_INVOKABLE void doHeartbeat(const QString &deviceId);
 
 signals:
     void cardIdChanged();
@@ -54,9 +55,20 @@ private:
     void handleHeartbeatReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
-    QUrl m_baseUrl = QUrl("https://timeterm.nl/api/v1/");
+    QUrl m_baseUrl = QUrl("https://api.timeterm.nl/");
     QString m_cardId;
     QString m_apiKey;
     QNetworkAccessManager *m_qnam;
     QHash<QNetworkReply *, ReplyHandler> m_handlers;
+};
+
+class ApiError
+{
+    Q_GADGET
+    Q_PROPERTY(QString message MEMBER message)
+
+public:
+    void read(const QJsonObject &json);
+
+    QString message;
 };

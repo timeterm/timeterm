@@ -1,5 +1,7 @@
 #include "deviceconfig.h"
 
+#include <QCryptographicHash>
+
 DeviceConfig::DeviceConfig(QObject *parent)
     : QObject(parent)
 {
@@ -63,6 +65,7 @@ void DeviceConfig::write(QJsonObject &json) const
     json["name"] = m_name;
     json["setupToken"] = m_setupToken;
     json["deviceToken"] = m_deviceToken;
+    json["deviceTokenSetupTokenHash"] = m_deviceTokenSetupTokenHash;
 }
 
 void DeviceConfig::read(const QJsonObject &json)
@@ -75,4 +78,40 @@ void DeviceConfig::read(const QJsonObject &json)
         setSetupToken(json["setupToken"].toString());
     if (json.contains("deviceToken") && json["deviceToken"].isString())
         setDeviceToken(json["deviceToken"].toString());
+    if (json.contains("deviceTokenSetupTokenHash") && json["deviceTokenSetupTokenHash"].isString())
+        setDeviceTokenSetupTokenHash(json["deviceTokenSetupTokenHash"].toString());
+}
+
+void DeviceConfig::setDeviceTokenSetupToken(const QString &token)
+{
+    setDeviceTokenSetupTokenHash(hashToken(token));
+}
+
+void DeviceConfig::setDeviceTokenSetupTokenHash(const QString &hash)
+{
+    if (hash != m_deviceTokenSetupTokenHash) {
+        m_deviceTokenSetupTokenHash = hash;
+        emit deviceTokenSetupTokenHashChanged();
+    }
+}
+
+QString DeviceConfig::deviceTokenSetupTokenHash() const
+{
+    return m_deviceTokenSetupTokenHash;
+}
+
+QString DeviceConfig::hashToken(const QString &token)
+{
+    auto bytes = token.toUtf8();
+    auto hash = QCryptographicHash(QCryptographicHash::Sha3_256);
+    hash.addData(bytes);
+
+    auto hashBytes = hash.result();
+    auto hashString = QString(hashBytes.toHex());
+    return hashString;
+}
+
+bool DeviceConfig::needsRegistration()
+{
+    return m_setupToken != "" && hashToken(m_setupToken) != m_deviceTokenSetupTokenHash;
 }

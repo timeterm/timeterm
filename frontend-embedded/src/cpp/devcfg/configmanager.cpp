@@ -119,6 +119,7 @@ void ConfigManager::loadConfig()
     auto _loadedGuard = onScopeExit([this]() {
         emit configLoaded();
     });
+    loadDeviceConfig();
 
     qDebug() << "Trying to mount config volume...";
     if (tryMountConfig() == std::nullopt) {
@@ -173,7 +174,6 @@ void ConfigManager::loadConfig()
         qDebug() << "Mounting config volume failed";
     }
 
-    loadDeviceConfig();
     qDebug() << "Reloading system...";
     reloadSystem();
 }
@@ -210,7 +210,7 @@ void ConfigManager::loadDeviceConfig()
     auto path = createDeviceInfoPath();
     auto f = QFile(path);
     if (!f.open(QIODevice::ReadOnly)) {
-        qCritical() << "Could not open device info file";
+        qWarning() << "Could not open device info file";
         return;
     }
     auto bytes = f.readAll();

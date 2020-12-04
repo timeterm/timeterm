@@ -11,7 +11,7 @@ Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zi
 
 `/`:
 - `api/` - API-documentatie en verdere informatie (over bijv. de Zermelo API)
-  - `reference/` - OpenAPI-documentatie van de Timeterm API, gehost op https://api.timeterm.nl/reference
+  - `reference/` - OpenAPI-documentatie van de Timeterm API, gehost op https://api.timeterm.nl/reference/
 - `backend/` - Broncode voor het backend van Timeterm (Go), gehost op https://api.timeterm.nl/
 - `design/` - Designbestanden van de UI en het apparaat
 - `docs/` - Praktische documentatie van Timeterm, gehost op https://docs.timeterm.nl/

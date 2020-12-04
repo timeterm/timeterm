@@ -133,6 +133,11 @@ NetworkState NetworkManager::getNetworkState()
             state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
         }
     }
+#else
+    state.isOnline = true;
+    state.isWired = false;
+    state.signalStrength = 50;
+    state.isConnected = true;
 #endif
     return state;
 }

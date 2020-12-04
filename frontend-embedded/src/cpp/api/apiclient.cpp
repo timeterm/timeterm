@@ -142,6 +142,19 @@ void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
 {
     auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
 
+    auto jsonBytes = reply->readAll();
+    auto parseError = QJsonParseError();
+    auto jsonDoc = QJsonDocument::fromJson(jsonBytes, &parseError);
+    if (!parseError.error && jsonDoc.isObject()) {
+        auto err = ApiError();
+        err.read(jsonDoc.object());
+        auto message = "\'" + err.message + "\'";
+
+        qDebug() << "An error occurred with status code" << error << "and message" << message << "in a network request to" << reply->request().url().toString();
+    } else {
+        qDebug() << "An error occurred with status code" << error << "in a network request to" << reply->request().url().toString();
+    }
+
     m_handlers.remove(reply);
 
     reply->deleteLater();
@@ -212,4 +225,10 @@ void ApiClient::doHeartbeat(const QString &deviceId)
 void ApiClient::handleHeartbeatReply(QNetworkReply *)
 {
     emit heartbeatSucceeded();
+}
+
+void ApiError::read(const QJsonObject &obj)
+{
+    if (obj.contains("message") && obj["message"].isString())
+        message = obj["message"].toString();
 }
