@@ -23,9 +23,10 @@ type OrganizationZermeloInfo struct {
 }
 
 type Student struct {
-	ID             uuid.UUID          `json:"id"`
-	OrganizationID uuid.UUID          `json:"organizationId"`
-	Zermelo        StudentZermeloInfo `json:"zermelo"`
+	ID                uuid.UUID          `json:"id"`
+	OrganizationID    uuid.UUID          `json:"organizationId"`
+	Zermelo           StudentZermeloInfo `json:"zermelo"`
+	HasCardAssociated bool               `json:"hasCardAssociated,omitempty"`
 }
 
 type StudentZermeloInfo struct {
@@ -682,6 +683,7 @@ func StudentFrom(student database.Student) Student {
 		Zermelo: StudentZermeloInfo{
 			User: StringPtrFrom(student.ZermeloUser),
 		},
+		HasCardAssociated: student.HasCardAssociated,
 	}
 }
 

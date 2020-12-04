@@ -18,9 +18,10 @@ type Organization struct {
 }
 
 type Student struct {
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
-	ZermeloUser    sql.NullString
+	ID                uuid.UUID
+	OrganizationID    uuid.UUID
+	ZermeloUser       sql.NullString
+	HasCardAssociated bool
 }
 
 type OAuth2State struct {

@@ -69,8 +69,8 @@ func (w *Wrapper) ReplaceStudentCard(ctx context.Context, organizationID, studen
 	defer func() { _ = tx.Rollback() }()
 
 	if _, err = tx.ExecContext(ctx,
-		`DELETE FROM "student_card" WHERE student_id = $1 AND organization_id = $1`,
-		studentID,
+		`DELETE FROM "student_card" WHERE student_id = $1 AND organization_id = $2`,
+		studentID, organizationID,
 	); err != nil {
 		return err
 	}

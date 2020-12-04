@@ -138,7 +138,7 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 	}
 
 	conds := sq.And{
-		sq.Eq{"organization_id": opts.OrganizationID},
+		sq.Eq{"student.organization_id": opts.OrganizationID},
 	}
 
 	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
@@ -148,10 +148,12 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 			PlaceholderFormat(sq.Dollar)
 	}
 
-	devsSql, args, err := buildQuery(sq.Select(`*`)).
+	devsSql, args, err := buildQuery(sq.Select(`student.*, (COUNT(student_card.*) > 0) AS has_card_associated`)).
+		InnerJoin("student_card ON student_card.student_id = student.id").
 		Limit(students.Pagination.Limit).
 		Offset(students.Pagination.Offset).
 		OrderBy("zermelo_user ASC").
+		GroupBy("student.id").
 		ToSql()
 	if err != nil {
 		return students, err
