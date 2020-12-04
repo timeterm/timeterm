@@ -21,9 +21,18 @@ func (s *Server) getStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
 	dbStudent, err := s.db.GetStudent(c.Request().Context(), uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read student from database")
+	}
+
+	if user.OrganizationID != dbStudent.OrganizationID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Student does not belong to user's organization")
 	}
 
 	apiStudent := StudentFrom(dbStudent)
@@ -62,6 +71,15 @@ func (s *Server) createStudent(c echo.Context) error {
 	uid, err := uuid.Parse(organizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	if user.OrganizationID != uid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Organization does not belong to user's organization")
 	}
 
 	dbStudent, err := s.db.CreateStudent(c.Request().Context(), uid)

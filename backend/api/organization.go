@@ -8,6 +8,8 @@ import (
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
+
+	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 )
 
 func (s *Server) getOrganization(c echo.Context) error {
@@ -18,9 +20,18 @@ func (s *Server) getOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
 	dbOrg, err := s.db.GetOrganization(c.Request().Context(), uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read organization from database")
+	}
+
+	if user.OrganizationID != dbOrg.ID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Organization does not belong to user's organization")
 	}
 
 	apiOrg := OrganizationFrom(dbOrg)
@@ -33,6 +44,15 @@ func (s *Server) patchOrganization(c echo.Context) error {
 	uid, err := uuid.Parse(organizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	if user.OrganizationID != uid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Organization does not belong to user's organization")
 	}
 
 	patchData, err := ioutil.ReadAll(c.Request().Body)

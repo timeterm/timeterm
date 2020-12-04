@@ -30,6 +30,15 @@ func (s *Server) patchUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	if user.ID != uid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "ID mismatch")
+	}
+
 	patchData, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		s.log.Error(err, "could not read request body")
@@ -50,14 +59,14 @@ func (s *Server) patchUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not marshal the old user")
 	}
 
-	newJsonUser, err := jsonpatch.MergePatch(jsonUser, patchData)
+	newJSONUser, err := jsonpatch.MergePatch(jsonUser, patchData)
 	if err != nil {
 		s.log.Error(err, "could not patch user")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not patch user")
 	}
 
 	var newAPIUser User
-	err = json.Unmarshal(newJsonUser, &newAPIUser)
+	err = json.Unmarshal(newJSONUser, &newAPIUser)
 	if err != nil {
 		s.log.Error(err, "could not unmarshal patched user")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not unmarshal patched user")

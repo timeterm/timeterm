@@ -23,9 +23,19 @@ func (s *Server) getDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
 	}
 
+	user, ok := authn.UserFromContext(c)
+	if !ok {
+		s.log.Error(nil, "user not in context")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
 	dbDevice, err := s.db.GetDevice(c.Request().Context(), uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read device from database")
+	}
+
+	if user.OrganizationID != dbDevice.ID {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
 
 	apiDevice := DeviceFrom(dbDevice)
