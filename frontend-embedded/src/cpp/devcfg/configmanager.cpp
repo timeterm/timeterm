@@ -76,7 +76,7 @@ QString SetupConfig::token() const
 
 ConfigManager::ConfigManager(QObject *parent)
     : QObject(parent)
-    , m_deviceConfig(new DeviceConfig())
+    , m_deviceConfig(new DeviceConfig(this))
 {
 }
 

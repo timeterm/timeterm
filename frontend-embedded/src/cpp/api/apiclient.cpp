@@ -88,9 +88,10 @@ void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 
 void ApiClient::setAuthHeaders(QNetworkRequest &req)
 {
-    req.setRawHeader("X-Api-Key", m_apiKey.toLocal8Bit());
-    if (m_cardId != "")
-        req.setRawHeader("X-Card-Uid", m_cardId.toLocal8Bit());
+    req.setRawHeader("X-Api-Key", m_apiKey.toUtf8());
+    if (m_cardId != "") {
+        req.setRawHeader("X-Card-Uid", m_cardId.toUtf8());
+    }
 }
 
 void ApiClient::replyFinished()

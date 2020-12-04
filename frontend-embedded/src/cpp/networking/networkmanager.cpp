@@ -146,7 +146,7 @@ void NetworkManager::timerEvent(QTimerEvent *event)
 {
     if (event->timerId() == m_checkNetworkStateTimerId) {
         auto state = getNetworkState();
-        if (*m_lastState != state) {
+        if (!m_lastState.has_value() || *m_lastState != state) {
             if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
                 emit onlineChanged(state.isOnline);
             }

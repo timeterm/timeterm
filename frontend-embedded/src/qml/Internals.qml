@@ -18,7 +18,9 @@ Item {
 
     Connections {
         target: CardReaderController
+
         function onCardRead(uid) {
+            apiClient.cardId = uid
             internalsItem.cardRead(uid)
         }
     }
@@ -40,6 +42,7 @@ Item {
             configManager.deviceConfig.name = response.device.name
             configManager.deviceConfig.deviceToken = response.token
             configManager.deviceConfig.setDeviceTokenSetupToken(configManager.deviceConfig.setupToken)
+            apiClient.apiKey = configManager.deviceConfig.deviceToken
 
             console.log("Saving device configuration")
             configManager.saveDeviceConfig()
@@ -66,6 +69,7 @@ Item {
         onConfigLoaded: {
             console.log("Config loaded, triggering TtNetworkManager")
 
+            apiClient.apiKey = configManager.deviceConfig.deviceToken
             networkManager.configLoaded()
         }
     }

@@ -42,7 +42,7 @@ private:
     static void handleMessageReceived(natsConnection *nc, natsSubscription *sub, natsMsg *msg, void *closure);
     void handleMessageReceived(natsMsg *msg);
 
-    NatsConnection *m_conn;
+    NatsConnection *m_conn = nullptr;
     QSharedPointer<natsConnection *> m_nc;
     natsSubscription *m_sub = nullptr;
     QString m_subject;
