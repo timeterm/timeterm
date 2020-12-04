@@ -13,7 +13,6 @@ import (
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/integration/zermelo"
-	"gitlab.com/timeterm/timeterm/backend/secrets"
 )
 
 type GetZermeloAppointmentsParams struct {
@@ -308,7 +307,7 @@ func (s *Server) connectZermeloOrganization(c echo.Context) error {
 	if err != nil {
 		s.log.Error(err, "could not upsert organization Zermelo token", "organizationId", user.OrganizationID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not save Zermelo token")
-	}	
+	}
 
 	return c.NoContent(http.StatusOK)
 }
