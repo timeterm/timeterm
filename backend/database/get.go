@@ -401,7 +401,7 @@ func (w *Wrapper) GetStudentByCard(ctx context.Context, uid []byte, organization
 
 	err = w.db.GetContext(ctx, &student, `
 		SELECT student.* FROM student_card
-		INNER JOIN student on student.id = student_card.student_id
+		INNER JOIN student ON student.id = student_card.student_id
 		WHERE student_card.id_hash = $1 AND student_card.organization_id = $2
 	`, hash, organizationID)
 

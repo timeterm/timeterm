@@ -51,3 +51,8 @@ func (w *Wrapper) DeleteStudents(ctx context.Context, ids []uuid.UUID) error {
 	_, err := w.db.ExecContext(ctx, `DELETE FROM "student" WHERE "id" = ANY($1)`, pq.Array(ids))
 	return err
 }
+
+func (w *Wrapper) DeleteStudentCards(ctx context.Context, studentID uuid.UUID) error {
+	_, err := w.db.ExecContext(ctx, `DELETE FROM "student_card" WHERE "student_id" = $1`, studentID)
+	return err
+}

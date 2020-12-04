@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -58,4 +59,33 @@ func (w *Wrapper) ReplaceNetworkingService(ctx context.Context, s NetworkingServ
 	)
 
 	return err
+}
+
+func (w *Wrapper) ReplaceStudentCard(ctx context.Context, organizationID, studentID uuid.UUID, cardUID []byte) error {
+	tx, err := w.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err = tx.ExecContext(ctx,
+		`DELETE FROM "student_card" WHERE student_id = $1 AND organization_id = $1`,
+		studentID,
+	); err != nil {
+		return err
+	}
+
+	cardHash, err := hashBytes(cardUID)
+	if err != nil {
+		return fmt.Errorf("could not hash card UID: %w", err)
+	}
+
+	if _, err = w.db.ExecContext(ctx, `
+		INSERT INTO "student_card" (id_hash, organization_id, student_id)
+		VALUES ($1, $2, $3)
+	`, cardHash, organizationID, studentID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

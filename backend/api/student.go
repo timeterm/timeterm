@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
+
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
 )
@@ -82,6 +83,7 @@ func (s *Server) createStudent(c echo.Context) error {
 }
 
 func (s *Server) patchStudent(c echo.Context) error {
+	ctx := c.Request().Context()
 	studentID := c.Param("id")
 
 	user, ok := authn.UserFromContext(c)
@@ -100,7 +102,7 @@ func (s *Server) patchStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read request body")
 	}
 
-	oldDBStudent, err := s.db.GetStudent(c.Request().Context(), uid)
+	oldDBStudent, err := s.db.GetStudent(ctx, uid)
 	if err != nil {
 		s.log.Error(err, "could not read student from database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read student from database")
@@ -124,7 +126,7 @@ func (s *Server) patchStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not patch the student")
 	}
 
-	var newAPIStudent Student
+	var newAPIStudent PatchedStudent
 	err = json.Unmarshal(newJSONStudent, &newAPIStudent)
 	if err != nil {
 		s.log.Error(err, "could not unmarshal patched student")
@@ -134,12 +136,25 @@ func (s *Server) patchStudent(c echo.Context) error {
 	newAPIStudent.ID = oldDBStudent.ID
 	newAPIStudent.OrganizationID = oldDBStudent.OrganizationID
 
-	newDBStudent := StudentToDB(newAPIStudent)
+	newDBStudent := StudentToDB(newAPIStudent.Student)
 
-	err = s.db.ReplaceStudent(c.Request().Context(), newDBStudent)
+	err = s.db.ReplaceStudent(ctx, newDBStudent)
 	if err != nil {
 		s.log.Error(err, "could not update the student in the database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update the student in the database")
+	}
+
+	if newAPIStudent.CardID.Value != nil {
+		cardID := []byte(*newAPIStudent.CardID.Value)
+		if err = s.db.ReplaceStudentCard(ctx, user.OrganizationID, newDBStudent.ID, cardID); err != nil {
+			s.log.Error(err, "could not replace student card")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not update student card in the database")
+		}
+	} else if newAPIStudent.CardID.ExplicitlyNull {
+		if err = s.db.DeleteStudentCards(ctx, user.ID); err != nil {
+			s.log.Error(err, "could not delete student cards")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not delete student cards from the database")
+		}
 	}
 
 	return c.JSON(http.StatusOK, newAPIStudent)

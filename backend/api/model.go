@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -831,4 +832,26 @@ type ZermeloAppointment struct {
 
 type ZermeloAppointmentsResponse struct {
 	Data []*ZermeloAppointment `json:"data"`
+}
+
+type PatchedStudent struct {
+	Student
+	CardID StringPatch `json:"cardId"`
+}
+
+type StringPatch struct {
+	ExplicitlyNull bool
+	Value          *string
+}
+
+func (p *StringPatch) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, &p.Value); err != nil {
+		return err
+	}
+	p.ExplicitlyNull = p.Value == nil
+	return nil
+}
+
+func (p StringPatch) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.Value)
 }
