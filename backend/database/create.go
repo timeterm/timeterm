@@ -85,18 +85,19 @@ func (w *Wrapper) CreateOrganization(ctx context.Context,
 	return org, row.Scan(&org.ID)
 }
 
-func (w *Wrapper) CreateStudent(ctx context.Context, organizationID uuid.UUID) (Student, error) {
+func (w *Wrapper) CreateStudent(ctx context.Context, s Student) (Student, error) {
 	std := Student{
-		OrganizationID: organizationID,
+		OrganizationID: s.OrganizationID,
+		ZermeloUser:    s.ZermeloUser,
 	}
 
-	row := w.db.QueryRowContext(ctx, `
-		INSERT INTO "student" ("organization_id") 
-		VALUES ($1) 
-		RETURNING "id"
-	`, organizationID)
+	err := w.db.GetContext(ctx, &std.ID, `
+		INSERT INTO "student" (organization_id, zermelo_user) 
+		VALUES ($1, $2) 
+		RETURNING id
+	`, s.OrganizationID, s.ZermeloUser)
 
-	return std, row.Scan(&std.ID)
+	return std, err
 }
 
 func (w *Wrapper) CreateNetworkingService(

@@ -72,7 +72,14 @@ func (s *Server) createStudent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
 	}
 
-	dbStudent, err := s.db.CreateStudent(c.Request().Context(), user.OrganizationID)
+	var student Student
+	err := c.Bind(&student)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
+	}
+	student.OrganizationID = user.OrganizationID
+
+	dbStudent, err := s.db.CreateStudent(c.Request().Context(), StudentToDB(student))
 	if err != nil {
 		s.log.Error(err, "could not create student")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create student")
