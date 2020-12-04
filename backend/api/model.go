@@ -28,7 +28,7 @@ type Student struct {
 }
 
 type StudentZermeloInfo struct {
-	User string `json:"user"`
+	User *string `json:"user,omitempty"`
 }
 
 type PrimaryDeviceStatus string
@@ -657,12 +657,29 @@ func OrganisationToDB(org Organization) database.Organization {
 	}
 }
 
+func StringPtrFrom(ns sql.NullString) *string {
+	if !ns.Valid {
+		return nil
+	}
+	return &ns.String
+}
+
+func StringPtrToDB(p *string) sql.NullString {
+	if p == nil {
+		return sql.NullString{}
+	}
+	return sql.NullString{
+		Valid:  true,
+		String: *p,
+	}
+}
+
 func StudentFrom(student database.Student) Student {
 	return Student{
 		ID:             student.ID,
 		OrganizationID: student.OrganizationID,
 		Zermelo: StudentZermeloInfo{
-			User: student.ZermeloUser,
+			User: StringPtrFrom(student.ZermeloUser),
 		},
 	}
 }
@@ -785,7 +802,7 @@ func StudentToDB(s Student) database.Student {
 	return database.Student{
 		ID:             s.ID,
 		OrganizationID: s.OrganizationID,
-		ZermeloUser:    s.Zermelo.User,
+		ZermeloUser:    StringPtrToDB(s.Zermelo.User),
 	}
 }
 

@@ -53,12 +53,16 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not request appointments")
 	}
 
+	if !student.ZermeloUser.Valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
+	}
+
 	appointments, err := client.GetAppointments(
 		c.Request().Context(),
 		&zermelo.AppointmentsRequest{
 			Start:            params.StartTime,
 			End:              params.EndTime,
-			PossibleStudents: []string{student.ZermeloUser},
+			PossibleStudents: []string{student.ZermeloUser.String},
 		},
 	)
 	if err != nil {
@@ -69,7 +73,7 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 	participation, err := client.GetAppointmentParticipations(
 		c.Request().Context(),
 		&zermelo.AppointmentParticipationsRequest{
-			Student: student.ZermeloUser,
+			Student: student.ZermeloUser.String,
 			Week:    zermelo.YearWeekFromTime(params.StartTime.Add(params.StartTime.Sub(params.EndTime) / 2)),
 		},
 	)
@@ -172,6 +176,10 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not request data from Zermelo")
 	}
 
+	if !student.ZermeloUser.Valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
+	}
+
 	if params.UnenrollFromParticipation != nil {
 		upart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.UnenrollFromParticipation)
 		if err != nil {
@@ -184,7 +192,7 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get participation to unenroll from")
 		}
-		if upart.StudentCode != student.ZermeloUser {
+		if upart.StudentCode != student.ZermeloUser.String {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to unenroll from participation")
 		}
 		if !upart.AllowedStudentActions.CanSwitch() {
@@ -204,7 +212,7 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get participation to enroll into")
 		}
-		if epart.StudentCode != student.ZermeloUser {
+		if epart.StudentCode != student.ZermeloUser.String {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to enroll into participation")
 		}
 		if !epart.AllowedStudentActions.CanSwitch() {
@@ -286,12 +294,12 @@ func (s *Server) newOrganizationZermeloClient(ctx context.Context, organizationI
 	return zermelo.NewOrganizationClient(org.ZermeloInstitution, token)
 }
 
-type connectZermeloOranizationParams struct {
-	token string `json:"token"`
+type connectZermeloOrganizationParams struct {
+	Token string `json:"token"`
 }
 
 func (s *Server) connectZermeloOrganization(c echo.Context) error {
-	var params connectZermeloOranizationParams
+	var params connectZermeloOrganizationParams
 
 	err := c.Bind(&params)
 	if err != nil {
@@ -303,7 +311,7 @@ func (s *Server) connectZermeloOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
 	}
 
-	err = s.secr.UpsertOrganizationZermeloToken(user.OrganizationID, []byte(params.token))
+	err = s.secr.UpsertOrganizationZermeloToken(user.OrganizationID, []byte(params.Token))
 	if err != nil {
 		s.log.Error(err, "could not upsert organization Zermelo token", "organizationId", user.OrganizationID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not save Zermelo token")
