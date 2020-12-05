@@ -71,20 +71,20 @@ func setMigrationVersionInUser(c *jwt.UserClaims, version int) {
 
 type OperatorMigration struct {
 	NameRegex string
-	Patches   *jwtpatch.OperatorClaimsPatches
+	Patch     func(log logr.Logger, r OperatorRef, claims *jwt.OperatorClaims)
 }
 
 type AccountMigration struct {
 	NameRegex         string
 	OperatorNameRegex string
-	Patches           *jwtpatch.AccountClaimsPatches
+	Patch             func(log logr.Logger, r AccountRef, claims *jwt.AccountClaims)
 }
 
 type UserMigration struct {
 	NameRegex         string
 	AccountNameRegex  string
 	OperatorNameRegex string
-	Patches           *jwtpatch.UserClaimsPatches
+	Patch             func(log logr.Logger, r UserRef, claims *jwt.UserClaims)
 }
 
 type OperatorRef struct {
@@ -202,7 +202,8 @@ func (m Migrations) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Man
 func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Manager) error {
 	ctx := context.Background()
 
-	log.Info("running migration", "version", m.Version, "name", m.Name)
+	log = log.WithValues("migrationVersion", m.Version, "name", m.Name)
+	log.Info("running migration")
 
 	for ref, acc := range m.CreateAccounts {
 		if _, err := mgr.NewAccount(ctx, ref.Name, ref.Operator.Name, func(c *jwt.AccountClaims) {
@@ -228,7 +229,7 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 		if err := dbw.WalkOperatorSubjectsRe(ctx, opm.NameRegex, func(op database.Operator) bool {
 			if err := mgr.UpdateOperator(ctx, op.Name, func(c *jwt.OperatorClaims) {
 				if v, ok := getMigrationVersionFromOperator(c); !ok || v == m.Version-1 {
-					jwtpatch.PatchOperatorClaims(c, opm.Patches)
+					opm.Patch(log, OperatorRef{Name: op.Name}, c)
 					setMigrationVersionInOperator(c, m.Version)
 				}
 			}); err != nil {
@@ -248,7 +249,12 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 		if err := dbw.WalkAccountSubjectsRe(ctx, acm.NameRegex, acm.OperatorNameRegex, func(acc database.Account) bool {
 			if err := mgr.UpdateAccount(ctx, acc.Name, acc.OperatorName, func(c *jwt.AccountClaims) {
 				if v, ok := getMigrationVersionFromAccount(c); !ok || v == m.Version-1 {
-					jwtpatch.PatchAccountClaims(c, acm.Patches)
+					acm.Patch(log, AccountRef{
+						Name: acc.Name,
+						Operator: OperatorRef{
+							Name: acc.OperatorName,
+						},
+					}, c)
 					setMigrationVersionInAccount(c, m.Version)
 				}
 			}); err != nil {
@@ -274,7 +280,15 @@ func (m Migration) Run(log logr.Logger, dbw *database.Wrapper, mgr *manager.Mana
 			func(user database.User) bool {
 				if err := mgr.UpdateUser(ctx, user.Name, user.AccountName, user.OperatorName, func(c *jwt.UserClaims) {
 					if v, ok := getMigrationVersionFromUser(c); !ok || v == m.Version-1 {
-						jwtpatch.PatchUserClaims(c, usm.Patches)
+						usm.Patch(log, UserRef{
+							Name: user.Name,
+							Account: AccountRef{
+								Name: user.AccountName,
+								Operator: OperatorRef{
+									Name: user.OperatorName,
+								},
+							},
+						}, c)
 						setMigrationVersionInUser(c, m.Version)
 					}
 				}); err != nil {

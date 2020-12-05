@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -44,7 +46,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secrets.Wrapper) (Server, error) {
+func NewServer(db *database.Wrapper, log logr.Logger, secr *secrets.Wrapper) (Server, error) {
 	log = log.WithName("Server")
 
 	e, err := newEcho(log)
@@ -52,12 +54,36 @@ func NewServer(db *database.Wrapper, log logr.Logger, nc *nats.Conn, secr *secre
 		return Server{}, err
 	}
 
+	acr, err := nmsdk.NewAppCredsRetrieverFromEnv("backend")
+	if err != nil {
+		return Server{}, fmt.Errorf("could not create (NATS) app credentials retriever: %w", err)
+	}
+
+	nc, err := nats.Connect(os.Getenv("NATS_URL"),
+		nats.UserJWT(acr.NatsCredsCBs()),
+		// Never stop trying to reconnect.
+		nats.MaxReconnects(-1),
+	)
+	if err != nil {
+		return Server{}, fmt.Errorf("could not connect to NATS: %w", err)
+	}
+	defer func() {
+		if err = nc.Drain(); err != nil {
+			log.Error(err, "could not drain NATS connection")
+		}
+	}()
+
+	mqw, err := mq.NewWrapper()
+	if err != nil {
+		return Server{}, fmt.Errorf("could not create NATS wrapper: %w", err)
+	}
+
 	server := Server{
 		db:   db,
 		log:  log,
 		echo: e,
 		secr: secr,
-		mqw:  mq.NewWrapper(nc),
+		mqw:  mqw,
 		nm:   nmsdk.NewClient(nc),
 	}
 	server.registerRoutes()

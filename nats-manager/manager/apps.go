@@ -20,7 +20,8 @@ type appIndex struct {
 func newAppIndex() appIndex {
 	return appIndex{
 		apps: makeAppsByUsers(map[string]appUser{
-			"backend": {accountName: "BACKEND", userName: "backend"},
+			"backend":        {accountName: "BACKEND", userName: "backend"},
+			"backend-emdevs": {accountName: "EMDEVS", userName: "backend"},
 		}),
 	}
 }

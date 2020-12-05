@@ -46,6 +46,14 @@ Item {
 
             console.log("Saving device configuration")
             configManager.saveDeviceConfig()
+
+            console.log("Retrieving NATS credentials")
+            configManager.getNatsCreds(configManager.deviceConfig.id)
+        }
+
+        onNatsCredsReceived: function (response) {
+            console.log("Writing NATS credentials")
+            response.writeToFile()
         }
 
         onTimetableReceived: function (timetable) {
@@ -87,6 +95,9 @@ Item {
                 console.log("Registering")
                 apiClient.apiKey = configManager.deviceConfig.setupToken
                 apiClient.createDevice()
+            } else {
+                console.log("Retrieving NATS credentials")
+                apiClient.getNatsCreds(configManager.deviceConfig.id)
             }
         }
     }
@@ -96,7 +107,7 @@ Item {
         options: NatsOptions {
             id: connOpts
             url: "nats.timeterm.nl"
-            credsFilePath: "EMDEV.creds"
+            credsFilePath: "nats/EMDEV.creds"
         }
 
         Component.onCompleted: {
@@ -106,7 +117,7 @@ Item {
         onConnected: {
             console.log("Connected to NATS")
 
-            disownSub.start()
+            //disownSub.start()
             rebootSub.start()
         }
 
@@ -137,19 +148,23 @@ Item {
 
     NatsSubscription {
         id: rebootSub
-        subject: "EMDEV.asdfasdfasdf.REBOOT"
+        subject: `EMDEV.${configManager.deviceConfig.id}.REBOOT`
         connection: natsConn
-    }
 
-    JetStreamConsumer {
-        id: disownSub
-        connection: natsConn
-        stream: "DISOWN-TOKEN"
-        consumerId: "ozuhLrexlBa4p50INjihAl"
-        type: JetStreamConsumerType.Pull
-
-        onDisownTokenMessage: function (msg) {
-            console.log()
+        onMessageReceived: function () {
+            console.log("Rebooting...")
         }
     }
+
+    // JetStreamConsumer {
+    //     id: disownSub
+    //     connection: natsConn
+    //     stream: "DISOWN-TOKEN"
+    //     consumerId: "ozuhLrexlBa4p50INjihAl"
+    //     type: JetStreamConsumerType.Pull
+
+    //     onDisownTokenMessage: function (msg) {
+    //         console.log()
+    //     }
+    // }
 }

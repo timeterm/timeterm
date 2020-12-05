@@ -641,7 +641,7 @@ func (m *Manager) ProvisionNewDevice(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	_, err = m.newUser(ctx, deviceUserName(id), dapk)
+	_, err = m.newUser(ctx, deviceUserName(id), dapk, emdevEditor(id))
 	return err
 }
 

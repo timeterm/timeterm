@@ -11,8 +11,6 @@ import (
 	"github.com/go-logr/zapr"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
-	"github.com/nats-io/nats.go"
-	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
 	"go.uber.org/zap"
 
 	"gitlab.com/timeterm/timeterm/backend/api"
@@ -56,26 +54,7 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("could not create secrets wrapper: %w", err)
 	}
 
-	acr, err := nmsdk.NewAppCredsRetrieverFromEnv("backend")
-	if err != nil {
-		return fmt.Errorf("could not create (NATS) app credentials retriever: %w", err)
-	}
-
-	nc, err := nats.Connect(os.Getenv("NATS_URL"),
-		nats.UserJWT(acr.NatsCredsCBs()),
-		// Never stop trying to reconnect.
-		nats.MaxReconnects(-1),
-	)
-	if err != nil {
-		return fmt.Errorf("could not connect to NATS: %w", err)
-	}
-	defer func() {
-		if err = nc.Drain(); err != nil {
-			log.Error(err, "could not drain NATS connection")
-		}
-	}()
-
-	server, err := api.NewServer(db, log, nc, secr)
+	server, err := api.NewServer(db, log, secr)
 	if err != nil {
 		return fmt.Errorf("could not create API server: %w", err)
 	}
