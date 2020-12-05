@@ -21,6 +21,8 @@ type GetZermeloAppointmentsParams struct {
 }
 
 func (s *Server) getZermeloAppointments(c echo.Context) error {
+	s.log.Info("got a getZermeloAppointments request")
+
 	dev, ok := authn.DeviceFromContext(c)
 	if !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
@@ -32,9 +34,9 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 	}
 
 	log := s.log.WithValues(
-		"deviceID", dev.ID,
-		"studentID", student.ID,
-		"organizationID", student.OrganizationID,
+		"deviceId", dev.ID,
+		"studentId", student.ID,
+		"organizationId", student.OrganizationID,
 	)
 
 	var params GetZermeloAppointmentsParams
@@ -111,29 +113,26 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 		for _, apt := range group {
 			apiAppointment := apt.ToAPI()
 
-			if !apt.Appointment.IsOptional {
-				converted = append(converted, apiAppointment)
-				continue
-			}
-
 			if apt.Participation.IsStudentEnrolled {
 				if current != nil {
-					converted = append(converted, apiAppointment)
-					continue
+					alternatives = append(alternatives, current)
 				}
 				current = apiAppointment
 				continue
 			}
 
-			alternatives = append(alternatives, apiAppointment)
+			if current == nil || current.IsCanceled {
+				current = apiAppointment
+			} else {
+				alternatives = append(alternatives, apiAppointment)
+			}
 		}
 
 		if current == nil {
-			converted = append(converted, alternatives...)
-		} else {
-			current.Alternatives = alternatives
-			converted = append(converted, current)
+			current = new(ZermeloAppointment)
 		}
+		current.Alternatives = alternatives
+		converted = append(converted, current)
 	}
 
 	rsp := ZermeloAppointmentsResponse{Data: converted}
@@ -157,9 +156,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 	}
 
 	log := s.log.WithValues(
-		"deviceID", dev.ID,
-		"studentID", student.ID,
-		"organizationID", student.OrganizationID,
+		"deviceId", dev.ID,
+		"studentId", student.ID,
+		"organizationId", student.OrganizationID,
 	)
 
 	if dev.OrganizationID != student.OrganizationID {
@@ -272,6 +271,7 @@ func (a *CombinedAppointment) ToAPI() *ZermeloAppointment {
 		Subjects:            a.Appointment.Subjects,
 		Locations:           a.Appointment.Locations,
 		Teachers:            a.Appointment.Teachers,
+		Groups:              a.Participation.Groups,
 		StartTime:           a.Appointment.Start,
 		EndTime:             a.Appointment.End,
 		Content:             a.Participation.Content,
@@ -300,7 +300,7 @@ func (s *Server) newOrganizationZermeloClient(ctx context.Context, organizationI
 		return nil, errors.New("organization has no Zermelo token configured")
 	}
 
-	return zermelo.NewOrganizationClient(org.ZermeloInstitution, token)
+	return zermelo.NewOrganizationClient(s.log, org.ZermeloInstitution, token)
 }
 
 type connectZermeloOrganizationParams struct {

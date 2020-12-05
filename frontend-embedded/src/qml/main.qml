@@ -36,7 +36,10 @@ ApplicationWindow {
 
         onCardRead: function (uid) {
             header.title = uid
-            internals.getAppointments(new Date(), new Date())
+
+            const startOfWeek = new Date().startOfWeek()
+            const endOfWeek = new Date().endOfWeek()
+            internals.getAppointments(startOfWeek, endOfWeek)
             stackView.push(routerView)
         }
 

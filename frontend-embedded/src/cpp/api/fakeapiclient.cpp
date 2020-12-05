@@ -32,8 +32,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         QDateTime testTime = QDateTime::fromMSecsSinceEpoch(1606722000000 + 86400000*i);
         appointment.setId(980803080);
         appointment.setAppointmentInstance(129304801);
-        appointment.setStartTimeSlot("1");
-        appointment.setEndTimeSlot("1");
+        appointment.setStartTimeSlotName("1");
+        appointment.setEndTimeSlotName("1");
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
         appointment.setEndTime(testTime);
@@ -43,8 +43,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setTeachers({"dng"});
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("2");
-        appointment.setEndTimeSlot("2");
+        appointment.setStartTimeSlotName("2");
+        appointment.setEndTimeSlotName("2");
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
         appointment.setEndTime(testTime);
@@ -54,8 +54,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setTeachers({"mrd"});
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("3");
-        appointment.setEndTimeSlot("3");
+        appointment.setStartTimeSlotName("3");
+        appointment.setEndTimeSlotName("3");
         testTime = testTime.addSecs(15*60);
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
@@ -67,8 +67,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setIsCanceled(true);
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("4");
-        appointment.setEndTimeSlot("4");
+        appointment.setStartTimeSlotName("4");
+        appointment.setEndTimeSlotName("4");
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
         appointment.setEndTime(testTime);
@@ -79,8 +79,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setIsCanceled(false);
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("5");
-        appointment.setEndTimeSlot("5");
+        appointment.setStartTimeSlotName("5");
+        appointment.setEndTimeSlotName("5");
         testTime = testTime.addSecs(45*60);
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
@@ -91,8 +91,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setTeachers({});
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("6");
-        appointment.setEndTimeSlot("6");
+        appointment.setStartTimeSlotName("6");
+        appointment.setEndTimeSlotName("6");
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(45*60);
         appointment.setEndTime(testTime);
@@ -102,8 +102,8 @@ void FakeApiClient::getAppointments(const QDateTime &start, const QDateTime &end
         appointment.setTeachers({"knm"});
         appointments.append(appointment);
 
-        appointment.setStartTimeSlot("7");
-        appointment.setEndTimeSlot("8");
+        appointment.setStartTimeSlotName("7");
+        appointment.setEndTimeSlotName("8");
         testTime = testTime.addSecs(15*60);
         appointment.setStartTime(testTime);
         testTime = testTime.addSecs(90*60);

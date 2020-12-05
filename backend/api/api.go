@@ -34,7 +34,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	e.HideBanner = true
 	e.HidePort = true
 	e.Logger = newEchoLogrLogger(log)
-	e.Use(middleware.CORS())
+	e.Use(middleware.Recover(), middleware.CORS())
 
 	e.Renderer, err = templates.Load()
 	if err != nil {

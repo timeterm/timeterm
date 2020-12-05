@@ -16,6 +16,14 @@ func (t UnixTime) String() string {
 	return strconv.FormatInt(time.Time(t).Unix(), 10)
 }
 
+func (t *UnixTime) UnmarshalJSON(b []byte) error {
+	return t.UnmarshalText(b)
+}
+
+func (t *UnixTime) MarshalJSON() ([]byte, error) {
+	return t.MarshalText()
+}
+
 func (t *UnixTime) UnmarshalText(b []byte) error {
 	if t == nil {
 		return errors.New("UnixTime is nil")

@@ -825,6 +825,7 @@ type ZermeloAppointment struct {
 	StartTimeSlotName   string                `json:"startTimeSlotName"`
 	EndTimeSlotName     string                `json:"endTimeSlotName"`
 	Subjects            []string              `json:"subjects"`
+	Groups              []string              `json:"groups"`
 	Locations           []string              `json:"locations"`
 	Teachers            []string              `json:"teachers"`
 	StartTime           jsontypes.UnixTime    `json:"startTime"`

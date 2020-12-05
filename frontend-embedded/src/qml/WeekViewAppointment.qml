@@ -26,7 +26,7 @@ Rectangle {
         anchors.leftMargin: weekPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: weekPage.textSize * 0.75
-        text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + " - " + appointment.endTimeSlot)
+        text: (appointment.startTimeSlotName === appointment.endTimeSlotName ? appointment.startTimeSlotName : appointment.startTimeSlotName + " - " + appointment.endTimeSlotName)
     }
 
     Text {

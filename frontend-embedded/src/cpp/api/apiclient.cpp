@@ -88,12 +88,9 @@ void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
 
 void ApiClient::setAuthHeaders(QNetworkRequest &req)
 {
-    qDebug() << "Setting X-Api-Key to" << m_apiKey.toUtf8();
     req.setRawHeader("X-Api-Key", m_apiKey.toUtf8());
-    if (m_cardId != "") {
+    if (m_cardId != "")
         req.setRawHeader("X-Card-Uid", m_cardId.toUtf8());
-        qDebug() << "Setting X-Card-Uid to" << m_cardId.toUtf8();
-    }
 }
 
 void ApiClient::replyFinished()
@@ -134,11 +131,11 @@ void ApiClient::handleGetCurrentUserReply(QNetworkReply *reply)
 
 void ApiClient::handleGetAppointmentsReply(QNetworkReply *reply)
 {
-    auto user = readJsonObject<ZermeloAppointments>(reply);
-    if (!user.has_value())
+    auto appointments = readJsonObject<ZermeloAppointments>(reply);
+    if (!appointments.has_value())
         return;
 
-    emit timetableReceived(user.value());
+    emit timetableReceived(appointments.value());
 }
 
 void ApiClient::handleReplyError(QNetworkReply::NetworkError error)

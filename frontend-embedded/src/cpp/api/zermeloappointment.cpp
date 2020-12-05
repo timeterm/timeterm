@@ -25,26 +25,26 @@ qint64 ZermeloAppointment::appointmentInstance() const
     return m_appointmentInstance;
 }
 
-void ZermeloAppointment::setStartTimeSlot(QString startTimeSlot)
+void ZermeloAppointment::setStartTimeSlotName(QString startTimeSlotName)
 {
-    if (startTimeSlot != m_startTimeSlot)
-        m_startTimeSlot = startTimeSlot;
+    if (startTimeSlotName != m_startTimeSlotName)
+        m_startTimeSlotName = startTimeSlotName;
 }
 
-QString ZermeloAppointment::startTimeSlot() const
+QString ZermeloAppointment::startTimeSlotName() const
 {
-    return m_startTimeSlot;
+    return m_startTimeSlotName;
 }
 
-void ZermeloAppointment::setEndTimeSlot(QString endTimeSlot)
+void ZermeloAppointment::setEndTimeSlotName(QString endTimeSlotName)
 {
-    if (endTimeSlot != m_endTimeSlot)
-        m_endTimeSlot = endTimeSlot;
+    if (endTimeSlotName != m_endTimeSlotName)
+        m_endTimeSlotName = endTimeSlotName;
 }
 
-QString ZermeloAppointment::endTimeSlot() const
+QString ZermeloAppointment::endTimeSlotName() const
 {
-    return m_endTimeSlot;
+    return m_endTimeSlotName;
 }
 
 void ZermeloAppointment::setCapacity(qint32 capacity)
@@ -197,11 +197,11 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("appointmentInstance") && json["appointmentInstance"].isDouble())
         m_appointmentInstance = json["appointmentInstance"].toInt();
 
-    if (json.contains("startTimeSlot") && json["startTimeSlot"].isString())
-        m_startTimeSlot = json["startTimeSlot"].toString();
+    if (json.contains("startTimeSlotName") && json["startTimeSlotName"].isString())
+        m_startTimeSlotName = json["startTimeSlotName"].toString();
 
-    if (json.contains("endTimeSlot") && json["endTimeSlot"].isString())
-        m_endTimeSlot = json["endTimeSlot"].toString();
+    if (json.contains("endTimeSlotName") && json["endTimeSlotName"].isString())
+        m_endTimeSlotName = json["endTimeSlotName"].toString();
 
     if (json.contains("capacity") && json["capacity"].isDouble())
         m_capacity = json["capacity"].toInt();
@@ -238,6 +238,17 @@ void ZermeloAppointment::read(const QJsonObject &json)
 
     if (json.contains("isCanceled") && json["isCanceled"].isBool())
         m_isCanceled = json["isCanceled"].toBool();
+
+    if (json.contains("alternatives") && json["alternatives"].isArray()) {
+        auto alternatives = json["alternatives"].toArray();
+        for (const auto &alternativeJson : alternatives) {
+            if (alternativeJson.isObject()) {
+                auto alternative = ZermeloAppointment();
+                alternative.read(alternativeJson.toObject());
+                m_alternatives.append(alternative);
+            }
+        }
+    }
 }
 
 QJsonArray stringListAsQJsonArray(const QStringList &list)
@@ -253,8 +264,8 @@ void ZermeloAppointment::write(QJsonObject &json) const
 {
     json["id"] = m_id;
     json["appointmentInstance"] = m_appointmentInstance;
-    json["startTimeSlot"] = m_startTimeSlot;
-    json["endTimeSlot"] = m_endTimeSlot;
+    json["startTimeSlotName"] = m_startTimeSlotName;
+    json["endTimeSlotName"] = m_endTimeSlotName;
     json["capacity"] = m_capacity;
     json["availableSpace"] = m_availableSpace;
     json["startTime"] = m_startTime.toString();
@@ -266,4 +277,39 @@ void ZermeloAppointment::write(QJsonObject &json) const
     json["isOnline"] = m_isOnline;
     json["isStudentEnrolled"] = m_isStudentEnrolled;
     json["isCanceled"] = m_isCanceled;
+
+    QJsonArray alternatives;
+    for (const auto &alternative : m_alternatives) {
+        QJsonObject jsonAlternative;
+        alternative.write(jsonAlternative);
+        alternatives.append(jsonAlternative);
+    }
+    json["alternatives"] = alternatives;
+}
+
+void ZermeloAppointment::appendAlternative(const ZermeloAppointment &appointment)
+{
+    m_alternatives.append(appointment);
+}
+
+void ZermeloAppointment::appendAlternatives(const QList<ZermeloAppointment> &appointments)
+{
+    m_alternatives.append(appointments);
+}
+
+QList<ZermeloAppointment> ZermeloAppointment::alternatives()
+{
+    return m_alternatives;
+}
+
+void ZermeloAppointment::setContent(const QString &content)
+{
+    if (content != m_content) {
+        m_content = content;
+    }
+}
+
+QString ZermeloAppointment::content() const
+{
+    return m_content;
 }

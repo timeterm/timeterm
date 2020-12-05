@@ -8,8 +8,11 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-logr/logr"
 
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
@@ -28,10 +31,11 @@ type OrganizationClient struct {
 	Client  *http.Client
 	Token   []byte
 	BaseURL *url.URL
+	log     logr.Logger
 }
 
-func NewOrganizationClient(institution string, token []byte) (*OrganizationClient, error) {
-	baseURL, err := url.Parse(fmt.Sprintf("https://%s.zportal.nl/api/v3", institution))
+func NewOrganizationClient(log logr.Logger, institution string, token []byte) (*OrganizationClient, error) {
+	baseURL, err := url.Parse(fmt.Sprintf("https://%s.zportal.nl/api/v3/", institution))
 	if err != nil {
 		return nil, err
 	}
@@ -39,18 +43,21 @@ func NewOrganizationClient(institution string, token []byte) (*OrganizationClien
 	return &OrganizationClient{
 		Client: &http.Client{
 			Transport: &SetHeaderRoundTripper{
+				log:   log,
 				Key:   "Authorization",
 				Value: fmt.Sprintf("Bearer %s", string(token)),
 			},
 		},
 		Token:   token,
 		BaseURL: baseURL,
+		log:     log,
 	}, nil
 }
 
 type SetHeaderRoundTripper struct {
 	Key, Value string
 	Next       http.RoundTripper
+	log        logr.Logger
 }
 
 func (t *SetHeaderRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -59,7 +66,7 @@ func (t *SetHeaderRoundTripper) RoundTrip(r *http.Request) (*http.Response, erro
 		next = http.DefaultTransport
 	}
 	r.Header.Set(t.Key, t.Value)
-	return t.Next.RoundTrip(r)
+	return next.RoundTrip(r)
 }
 
 type YearWeek struct {
@@ -172,7 +179,7 @@ type AppointmentParticipation struct {
 	AppointmentInstance   int                   `json:"appointmentInstance"`
 	StudentInDepartment   int                   `json:"studentInDepartment"`
 	IsOptional            bool                  `json:"optional"`
-	IsStudentEnrolled     bool                  `json:"StudentEnrolled"`
+	IsStudentEnrolled     bool                  `json:"studentEnrolled"`
 	Content               string                `json:"content"`
 	IsOnline              bool                  `json:"online"`
 	IsAttendancePlanned   bool                  `json:"plannedAttendance"`
@@ -180,6 +187,7 @@ type AppointmentParticipation struct {
 	AllowedStudentActions AllowedStudentActions `json:"allowedStudentActions"`
 	StudentCode           string                `json:"studentCode"`
 	AvailableSpace        int                   `json:"availableSpace"`
+	Groups                []string              `json:"groups"`
 }
 
 type AppointmentParticipationsResponse struct {
@@ -203,11 +211,11 @@ func (c *OrganizationClient) GetAppointments(
 	req *AppointmentsRequest,
 ) (*AppointmentsResponse, error) {
 	uri := c.BaseURL.ResolveReference(&url.URL{
-		Path: "/appointments",
+		Path: "appointments",
 		RawQuery: url.Values{
 			"valid":            {"true"},
-			"start":            {req.Start.String()},
-			"end":              {req.End.String()},
+			"start":            {strconv.FormatInt(req.Start.Unix(), 10)},
+			"end":              {strconv.FormatInt(req.End.Unix(), 10)},
 			"fields":           {strings.Join(appointmentJSONFields(), ",")},
 			"possibleStudents": {strings.Join(req.PossibleStudents, ",")},
 		}.Encode(),
@@ -223,6 +231,10 @@ func (c *OrganizationClient) GetAppointments(
 		return nil, fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	defer func() { _ = hrsp.Body.Close() }()
+
+	if hrsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
+	}
 
 	var rsp AppointmentsResponse
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
@@ -241,7 +253,7 @@ func (c *OrganizationClient) GetAppointmentParticipations(
 	req *AppointmentParticipationsRequest,
 ) (*AppointmentParticipationsResponse, error) {
 	uri := c.BaseURL.ResolveReference(&url.URL{
-		Path: "/appointmentparticipations",
+		Path: "appointmentparticipations",
 		RawQuery: url.Values{
 			"student": {req.Student},
 			"week":    {req.Week.String()},

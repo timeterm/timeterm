@@ -24,7 +24,7 @@ Rectangle {
         anchors.leftMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
-        text: (appointment.startTimeSlot === appointment.endTimeSlot ? appointment.startTimeSlot : appointment.startTimeSlot + " - " + appointment.endTimeSlot)
+        text: (appointment.startTimeSlotName === appointment.endTimeSlotName ? appointment.startTimeSlotName : appointment.startTimeSlotName + " - " + appointment.endTimeSlotName)
     }
 
     Text {

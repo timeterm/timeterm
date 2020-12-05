@@ -8,8 +8,8 @@ class ZermeloAppointment
     Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
-    Q_PROPERTY(QString startTimeSlot WRITE setStartTimeSlot READ startTimeSlot)
-    Q_PROPERTY(QString endTimeSlot WRITE setEndTimeSlot READ endTimeSlot)
+    Q_PROPERTY(QString startTimeSlotName WRITE setStartTimeSlotName READ startTimeSlotName)
+    Q_PROPERTY(QString endTimeSlotName WRITE setEndTimeSlotName READ endTimeSlotName)
     Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
     Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
@@ -22,16 +22,18 @@ class ZermeloAppointment
     Q_PROPERTY(bool isOptional WRITE setIsOptional READ isOptional)
     Q_PROPERTY(bool isStudentEnrolled WRITE setIsStudentEnrolled READ isStudentEnrolled)
     Q_PROPERTY(bool isCanceled WRITE setIsCanceled READ isCanceled)
+    Q_PROPERTY(QString content WRITE setContent READ content)
+    Q_PROPERTY(QList<ZermeloAppointment> alternatives READ alternatives)
 
 public:
     void setId(qint64 id);
     [[nodiscard]] qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
-    void setStartTimeSlot(QString startTimeSlot);
-    [[nodiscard]] QString startTimeSlot() const;
-    void setEndTimeSlot(QString endTimeSlot);
-    [[nodiscard]] QString endTimeSlot() const;
+    void setStartTimeSlotName(QString startTimeSlotName);
+    [[nodiscard]] QString startTimeSlotName() const;
+    void setEndTimeSlotName(QString endTimeSlotName);
+    [[nodiscard]] QString endTimeSlotName() const;
     void setCapacity(qint32 capacity);
     [[nodiscard]] qint32 capacity() const;
     void setAvailableSpace(qint32 availableSpace);
@@ -56,15 +58,21 @@ public:
     [[nodiscard]] bool isStudentEnrolled() const;
     void setIsCanceled(bool isCanceled);
     [[nodiscard]] bool isCanceled() const;
+    void setContent(const QString &content);
+    [[nodiscard]] QString content() const;
+    void appendAlternative(const ZermeloAppointment &appointment);
+    QList<ZermeloAppointment> alternatives();
 
     void read(const QJsonObject &json);
     void write(QJsonObject &json) const;
 
 private:
+    void appendAlternatives(const QList<ZermeloAppointment> &alternatives);
+
     qint64 m_id = 0;
     qint64 m_appointmentInstance = 0;
-    QString m_startTimeSlot = 0;
-    QString m_endTimeSlot = 0;
+    QString m_startTimeSlotName;
+    QString m_endTimeSlotName;
     qint32 m_capacity = 0;
     qint32 m_availableSpace = 0;
     QDateTime m_startTime;
@@ -77,6 +85,8 @@ private:
     bool m_isOptional = false;
     bool m_isStudentEnrolled = false;
     bool m_isCanceled = false;
+    QString m_content;
+    QList<ZermeloAppointment> m_alternatives;
 };
 
 Q_DECLARE_METATYPE(ZermeloAppointment)

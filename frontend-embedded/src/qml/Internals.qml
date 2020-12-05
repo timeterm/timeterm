@@ -47,6 +47,10 @@ Item {
             console.log("Saving device configuration")
             configManager.saveDeviceConfig()
         }
+
+        onTimetableReceived: function (timetable) {
+            internalsItem.timetableReceived(timetable)
+        }
     }
 
     Timer {
