@@ -193,7 +193,7 @@ func (w *bareWrapper) ListUsersRe(
 		AND o.name ~ $3
 		ORDER BY u.subject
 		LIMIT $4
-		OFFSET $4
+		OFFSET $5
 	`, nameRegex, accountNameRegex, operatorNameRegex, limit, offset)
 	if err != nil {
 		return p, err
