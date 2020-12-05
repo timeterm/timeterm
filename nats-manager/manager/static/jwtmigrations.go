@@ -82,7 +82,8 @@ func jwtMigrations() jwtmigrate.Migrations {
 			},
 		},
 		{
-			Name: "Emdevs",
+			Name:    "Emdevs",
+			Version: 2,
 			CreateUsers: map[jwtmigrate.UserRef]jwtmigrate.UserCreate{
 				emdevsAccount().User("backend"): {
 					Patches: &jwtpatch.UserClaimsPatches{

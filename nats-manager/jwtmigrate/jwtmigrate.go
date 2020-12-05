@@ -154,8 +154,11 @@ func (m Migrations) Validate() error {
 	prevVersion := 0
 	for _, migration := range m {
 		if migration.Version != prevVersion+1 {
-			return fmt.Errorf("expected to find migration version %d, got %d", migration.Version, prevVersion+1)
+			return fmt.Errorf("expected to next migration version to be %d, got %d",
+				prevVersion+1, migration.Version,
+			)
 		}
+		prevVersion++
 	}
 
 	return nil
