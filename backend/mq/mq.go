@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/labstack/gommon/log"
 	"github.com/nats-io/nats.go"
 	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/sdk"
 	mqpb "gitlab.com/timeterm/timeterm/proto/go/mq"
@@ -31,11 +30,6 @@ func NewWrapper() (*Wrapper, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to NATS: %w", err)
 	}
-	defer func() {
-		if err = nc.Drain(); err != nil {
-			log.Error(err, "could not drain NATS connection")
-		}
-	}()
 
 	return &Wrapper{
 		enc: &nats.EncodedConn{

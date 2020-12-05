@@ -67,11 +67,6 @@ func NewServer(db *database.Wrapper, log logr.Logger, secr *secrets.Wrapper) (Se
 	if err != nil {
 		return Server{}, fmt.Errorf("could not connect to NATS: %w", err)
 	}
-	defer func() {
-		if err = nc.Drain(); err != nil {
-			log.Error(err, "could not drain NATS connection")
-		}
-	}()
 
 	mqw, err := mq.NewWrapper()
 	if err != nil {
