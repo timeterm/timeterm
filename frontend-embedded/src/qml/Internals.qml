@@ -149,5 +149,9 @@ Item {
     NatsSubscription {
         id: rebootSub
         subject: `EMDEV.${configManager.deviceConfig.id}.REBOOT`
+
+        onMessageReceived: {
+            console.log("Rebooting...")
+        }
     }
 }

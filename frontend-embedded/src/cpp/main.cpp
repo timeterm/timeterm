@@ -108,6 +108,8 @@ int main(int argc, char *argv[])
     qInfo() << "Protobuf and NATS library versions OK";
 
     qInfo() << "Initializing the NATS library...";
+    // Open the NATS library manually so OpenSSL memory isn't double freed after nats_Close
+    // by OpenSSL which seems to register an atexit() function (could also be Qt Networking though).
     nats_Open(-1);
     qInfo() << "NATS library initialized";
 
@@ -117,7 +119,10 @@ int main(int argc, char *argv[])
     qInfo() << "Shutting down Protobuf library...";
     google::protobuf::ShutdownProtobufLibrary();
     qInfo() << "Protobuf library shut down";
-    nats_Close();
+
+    qInfo() << "Shutting down NATS library (with a timeout of 10s)...";
+    nats_CloseAndWait(10000);
+    qInfo() << "NATS library shut down";
 
     qInfo("Exiting with code %d, have a nice day!", exitCode);
     return exitCode;
