@@ -18,7 +18,7 @@ QString createNATSCredsPath()
     const QString &dir = relative;
 #endif
 
-    QDir(dir).mkpath("/");
+    QDir(dir).mkpath(".");
 
     return dir + filename;
 }

@@ -107,7 +107,7 @@ QString configLocation()
 void ConfigManager::reloadSystem()
 {
 #ifdef TIMETERMOS
-    auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus(), this);
+    auto manager = org::freedesktop::systemd1::Manager("org.freedesktop.systemd1", "/org/freedesktop/systemd1", QDBusConnection::systemBus());
     auto reply = manager.RestartUnit("connman.service", "replace");
     reply.waitForFinished();
 

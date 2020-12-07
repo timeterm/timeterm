@@ -5,6 +5,7 @@ import Timeterm.Config 1.0
 import Timeterm.MessageQueue 1.0
 import Timeterm.Rfid 1.0
 import Timeterm.Networking 1.0
+import Timeterm.Systemd 1.0
 
 Item {
     id: internalsItem
@@ -146,12 +147,17 @@ Item {
         }
     }
 
+    Systemd {
+        id: systemd
+    }
+
     NatsSubscription {
         id: rebootSub
         subject: `EMDEV.${configManager.deviceConfig.id}.REBOOT`
 
         onMessageReceived: {
             console.log("Rebooting...")
+            systemd.rebootDevice()
         }
     }
 }
