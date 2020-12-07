@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#ifdef TIMTERMOS
+#ifdef TIMETERMOS
 #include "ttsystemd.h"
 #endif
 
