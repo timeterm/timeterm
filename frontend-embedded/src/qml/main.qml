@@ -2,6 +2,8 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 
+import "../js/TimeFunctions.js" as TimeFunction
+
 ApplicationWindow {
     id: mainWindow
     visible: true
@@ -26,9 +28,13 @@ ApplicationWindow {
         visible: false
     }
 
-    Router {
-        id: routerView
-        visible: false
+    Component {
+        id: routerComponent
+
+        Router {
+            id: routerView
+            visible: false
+        }
     }
 
     Internals {
@@ -37,10 +43,13 @@ ApplicationWindow {
         onCardRead: function (uid) {
             header.title = uid
 
+            stackView.push(routerComponent)
+
             const startOfWeek = new Date().startOfWeek()
             const endOfWeek = new Date().endOfWeek()
             internals.getAppointments(startOfWeek, endOfWeek)
-            stackView.push(routerView)
+            stackView.push(routerComponent)
+            //stackView.push("Router.qml", {"id": "routerView"})
         }
 
         onTimetableReceived: function (timetable) {

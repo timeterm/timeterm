@@ -6,7 +6,7 @@ Rectangle {
     property var secondToPixelRatio
 
     y: (appointment.startTime.getMillisecondsInDay()
-       - startFirstAppointment.getMillisecondsInDay()) / 1000 // time in seconds calculated from the start of the first appointment of the day
+       - startFirstAppointment) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
     height: (appointment.endTime.getMillisecondsInDay() - appointment.startTime.getMillisecondsInDay())
             / 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments

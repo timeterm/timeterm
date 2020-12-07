@@ -36,12 +36,12 @@ Page {
                     weekAppointments.endLastAppointment = timetable.data[i].endTime.getMillisecondsInDay()
                 }
             }
+        }
 
-            if (weekAppointments.startFirstAppointment && weekAppointments.endLastAppointment) {
-                weekAppointments.contentHeight = (weekAppointments.endLastAppointment - weekAppointments.startFirstAppointment)
-                                                    / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
-                                                    + weekPage.height * 0.08
-            }
+        if (weekAppointments.startFirstAppointment && weekAppointments.endLastAppointment) {
+            weekAppointments.contentHeight = (weekAppointments.endLastAppointment - weekAppointments.startFirstAppointment)
+                                                / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
+                                                + weekPage.height * 0.08
         }
 
         for (var i = 0; i < timetable.data.length; i++) {
@@ -96,8 +96,7 @@ Page {
                         textSize: weekPage.textSize
                     })
                 } else if (weekTimeLineItem.status === Component.Error) {
-                    console.log("Could not create lineItem:",
-                                weekTimeLineItem.errorString())
+                    console.log("Could not create lineItem:", weekTimeLineItem.errorString())
                 }
             }
 
