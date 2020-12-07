@@ -8,7 +8,7 @@ weight: 1
 # bookComments: true
 ---
 
-1. Ga naar [admin.timeterm.nl](https://admin.timeterm.nl) en log hier in met je Microsoft- of Google-account
+1. Ga naar [admin.timeterm.nl](https://admin.timeterm.nl) en log hier in met je Microsoft- of Google-account.
    ![Inloggen met Microsoft](/login-microsoft-google.png)
    
    Je account wordt automatisch aangemaakt, je hoeft hier geen extra stappen voor te doorlopen.
@@ -17,4 +17,4 @@ weight: 1
 
    ![Schoolinstellingen](/school-settings-info.png)
    
-3. Het zou nu handig zijn om je school met [Zermelo te koppelen]({{< relref "/docs/admin/connect-zermelo" >}}) of [WiFi in te stellen]({{< relref "/docs/admin/wifi-config" >}}) voordat je apparaten gaat koppelen.
+3. Het zou nu handig zijn om je school met [Zermelo te koppelen]({{< relref "/docs/admin/connect-zermelo" >}}) of [WiFi in te stellen]({{< relref "/docs/admin/network-config" >}}) voordat je apparaten gaat koppelen.
