@@ -149,7 +149,7 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 	}
 
 	devsSql, args, err := buildQuery(sq.Select(`student.*, (COUNT(student_card.*) > 0) AS has_card_associated`)).
-		InnerJoin("student_card ON student_card.student_id = student.id").
+		LeftJoin("student_card ON student_card.student_id = student.id").
 		Limit(students.Pagination.Limit).
 		Offset(students.Pagination.Offset).
 		OrderBy("zermelo_user ASC").
