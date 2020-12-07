@@ -29,15 +29,22 @@ Page {
         
         for (var i = 0; i < timetable.data.length; i++) {
             if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
-                if (!dayAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
-                    dayAppointments.startFirstAppointment = timetable.data[i].startTime
+                if (!dayAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment) {                                                          // first dayAppointment in the list
+                    dayAppointments.startFirstAppointment = timetable.data[i].startTime.getMillisecondsInDay()
                 }
-                if (!dayAppointments.endLastAppointment || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment.getMillisecondsInDay()) {
-                    dayAppointments.endLastAppointment = timetable.data[i].endTime
-                    dayAppointments.contentHeight = (dayAppointments.endLastAppointment.getMillisecondsInDay()
-                                                - dayAppointments.startFirstAppointment.getMillisecondsInDay())
+                if (!dayAppointments.endLastAppointment || timetable.data[i].endTime.getMillisecondsInDay() > dayAppointments.endLastAppointment) {
+                    dayAppointments.endLastAppointment = timetable.data[i].endTime.getMillisecondsInDay()
+                }
+            }
+        }
+
+        if (dayAppointments.startFirstAppointment && dayAppointments.endLastAppointment) {
+            dayAppointments.contentHeight = (dayAppointments.endLastAppointment - dayAppointments.startFirstAppointment)
                                                 / 1000 * dayPage.secondToPixelRatio - 5         // - 5 because of the spacing between dayAppointments
-                }
+        }
+
+        for (var i = 0; i < timetable.data.length; i++) {
+            if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
 
                 let finishDayAppointment = function (dayAppointment) {
                     if (dayAppointment.status === Component.Ready) {
@@ -67,7 +74,7 @@ Page {
 
     function fillDayTimeLine() {
         let currentLineTime = new Date()
-        currentLineTime.setTime(dayAppointments.startFirstAppointment.getTime())
+        currentLineTime.setTime(dayAppointments.startFirstAppointment)
 
         if (!currentLineTime.isFullHour()) {
             currentLineTime.addHours(1)
@@ -75,20 +82,19 @@ Page {
         }
 
         for (currentLineTime;
-             dayAppointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last dayTimeLine is at least less than 30 minutes before the end of the last dayAppointment
+             dayAppointments.endLastAppointment - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last dayTimeLine is at least less than 30 minutes before the end of the last dayAppointment
              currentLineTime.addHours(1)) {
             let finishDayLineItem = function (dayTimeLineItem) {
                 if (dayTimeLineItem.status === Component.Ready) {
                     dayTimeLineItem.incubateObject(dayTimeLine, {
-                        y: (currentLineTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * dayPage.secondToPixelRatio,
+                        y: (currentLineTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment) / 1000 * dayPage.secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
                               + currentLineTime.getMinutes(),
                         textSize: dayPage.textSize
                     })
                 } else if (dayTimeLineItem.status === Component.Error) {
-                    console.log("Could not create lineItem:",
-                                dayTimeLineItem.errorString())
+                    console.log("Could not create lineItem:", dayTimeLineItem.errorString())
                 }
             }
 
@@ -152,7 +158,11 @@ Page {
 
                 function setCurrentdayTimeLine() {
                     let currTime = new Date()
-                    if (!!dayAppointments.startFirstAppointment && currTime > dayAppointments.startFirstAppointment && currTime < dayAppointments.endLastAppointment) {
+                    if (!!dayAppointments.startFirstAppointment
+                        && currTime > startOfDay
+                        && currTime < endOfDay
+                        && currTime.getMillisecondsInDay() > dayAppointments.startFirstAppointment
+                        && currTime.getMillisecondsInDay() < dayAppointments.endLastAppointment) {
                         let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset

@@ -25,7 +25,7 @@ qint64 ZermeloAppointment::appointmentInstance() const
     return m_appointmentInstance;
 }
 
-void ZermeloAppointment::setStartTimeSlotName(QString startTimeSlotName)
+void ZermeloAppointment::setStartTimeSlotName(const QString& startTimeSlotName)
 {
     if (startTimeSlotName != m_startTimeSlotName)
         m_startTimeSlotName = startTimeSlotName;
@@ -36,7 +36,7 @@ QString ZermeloAppointment::startTimeSlotName() const
     return m_startTimeSlotName;
 }
 
-void ZermeloAppointment::setEndTimeSlotName(QString endTimeSlotName)
+void ZermeloAppointment::setEndTimeSlotName(const QString& endTimeSlotName)
 {
     if (endTimeSlotName != m_endTimeSlotName)
         m_endTimeSlotName = endTimeSlotName;

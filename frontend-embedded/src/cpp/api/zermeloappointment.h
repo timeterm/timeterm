@@ -30,9 +30,9 @@ public:
     [[nodiscard]] qint64 id() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
-    void setStartTimeSlotName(QString startTimeSlotName);
+    void setStartTimeSlotName(const QString& startTimeSlotName);
     [[nodiscard]] QString startTimeSlotName() const;
-    void setEndTimeSlotName(QString endTimeSlotName);
+    void setEndTimeSlotName(const QString& endTimeSlotName);
     [[nodiscard]] QString endTimeSlotName() const;
     void setCapacity(qint32 capacity);
     [[nodiscard]] qint32 capacity() const;

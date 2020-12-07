@@ -21,6 +21,7 @@
 #include <messagequeue/natssubscription.h>
 #include <networking/networkmanager.h>
 #include <openssl/ssl.h>
+#include <systemd/systemd.h>
 #include <timeterm_proto/mq/mq.pb.h>
 #include <util/scopeguard.h>
 
@@ -77,6 +78,7 @@ int runApp(int argc, char *argv[])
         return logMgr;
     });
     qmlRegisterType<NetworkManager>("Timeterm.Networking", 1, 0, "NetworkManager");
+    qmlRegisterType<Systemd>("Timeterm.Systemd", 1, 0, "Systemd");
 
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/src/qml/main.qml");

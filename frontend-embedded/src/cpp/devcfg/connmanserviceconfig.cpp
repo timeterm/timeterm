@@ -820,7 +820,7 @@ QString createPrivateKeyPath(const QString &serviceName, ConnManServiceConfig::P
     const QString &dir = relative;
 #endif
 
-    QDir(dir).mkpath("/");
+    QDir(dir).mkpath(".");
 
     return dir + filename;
 }
@@ -836,7 +836,7 @@ QString createCaCertPath(const QString &serviceName, ConnManServiceConfig::CaCer
     const QString &dir = relative;
 #endif
 
-    QDir(dir).mkpath("/");
+    QDir(dir).mkpath(".");
 
     return dir + filename;
 }

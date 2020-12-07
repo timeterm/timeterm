@@ -8,7 +8,7 @@ Rectangle {
 
     x: weekTimeLine.width + weekPage.height * 0.02 + (appointment.startTime.getDay() - 1) * (weekAppointmentWidth + weekPage.height * 0.02); // timeLineWidth + margin + day * (weekAppointmentWidth + margin)
     y: (appointment.startTime.getMillisecondsInDay()
-       - startFirstAppointment.getMillisecondsInDay()) / 1000 // time in seconds calculated from the start of the first appointment of the day
+       - startFirstAppointment) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
        + weekPage.height * 0.08
     height: (appointment.endTime.getMillisecondsInDay() - appointment.startTime.getMillisecondsInDay())
