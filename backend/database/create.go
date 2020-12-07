@@ -3,9 +3,12 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -96,6 +99,15 @@ func (w *Wrapper) CreateStudent(ctx context.Context, s Student) (Student, error)
 		VALUES ($1, $2) 
 		RETURNING id
 	`, s.OrganizationID, s.ZermeloUser)
+
+	var perr *pq.Error
+	if errors.As(err, &perr) {
+		// Error code 23000 (integrity_constraint_violation) means that another user
+		// with the same name (zermelo_user) already exists.
+		if perr.Code == "23000" {
+			return Student{}, fmt.Errorf("student already exists: %w", ErrConflict.withUnderlying(err))
+		}
+	}
 
 	return std, err
 }

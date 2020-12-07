@@ -1,12 +1,13 @@
 package api
 
 import (
-	"github.com/google/uuid"
-	"github.com/labstack/echo"
-
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 
@@ -83,6 +84,10 @@ func (s *Server) createStudent(c echo.Context) error {
 	if err != nil {
 		s.log.Error(err, "could not create student")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create student")
+	}
+
+	if errors.Is(err, database.ErrConflict) {
+		return echo.NewHTTPError(http.StatusConflict, "User with same name already exists")
 	}
 
 	apiStudent := StudentFrom(dbStudent)
