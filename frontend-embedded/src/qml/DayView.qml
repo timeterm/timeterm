@@ -22,12 +22,12 @@ Page {
     }
 
     function setTimetable(timetable) {
+        if (!startOfDay || !endOfDay) {
+            startOfDay = new Date().setHours(0, 0, 0, 0)
+            endOfDay = new Date().setHours(24, 0, 0, 0)
+        }
+        
         for (var i = 0; i < timetable.data.length; i++) {
-            if (!startOfDay || !endOfDay) {
-                startOfDay = new Date().setHours(0, 0, 0, 0)
-                endOfDay = new Date().setHours(24, 0, 0, 0)
-            }
-
             if (timetable.data[i].startTime.getTime() >= startOfDay && timetable.data[i].endTime.getTime() < endOfDay) {
                 if (!dayAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < dayAppointments.startFirstAppointment.getMillisecondsInDay()) {                                                          // first dayAppointment in the list
                     dayAppointments.startFirstAppointment = timetable.data[i].startTime

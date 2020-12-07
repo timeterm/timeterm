@@ -22,13 +22,13 @@ Page {
     }
 
     function setTimetable(timetable) {
+        if (!startOfWeek || !endOfWeek) {
+            startOfWeek = new Date().startOfWeek()
+            endOfWeek = new Date().endOfWeek()
+        }
+
         for (var i = 0; i < timetable.data.length; i++) {
             if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
-                if (!startOfWeek || !endOfWeek) {
-                    startOfWeek = new Date().setHours(0, 0, 0, 0)
-                    endOfWeek = new Date().setHours(120, 0, 0, 0)
-                }
-
                 if (!weekAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
                     weekAppointments.startFirstAppointment = timetable.data[i].startTime.getMillisecondsInDay()
                 }
@@ -37,7 +37,7 @@ Page {
                 }
             }
 
-            if (!!weekAppointments.startFirstAppointment && !!weekAppointments.endLastAppointment) {
+            if (weekAppointments.startFirstAppointment && weekAppointments.endLastAppointment) {
                 weekAppointments.contentHeight = (weekAppointments.endLastAppointment - weekAppointments.startFirstAppointment)
                                                     / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
                                                     + weekPage.height * 0.08

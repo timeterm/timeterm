@@ -255,8 +255,8 @@ Page {
 
         WeekView {
             id: weekView
-            startOfWeek: new Date().setTime(1606604400000)
-            endOfWeek: new Date().setTime(1607209200000)
+            startOfWeek: new Date().startOfWeek()
+            endOfWeek: new Date().endOfWeek()
         }
     }
 }
