@@ -8,3 +8,5 @@ weight: 1
 # bookComments: true
 ---
 
+1. Ga naar Leerlingen.
+2. Klik op Toevoegen.
