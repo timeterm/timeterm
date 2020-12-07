@@ -8,13 +8,8 @@ weight: 1
 # bookComments: true
 ---
 
-1. Ga naar [admin.timeterm.nl](https://admin.timeterm.nl) en log hier in met je Microsoft-account
-   ![Inloggen met Microsoft](/login-microsoft.png)
-   
-   {{< hint info >}}
-   Op het moment ondersteunen we alleen maar inloggen met Microsoft.  
-   Andere inlogmethodes zoals Google en Facebook of email/wachtwoord zouden later nog toegevoegd kunnen worden als hier vraag voor is.
-   {{< /hint >}}
+1. Ga naar [admin.timeterm.nl](https://admin.timeterm.nl) en log hier in met je Microsoft- of Google-account
+   ![Inloggen met Microsoft](/login-microsoft-google.png)
    
    Je account wordt automatisch aangemaakt, je hoeft hier geen extra stappen voor te doorlopen.
    
