@@ -23,7 +23,7 @@ class JetStreamPullConsumerWorker: public QObject
 
 public:
     JetStreamPullConsumerWorker(
-        const QSharedPointer<natsConnection *> &conn,
+        const QSharedPointer<NatsConnectionHolder> &holder,
         QString stream,
         QString consumerId,
         QObject *parent = nullptr);
@@ -41,7 +41,7 @@ private:
     QTimer m_timer;
     QString m_stream;
     QString m_consumerId;
-    QSharedPointer<natsConnection *> m_conn;
+    QSharedPointer<NatsConnectionHolder> m_connHolder;
 };
 
 class JetStreamConsumer: public QObject

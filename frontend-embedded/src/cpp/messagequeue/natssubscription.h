@@ -16,7 +16,6 @@ class NatsSubscription: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
-    Q_PROPERTY(MessageQueue::NatsConnection *connection READ connection WRITE setConnection NOTIFY connectionChanged)
     Q_PROPERTY(QString subject READ subject WRITE setSubject NOTIFY subjectChanged)
 
 public:
@@ -24,12 +23,11 @@ public:
     ~NatsSubscription() override;
 
     Q_INVOKABLE void connectDecoder(Decoder *decoder) const;
+    Q_INVOKABLE void useConnection(NatsConnection *connection);
 
     [[nodiscard]] NatsStatus::Enum lastStatus();
     [[nodiscard]] QString subject() const;
     void setSubject(const QString &subject);
-    [[nodiscard]] NatsConnection *connection() const;
-    void setConnection(NatsConnection *connection);
 
 public slots:
     void start();
@@ -49,8 +47,7 @@ private:
     void handleMessageReceived(natsMsg *msg);
 
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
-    NatsConnection *m_conn = nullptr;
-    QSharedPointer<natsConnection *> m_nc;
+    QSharedPointer<NatsConnectionHolder> m_connHolder;
     natsSubscription *m_sub = nullptr;
     QString m_subject;
 };

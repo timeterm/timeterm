@@ -55,7 +55,7 @@ void JetStreamConsumer::start()
         return;
     }
 
-    auto conn = m_connection->getConnection();
+    auto conn = m_connection->getHolder();
 
     QtConcurrent::run(
         [this, conn](JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
@@ -172,13 +172,13 @@ void JetStreamConsumer::handleMessageSP(const QSharedPointer<natsMsg *> &msg)
 }
 
 JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
-    const QSharedPointer<natsConnection *> &conn,
+    const QSharedPointer<NatsConnectionHolder> &connHolder,
     QString stream,
     QString consumerId,
     QObject *parent)
     : QObject(parent)
     , m_timer(new QTimer(this))
-    , m_conn(conn)
+    , m_connHolder(connHolder)
     , m_stream(std::move(stream))
     , m_consumerId(std::move(consumerId))
 {
@@ -209,8 +209,8 @@ void JetStreamPullConsumerWorker::getNextMessage()
         m_timer.blockSignals(false);
     });
 
-    if (m_conn.isNull()) {
-        qWarning("Not consuming next message, m_conn is null");
+    if (m_connHolder.isNull() || !m_connHolder->getConnection()) {
+        qWarning("Not consuming next message, m_connHolder or natsConnection is null");
         return;
     }
 
@@ -224,9 +224,9 @@ void JetStreamPullConsumerWorker::getNextMessage()
                 delete ppMsg;
             }
         });
-    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.FEDEV-%2").arg(m_stream).arg(m_consumerId);
+    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.EMDEV-%2").arg(m_stream).arg(m_consumerId);
     auto jsSubjCstr = asUtf8CString(jsSubj);
-    auto status = natsConnection_RequestString(reply.get(), *m_conn, jsSubjCstr.get(), "", 1000);
+    auto status = natsConnection_RequestString(reply.get(), m_connHolder->getConnection(), jsSubjCstr.get(), "", 1000);
 
     if (status != NATS_OK) {
         // Something went wrong or there are no messages, wait a little bit before asking NATS for new messages.
@@ -249,7 +249,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
 
     // Acknowledge having received the message so JetStream doesn't redeliver it indefinitely.
     natsMsg *ackReply = nullptr;
-    status = natsConnection_RequestString(&ackReply, *m_conn, natsMsg_GetReply(*reply), "", 1000);
+    status = natsConnection_RequestString(&ackReply, m_connHolder->getConnection(), natsMsg_GetReply(*reply), "", 1000);
     if (status != NATS_OK) {
         // Something went wrong, wait a little bit before asking NATS for new messages.
         m_timer.setInterval(1000);

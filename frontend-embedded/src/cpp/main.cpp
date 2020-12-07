@@ -53,8 +53,8 @@ int runApp(int argc, char *argv[])
                                      "cannot create namespace JetStreamConsumerType in QML");
     qRegisterMetaType<MessageQueue::JetStreamConsumerType::Enum>();
     qRegisterMetaType<QSharedPointer<natsMsg *>>();
-    qRegisterMetaType<QSharedPointer<natsConnection *>>();
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
+    qRegisterMetaType<QSharedPointer<MessageQueue::NatsConnectionHolder>>();
     qRegisterMetaType<MessageQueue::DisownTokenMessage>();
     qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");

@@ -144,4 +144,14 @@ void NatsConnectionHolder::connectionLostCB()
     emit connectionLost();
 }
 
+NatsStatus::Enum NatsConnectionHolder::lastStatus()
+{
+    return m_lastStatus;
+}
+
+NatsConnectionHolder::~NatsConnectionHolder()
+{
+    natsConnection_Destroy(m_nc);
+}
+
 } // namespace MessageQueue

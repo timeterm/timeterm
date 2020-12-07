@@ -16,13 +16,13 @@ NatsSubscription::~NatsSubscription()
 
 void NatsSubscription::start()
 {
-    if (m_conn == nullptr) {
-        qWarning() << "start() called with null NatsConnection";
+    if (m_connHolder == nullptr) {
+        qWarning() << "start() called with no set connection holder";
         return;
     }
-    m_nc = m_conn->getConnection();
-    if (m_nc.isNull()) {
-        qWarning() << "NatsConnection has no nats.c connection";
+    auto nc = m_connHolder->getConnection();
+    if (!nc) {
+        qWarning() << "NatsConnectionHolder contains no valid natsConnection";
         return;
     }
     if (m_sub != nullptr) return;
@@ -30,7 +30,7 @@ void NatsSubscription::start()
     auto subj = m_subject.toStdString();
 
     qDebug() << "Subscribing to" << m_subject;
-    auto subStatus = natsConnection_Subscribe(&m_sub, *m_nc, subj.c_str(), &NatsSubscription::handleMessageReceived, this);
+    auto subStatus = natsConnection_Subscribe(&m_sub, nc, subj.c_str(), &NatsSubscription::handleMessageReceived, this);
     updateStatus(NatsStatus::fromC(subStatus));
     if (subStatus != NATS_OK)
         return;
@@ -86,16 +86,14 @@ void NatsSubscription::setSubject(const QString &subject)
     }
 }
 
-NatsConnection *NatsSubscription::connection() const
+void NatsSubscription::useConnection(NatsConnection *connection)
 {
-    return m_conn;
-}
-
-void NatsSubscription::setConnection(NatsConnection *connection)
-{
-    if (connection != m_conn) {
-        m_conn = connection;
-        emit connectionChanged();
+    if (!connection)
+        stop();
+    if (m_connHolder != connection->getHolder()) {
+        stop();
+        auto newHolder = connection->getHolder();
+        m_connHolder.swap(newHolder);
     }
 }
 

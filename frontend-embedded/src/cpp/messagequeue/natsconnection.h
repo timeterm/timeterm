@@ -15,7 +15,9 @@ class NatsConnectionHolder: public QObject
 
 public:
     explicit NatsConnectionHolder(natsConnection *conn, QObject *parent = nullptr);
+    ~NatsConnectionHolder() override;
 
+    [[nodiscard]] NatsStatus::Enum lastStatus();
     [[nodiscard]] natsConnection *getConnection() const;
 
 signals:
@@ -52,13 +54,12 @@ public:
     [[nodiscard]] QSharedPointer<NatsConnectionHolder> getHolder() const;
 
     Q_INVOKABLE void connect();
-    NatsStatus::Enum subscribe(const QString &topic, natsSubscription **ppNatsSub, QSharedPointer<NatsConnectionHolder> &spConn);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
     void optionsChanged();
     void connected();
-    void setHolderPrivate(const QSharedPointer<NatsConnectionHolder> &holder, QPrivateSignal);
+    void setHolderPrivate(const QSharedPointer<MessageQueue::NatsConnectionHolder> &holder, QPrivateSignal);
     void lastStatusChanged();
     void connectionLost();
     void holderChanged();

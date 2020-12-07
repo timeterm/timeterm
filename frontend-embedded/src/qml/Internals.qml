@@ -115,13 +115,12 @@ Item {
         onConnected: {
             console.log("Connected to NATS")
 
-            //disownSub.start()
+            rebootSub.useConnection(natsConn)
             rebootSub.start()
         }
 
         onErrorOccurred: function (code, msg) {
             console.log(`An error occurred in the NATS connection: ${msg} (error code ${code})`)
-            //disownSub.stop()
             rebootSub.stop()
 
             // Try to reconnect
@@ -136,7 +135,6 @@ Item {
 
         onConnectionLost: {
             console.log("Connection lost")
-            //disownSub.stop()
             rebootSub.stop()
 
             // Try to reconnect
@@ -147,18 +145,5 @@ Item {
     NatsSubscription {
         id: rebootSub
         subject: `EMDEV.${configManager.deviceConfig.id}.REBOOT`
-        connection: natsConn
     }
-
-    // JetStreamConsumer {
-    //     id: disownSub
-    //     connection: natsConn
-    //     stream: "DISOWN-TOKEN"
-    //     consumerId: "ozuhLrexlBa4p50INjihAl"
-    //     type: JetStreamConsumerType.Pull
-
-    //     onDisownTokenMessage: function (msg) {
-    //         console.log()
-    //     }
-    // }
 }
