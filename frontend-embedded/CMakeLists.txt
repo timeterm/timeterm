@@ -53,6 +53,7 @@ set(NATS_BUILD_EXAMPLES NO CACHE BOOL "Build the NATS examples")
 set(NATS_BUILD_LIB_SHARED NO CACHE BOOL "Build the NATS library shared")
 set(NATS_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Build type: Release, Debug, RelWithDebInfo, MinRelSize")
 set(NATS_BUILD_STREAMING NO CACHE BOOL "Build the NATS library with NATS streaming support")
+set(NATS_BUILD_TLS_USE_OPENSSL_1_1_API YES CACHE BOOL "Build the NATS library with OpenSSL 1.1+ support")
 add_subdirectory(3rdparty/nats)
 add_subdirectory(../proto/src ${CMAKE_BINARY_DIR}/timeterm_proto)
 

@@ -43,6 +43,7 @@ private slots:
 
 public slots:
     void configLoaded();
+    void checkNetworkState();
 
 protected:
     void timerEvent(QTimerEvent *event) override;

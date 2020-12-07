@@ -93,6 +93,10 @@ Item {
 
         onOnlineChanged: function (online) {
             console.log(`Online changed to ${online}`)
+            handleNewOnline(online)
+        }
+
+        function handleNewOnline(online) {
             if (online && configManager.deviceConfig.needsRegistration) {
                 console.log("Registering")
                 apiClient.apiKey = configManager.deviceConfig.setupToken

@@ -11,7 +11,7 @@ void FakeCardReaderClient::sendCardUid(const QString &serverName, const QString 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_14);
-
+ll 
     out << static_cast<quint32>(uid.length());
     out << uid;
 

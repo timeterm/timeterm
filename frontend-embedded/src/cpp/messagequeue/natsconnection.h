@@ -14,11 +14,12 @@ class NatsConnectionHolder: public QObject
     Q_PROPERTY(MessageQueue::NatsStatus::Enum lastStatus READ lastStatus)
 
 public:
-    explicit NatsConnectionHolder(natsConnection *conn, QObject *parent = nullptr);
+    explicit NatsConnectionHolder(QObject *parent = nullptr);
     ~NatsConnectionHolder() override;
 
     [[nodiscard]] NatsStatus::Enum lastStatus();
     [[nodiscard]] natsConnection *getConnection() const;
+    void setConnection(natsConnection *conn);
 
 signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
@@ -36,7 +37,7 @@ private:
     void connectionLostCB();
 
     NatsStatus::Enum m_lastStatus = NatsStatus::Enum::Ok;
-    natsConnection *m_nc;
+    natsConnection *m_nc = nullptr;
 };
 
 class NatsConnection: public QObject

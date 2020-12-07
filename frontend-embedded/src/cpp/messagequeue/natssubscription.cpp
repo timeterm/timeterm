@@ -25,7 +25,7 @@ void NatsSubscription::start()
         qWarning() << "NatsConnectionHolder contains no valid natsConnection";
         return;
     }
-    if (m_sub != nullptr) return;
+    if (m_sub) return;
 
     auto subj = m_subject.toStdString();
 
@@ -39,7 +39,7 @@ void NatsSubscription::start()
 
 void NatsSubscription::stop()
 {
-    if (m_sub != nullptr) {
+    if (m_sub) {
         natsSubscription_Destroy(m_sub);
         m_sub = nullptr;
     }

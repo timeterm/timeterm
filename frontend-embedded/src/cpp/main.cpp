@@ -20,6 +20,7 @@
 #include <logs/logmanager.h>
 #include <messagequeue/natssubscription.h>
 #include <networking/networkmanager.h>
+#include <openssl/ssl.h>
 #include <timeterm_proto/mq/mq.pb.h>
 #include <util/scopeguard.h>
 
@@ -28,7 +29,7 @@ void installDefaultFont()
     qint32 fontId = QFontDatabase::addApplicationFont(":/assets/fonts/Roboto/Roboto-Regular.ttf");
     QStringList fontList = QFontDatabase::applicationFontFamilies(fontId);
 
-    const QString& family = fontList.at(0);
+    const QString &family = fontList.at(0);
     QGuiApplication::setFont(QFont(family));
 }
 
@@ -96,14 +97,19 @@ int runApp(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
-    qSetMessagePattern("%{time} %{type}%{if-category}:%{category}%{endif} [%{if-category}%{file}:%{endif}%{function}:%{line}]: %{message}");
+    qSetMessagePattern("%{time yyyy-MM-dd HH:mm:ss.zzz} %{type}%{if-category}:%{category}%{endif} [%{if-category}%{file}:%{endif}%{function}:%{line}]: %{message}");
     qInstallMessageHandler(LogManager::handleMessage);
 
     qInfo() << "Starting Timeterm frontend-embedded";
 
-    qInfo() << "Verifying Protobuf library version...";
+    qInfo() << "Verifying Protobuf and NATS library versions...";
     GOOGLE_PROTOBUF_VERIFY_VERSION;
-    qInfo() << "Protobuf library version OK";
+    nats_CheckCompatibility();
+    qInfo() << "Protobuf and NATS library versions OK";
+
+    qInfo() << "Initializing the NATS library...";
+    nats_Open(-1);
+    qInfo() << "NATS library initialized";
 
     auto exitCode = runApp(argc, argv);
     qInfo() << "Shutting down...";
@@ -111,11 +117,7 @@ int main(int argc, char *argv[])
     qInfo() << "Shutting down Protobuf library...";
     google::protobuf::ShutdownProtobufLibrary();
     qInfo() << "Protobuf library shut down";
-
-    qInfo() << "Closing NATS library (with timeout of 10s)...";
-    nats_Sleep(500);
-    nats_CloseAndWait(10000);
-    qInfo() << "NATS library closed";
+    nats_Close();
 
     qInfo("Exiting with code %d, have a nice day!", exitCode);
     return exitCode;

@@ -23,6 +23,7 @@ NetworkManager::NetworkManager(QObject *parent)
     QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManager::servicesChanged);
 #endif
 
+    checkNetworkState();
     m_checkNetworkStateTimerId = startTimer(5000);
 }
 
@@ -30,6 +31,7 @@ void NetworkManager::configLoaded()
 {
     m_configLoaded = true;
     activateInactiveNetworkingInterfaces();
+    checkNetworkState();
 }
 
 void NetworkManager::networkingInterfacesChanged()
@@ -134,26 +136,32 @@ NetworkState NetworkManager::getNetworkState()
         }
     }
 #else
-    state.isOnline = true;
-    state.isWired = false;
-    state.signalStrength = 50;
-    state.isConnected = true;
+    if (m_configLoaded) {
+        state.isOnline = true;
+        state.isWired = false;
+        state.signalStrength = 50;
+        state.isConnected = true;
+    }
 #endif
     return state;
 }
 
 void NetworkManager::timerEvent(QTimerEvent *event)
 {
-    if (event->timerId() == m_checkNetworkStateTimerId) {
-        auto state = getNetworkState();
-        if (!m_lastState.has_value() || *m_lastState != state) {
-            if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
-                emit onlineChanged(state.isOnline);
-            }
+    if (event->timerId() == m_checkNetworkStateTimerId)
+        checkNetworkState();
+}
 
-            m_lastState = state;
-            emit stateChanged(state);
+void NetworkManager::checkNetworkState()
+{
+    auto state = getNetworkState();
+    if (!m_lastState.has_value() || *m_lastState != state) {
+        if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
+            emit onlineChanged(state.isOnline);
         }
+
+        m_lastState = state;
+        emit stateChanged(state);
     }
 }
 

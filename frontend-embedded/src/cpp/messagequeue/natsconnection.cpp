@@ -2,6 +2,7 @@
 #include "strings.h"
 
 #include <QtConcurrent/QtConcurrentRun>
+#include <util/scopeguard.h>
 
 namespace MessageQueue
 {
@@ -30,43 +31,38 @@ NatsOptions *NatsConnection::options() const
 
 void NatsConnection::connect()
 {
-    natsOptions *pOpts = nullptr;
+    natsOptions *opts = nullptr;
 
-    auto optsStatus = m_options->build(&pOpts);
+    auto optsStatus = m_options->build(&opts);
     updateStatus(optsStatus);
     if (optsStatus != NatsStatus::Enum::Ok) {
         qCritical() << "Could not create NATS options";
         return;
     }
 
-    optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(pOpts, NatsConnectionHolder::connectionLostCB, this));
+    QSharedPointer<NatsConnectionHolder> holder(new NatsConnectionHolder());
+
+    optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(opts, NatsConnectionHolder::connectionLostCB, holder.get()));
     updateStatus(optsStatus);
     if (optsStatus != NatsStatus::Enum::Ok) {
         qCritical() << "Could not set connection lost callback handler";
+        natsOptions_Destroy(opts);
         return;
     }
 
-    QSharedPointer<natsOptions *> opts(
-        new natsOptions *(pOpts),
-        [](natsOptions **ppOpts) {
-            if (ppOpts != nullptr) {
-                if (*ppOpts != nullptr) {
-                    natsOptions_Destroy(*ppOpts);
-                }
-                delete ppOpts;
-            }
-        });
-
     QtConcurrent::run(
-        [this, opts]() {
+        [this, holder, opts]() mutable {
+            auto optsGuard = onScopeExit([opts]() {
+                natsOptions_Destroy(opts);
+            });
+
             natsConnection *conn = nullptr;
-            auto connectionStatus = natsConnection_Connect(&conn, *opts);
+            auto connectionStatus = natsConnection_Connect(&conn, opts);
             updateStatus(NatsStatus::fromC(connectionStatus));
             if (connectionStatus != NATS_OK)
                 return;
+            holder->setConnection(conn);
             qDebug() << "Connected";
-
-            QSharedPointer<NatsConnectionHolder> holder(new NatsConnectionHolder(conn));
 
             emit setHolderPrivate(holder, QPrivateSignal());
             emit connected();
@@ -107,9 +103,8 @@ void NatsConnection::setHolder(const QSharedPointer<NatsConnectionHolder> &holde
     }
 }
 
-NatsConnectionHolder::NatsConnectionHolder(natsConnection *conn, QObject *parent)
+NatsConnectionHolder::NatsConnectionHolder(QObject *parent)
     : QObject(parent)
-    , m_nc(conn)
 {
 }
 
@@ -151,7 +146,16 @@ NatsStatus::Enum NatsConnectionHolder::lastStatus()
 
 NatsConnectionHolder::~NatsConnectionHolder()
 {
-    natsConnection_Destroy(m_nc);
+    if (m_nc)
+        natsConnection_Destroy(m_nc);
+}
+
+void NatsConnectionHolder::setConnection(natsConnection *conn)
+{
+    if (m_nc != conn) {
+        if (m_nc) natsConnection_Destroy(m_nc);
+        m_nc = conn;
+    }
 }
 
 } // namespace MessageQueue
