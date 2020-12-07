@@ -23,22 +23,29 @@ Page {
 
     function setTimetable(timetable) {
         for (var i = 0; i < timetable.data.length; i++) {
-            if (!startOfWeek || !endOfWeek) {
-                startOfWeek = new Date().setHours(0, 0, 0, 0)
-                endOfWeek = new Date().setHours(120, 0, 0, 0)
+            if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
+                if (!startOfWeek || !endOfWeek) {
+                    startOfWeek = new Date().setHours(0, 0, 0, 0)
+                    endOfWeek = new Date().setHours(120, 0, 0, 0)
+                }
+
+                if (!weekAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
+                    weekAppointments.startFirstAppointment = timetable.data[i].startTime.getMillisecondsInDay()
+                }
+                if (!weekAppointments.endLastAppointment || timetable.data[i].endTime.getMillisecondsInDay() > weekAppointments.endLastAppointment) {
+                    weekAppointments.endLastAppointment = timetable.data[i].endTime.getMillisecondsInDay()
+                }
             }
 
+            if (!!weekAppointments.startFirstAppointment && !!weekAppointments.endLastAppointment) {
+                weekAppointments.contentHeight = (weekAppointments.endLastAppointment - weekAppointments.startFirstAppointment)
+                                                    / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
+                                                    + weekPage.height * 0.08
+            }
+        }
+
+        for (var i = 0; i < timetable.data.length; i++) {
             if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
-                if (!weekAppointments.startFirstAppointment || timetable.data[i].startTime < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
-                    weekAppointments.startFirstAppointment = timetable.data[i].startTime
-                }
-                if (!weekAppointments.endLastAppointment || timetable.data[i].endTime > weekAppointments.endLastAppointment) {
-                    weekAppointments.endLastAppointment = timetable.data[i].endTime
-                    weekAppointments.contentHeight = (weekAppointments.endLastAppointment.getMillisecondsInDay()
-                                                - weekAppointments.startFirstAppointment.getMillisecondsInDay())
-                                                / 1000 * weekPage.secondToPixelRatio - 5         // - 5 because of the spacing between weekAppointments
-                                                + weekPage.height * 0.08
-                }
 
                 let finishWeekAppointment = function (weekAppointment) {
                     if (weekAppointment.status === Component.Ready) {
@@ -69,7 +76,7 @@ Page {
 
     function fillWeekTimeLine() {
         let currentLineTime = new Date()
-        currentLineTime.setTime(weekAppointments.startFirstAppointment.getTime())
+        currentLineTime.setTime(weekAppointments.startFirstAppointment)
 
         if (!currentLineTime.isFullHour()) {
             currentLineTime.addHours(1)
@@ -77,12 +84,12 @@ Page {
         }
 
         for (currentLineTime;
-             weekAppointments.endLastAppointment.getMillisecondsInDay() - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last weekTimeLine is at least less than 30 minutes before the end of the last weekAppointment
+             weekAppointments.endLastAppointment - currentLineTime.getMillisecondsInDay() > 30 * 60 * 1000; // Last weekTimeLine is at least less than 30 minutes before the end of the last weekAppointment
              currentLineTime.addHours(1)) {
             let finishWeekLineItem = function (weekTimeLineItem) {
                 if (weekTimeLineItem.status === Component.Ready) {
                     weekTimeLineItem.incubateObject(weekTimeLine, {
-                        y: (currentLineTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000 * weekPage.secondToPixelRatio,
+                        y: (currentLineTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment) / 1000 * weekPage.secondToPixelRatio,
                         time: currentLineTime.getHours().toString() + ":"
                               + (currentLineTime.getMinutes().toString() < 10 ? '0' : '')
                               + currentLineTime.getMinutes(),
@@ -140,11 +147,11 @@ Page {
 
                     if (!!weekAppointments.startFirstAppointment
                             && !!weekAppointments.endLastAppointment
-                            && currTime > weekAppointments.startFirstAppointment
-                            && currTime < weekAppointments.endLastAppointment
-                            && currTime.getMillisecondsInDay() > weekAppointments.startFirstAppointment.getMillisecondsInDay()
-                            && currTime.getMillisecondsInDay() < weekAppointments.endLastAppointment.getMillisecondsInDay()) {
-                        let offset = (currTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
+                            && currTime > startOfWeek
+                            && currTime < endOfWeek
+                            && currTime.getMillisecondsInDay() > weekAppointments.startFirstAppointment
+                            && currTime.getMillisecondsInDay() < weekAppointments.endLastAppointment) {
+                        let offset = (currTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
                         currentTime.visible = true
