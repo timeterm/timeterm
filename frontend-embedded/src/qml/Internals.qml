@@ -48,12 +48,14 @@ Item {
             configManager.saveDeviceConfig()
 
             console.log("Retrieving NATS credentials")
-            configManager.getNatsCreds(configManager.deviceConfig.id)
+            apiClient.getNatsCreds(configManager.deviceConfig.id)
         }
 
         onNatsCredsReceived: function (response) {
             console.log("Writing NATS credentials")
             response.writeToFile()
+
+            natsConn.connect()
         }
 
         onTimetableReceived: function (timetable) {
@@ -110,10 +112,6 @@ Item {
             credsFilePath: "nats/EMDEV.creds"
         }
 
-        Component.onCompleted: {
-            natsConn.connect()
-        }
-
         onConnected: {
             console.log("Connected to NATS")
 
@@ -123,7 +121,7 @@ Item {
 
         onErrorOccurred: function (code, msg) {
             console.log(`An error occurred in the NATS connection: ${msg} (error code ${code})`)
-            disownSub.stop()
+            //disownSub.stop()
             rebootSub.stop()
 
             // Try to reconnect
@@ -138,7 +136,7 @@ Item {
 
         onConnectionLost: {
             console.log("Connection lost")
-            disownSub.stop()
+            //disownSub.stop()
             rebootSub.stop()
 
             // Try to reconnect
@@ -150,10 +148,6 @@ Item {
         id: rebootSub
         subject: `EMDEV.${configManager.deviceConfig.id}.REBOOT`
         connection: natsConn
-
-        onMessageReceived: function () {
-            console.log("Rebooting...")
-        }
     }
 
     // JetStreamConsumer {

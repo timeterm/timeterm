@@ -628,26 +628,21 @@ func (m *Manager) GetSystemAccountPubKey(ctx context.Context) (string, error) {
 	return pk, nil
 }
 
-// ProvisionNewDevice provision a new device with an account and user.
+// ProvisionNewDevice provision a new device with a user.
 // The ID for the device must be provided.
 func (m *Manager) ProvisionNewDevice(ctx context.Context, id uuid.UUID) error {
-	oppk, err := m.getOperatorPubKey(ctx)
+	acpk, err := m.dbw.GetAccountSubject(ctx, "EMDEVS", m.operator.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not get EMDEVS account subject: %w", err)
 	}
 
-	dapk, err := m.newAccount(ctx, deviceAccountName(id), oppk)
-	if err != nil {
-		return err
-	}
-
-	_, err = m.newUser(ctx, deviceUserName(id), dapk, emdevEditor(id))
+	_, err = m.newUser(ctx, deviceUserName(id), acpk, emdevEditor(id))
 	return err
 }
 
 // GenerateDeviceCredentials generates new NATS credentials for a device with a known ID.
 func (m *Manager) GenerateDeviceCredentials(ctx context.Context, id uuid.UUID) ([]byte, error) {
-	return m.GenerateUserCredentials(ctx, deviceUserName(id), deviceAccountName(id))
+	return m.GenerateUserCredentials(ctx, deviceUserName(id), "EMDEVS")
 }
 
 // GenerateUserCredentials generates new NATS credentials for a user with a known name and issuer (account).
@@ -773,11 +768,6 @@ func (m *Manager) NATSCredsCBs(
 	}
 
 	return jwtCB, signCB
-}
-
-// deviceAccountName generates a new name for an (embedded) device account.
-func deviceAccountName(id uuid.UUID) string {
-	return fmt.Sprintf("EMDEV-%s", id)
 }
 
 // deviceUserName generates a new name for an (embedded) device user.

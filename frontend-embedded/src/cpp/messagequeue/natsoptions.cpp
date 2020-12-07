@@ -46,10 +46,14 @@ NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
         CHECK_NATS_STATUS(s);
     }
 
+    // For JetStream compat.
     s = natsOptions_UseOldRequestStyle(pOpts, true);
     CHECK_NATS_STATUS(s);
 
     s = natsOptions_SetAllowReconnect(pOpts, false);
+    CHECK_NATS_STATUS(s);
+
+    s = natsOptions_SetMaxReconnect(pOpts, -1);
 
     return NatsStatus::fromC(s);
 }

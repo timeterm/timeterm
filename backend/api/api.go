@@ -68,7 +68,7 @@ func NewServer(db *database.Wrapper, log logr.Logger, secr *secrets.Wrapper) (Se
 		return Server{}, fmt.Errorf("could not connect to NATS: %w", err)
 	}
 
-	mqw, err := mq.NewWrapper()
+	mqw, err := mq.NewWrapper(log)
 	if err != nil {
 		return Server{}, fmt.Errorf("could not create NATS wrapper: %w", err)
 	}

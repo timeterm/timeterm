@@ -39,7 +39,7 @@ private:
 class ConfigManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(DeviceConfig *deviceConfig READ deviceConfig)
+    Q_PROPERTY(DeviceConfig *deviceConfig READ deviceConfig NOTIFY deviceConfigChanged)
 
 public:
     explicit ConfigManager(QObject *parent = nullptr);
@@ -52,6 +52,7 @@ public slots:
 
 signals:
     void configLoaded();
+    void deviceConfigChanged();
 
 private:
     void reloadSystem();

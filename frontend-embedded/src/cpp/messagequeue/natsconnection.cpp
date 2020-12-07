@@ -9,7 +9,7 @@ namespace MessageQueue
 NatsConnection::NatsConnection(QObject *parent)
     : QObject(parent)
 {
-    QObject::connect(this, &MessageQueue::NatsConnection::setConnectionPrivate, this, &MessageQueue::NatsConnection::setConnection);
+    QObject::connect(this, &MessageQueue::NatsConnection::setHolderPrivate, this, &MessageQueue::NatsConnection::setHolder);
 }
 
 void NatsConnection::setOptions(NatsOptions *options)
@@ -39,7 +39,7 @@ void NatsConnection::connect()
         return;
     }
 
-    optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(pOpts, NatsConnection::connectionLostCB, this));
+    optsStatus = NatsStatus::fromC(natsOptions_SetDisconnectedCB(pOpts, NatsConnectionHolder::connectionLostCB, this));
     updateStatus(optsStatus);
     if (optsStatus != NatsStatus::Enum::Ok) {
         qCritical() << "Could not set connection lost callback handler";
@@ -59,32 +59,18 @@ void NatsConnection::connect()
 
     QtConcurrent::run(
         [this, opts]() {
-            QSharedPointer<natsConnection *> natsConnPtr(
-                new natsConnection *(nullptr),
-                [](natsConnection **ppConn) {
-                    if (ppConn != nullptr) {
-                        if (*ppConn != nullptr) {
-                            natsConnection_Close(*ppConn);
-                            natsConnection_Destroy(*ppConn);
-                        }
-                        delete ppConn;
-                    }
-                });
-
-            auto connectionStatus = natsConnection_Connect(natsConnPtr.get(), *opts);
+            natsConnection *conn = nullptr;
+            auto connectionStatus = natsConnection_Connect(&conn, *opts);
             updateStatus(NatsStatus::fromC(connectionStatus));
             if (connectionStatus != NATS_OK)
                 return;
             qDebug() << "Connected";
 
-            emit setConnectionPrivate(natsConnPtr, QPrivateSignal());
+            QSharedPointer<NatsConnectionHolder> holder(new NatsConnectionHolder(conn));
+
+            emit setHolderPrivate(holder, QPrivateSignal());
             emit connected();
         });
-}
-
-void NatsConnection::setConnection(const QSharedPointer<natsConnection *> &conn)
-{
-    m_natsConnection = conn;
 }
 
 NatsStatus::Enum NatsConnection::lastStatus()
@@ -107,18 +93,54 @@ void NatsConnection::updateStatus(NatsStatus::Enum s)
     emit errorOccurred(s, statusStr);
 }
 
-QSharedPointer<natsConnection *> NatsConnection::getConnection() const
+QSharedPointer<NatsConnectionHolder> NatsConnection::getHolder() const
 {
-    return m_natsConnection;
+    return m_holder;
 }
 
-void NatsConnection::connectionLostCB(natsConnection *nc, void *closure)
+void NatsConnection::setHolder(const QSharedPointer<NatsConnectionHolder> &holder)
+{
+    if (holder != m_holder) {
+        m_holder = holder;
+        QObject::connect(holder.get(), &NatsConnectionHolder::connectionLost, this, &NatsConnection::connectionLost);
+        emit holderChanged();
+    }
+}
+
+NatsConnectionHolder::NatsConnectionHolder(natsConnection *conn, QObject *parent)
+    : QObject(parent)
+    , m_nc(conn)
+{
+}
+
+natsConnection *NatsConnectionHolder::getConnection() const
+{
+    return m_nc;
+}
+
+void NatsConnectionHolder::updateStatus(NatsStatus::Enum s)
+{
+    if (s != m_lastStatus) {
+        m_lastStatus = s;
+        emit lastStatusChanged();
+    }
+
+    if (s == NatsStatus::Enum::Ok)
+        return;
+
+    const char *text = natsStatus_GetText(NatsStatus::asC(s));
+    auto statusStr = QString::fromLocal8Bit(text);
+    emit errorOccurred(s, statusStr);
+}
+
+void NatsConnectionHolder::connectionLostCB(natsConnection *conn, void *closure)
 {
     if (closure != nullptr)
-        static_cast<NatsConnection*>(closure)->connectionLostCB();
+        static_cast<NatsConnectionHolder *>(closure)->connectionLostCB();
 }
 
-void NatsConnection::connectionLostCB() {
+void NatsConnectionHolder::connectionLostCB()
+{
     emit connectionLost();
 }
 

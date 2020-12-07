@@ -1,5 +1,7 @@
 #include "natssubscription.h"
 
+#include <QDebug>
+
 namespace MessageQueue
 {
 
@@ -9,19 +11,30 @@ NatsSubscription::NatsSubscription(QObject *parent)
 
 NatsSubscription::~NatsSubscription()
 {
-    if (m_sub != nullptr) {
-        natsSubscription_Destroy(m_sub);
-        m_sub = nullptr;
-    }
+    stop();
 }
 
 void NatsSubscription::start()
 {
-    if (m_nc.isNull()) return;
+    if (m_conn == nullptr) {
+        qWarning() << "start() called with null NatsConnection";
+        return;
+    }
+    m_nc = m_conn->getConnection();
+    if (m_nc.isNull()) {
+        qWarning() << "NatsConnection has no nats.c connection";
+        return;
+    }
     if (m_sub != nullptr) return;
 
     auto subj = m_subject.toStdString();
-    natsConnection_Subscribe(&m_sub, *m_nc, subj.c_str(), &NatsSubscription::handleMessageReceived, this);
+
+    qDebug() << "Subscribing to" << m_subject;
+    auto subStatus = natsConnection_Subscribe(&m_sub, *m_nc, subj.c_str(), &NatsSubscription::handleMessageReceived, this);
+    updateStatus(NatsStatus::fromC(subStatus));
+    if (subStatus != NATS_OK)
+        return;
+    qDebug() << "Subscribed to" << m_subject;
 }
 
 void NatsSubscription::stop()
@@ -82,10 +95,28 @@ void NatsSubscription::setConnection(NatsConnection *connection)
 {
     if (connection != m_conn) {
         m_conn = connection;
-        if (m_conn != nullptr) {
-            m_nc = m_conn->getConnection();
-        }
+        emit connectionChanged();
     }
+}
+
+NatsStatus::Enum NatsSubscription::lastStatus()
+{
+    return m_lastStatus;
+}
+
+void NatsSubscription::updateStatus(NatsStatus::Enum s)
+{
+    if (s != m_lastStatus) {
+        m_lastStatus = s;
+        emit lastStatusChanged();
+    }
+
+    if (s == NatsStatus::Enum::Ok)
+        return;
+
+    const char *text = natsStatus_GetText(NatsStatus::asC(s));
+    auto statusStr = QString::fromLocal8Bit(text);
+    emit errorOccurred(s, statusStr);
 }
 
 } // namespace MessageQueue
