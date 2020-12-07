@@ -28,13 +28,9 @@ ApplicationWindow {
         visible: false
     }
 
-    Component {
-        id: routerComponent
-
-        Router {
-            id: routerView
-            visible: false
-        }
+    Router {
+        id: routerView
+        visible: false
     }
 
     Internals {
@@ -43,13 +39,10 @@ ApplicationWindow {
         onCardRead: function (uid) {
             header.title = uid
 
-            stackView.push(routerComponent)
-
             const startOfWeek = new Date().startOfWeek()
             const endOfWeek = new Date().endOfWeek()
             internals.getAppointments(startOfWeek, endOfWeek)
-            stackView.push(routerComponent)
-            //stackView.push("Router.qml", {"id": "routerView"})
+            stackView.push(routerView)
         }
 
         onTimetableReceived: function (timetable) {
