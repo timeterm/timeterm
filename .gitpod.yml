@@ -7,5 +7,5 @@ vscode:
 image:
   file: .gitpod.Dockerfile
 tasks:
-  - command: git lfs install
+  - command: git lfs install && git config lfs.https://gitlab.com/timeterm/timeterm.git/info/lfs.locksverify true
 
