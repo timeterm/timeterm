@@ -22,20 +22,35 @@ Page {
         Rectangle {
             width: cellWidth
             height: cellHeight
-            Column {
-                anchors.fill: parent
-                Text {
-                    text: subjects.join(", ")
-                }
-                Text {
-                    text: location.join(", ")
-                }
-                Text {
-                    text: teachers.join(", ")
-                }
-                Text {
-                    text: availableSpace
-                }
+
+            Text {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                font.pixelSize: textSize
+                text: teachers.join(", ")
+            }
+
+            Text {
+                anchors.top: parent.top
+                anchors.right: parent.right
+                font.pixelSize: textSize
+                text: locations.join(", ")
+            }
+
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                color: "#666666"
+                font.pixelSize: textSize * 0.5
+                text: subjects.join(", ")
+            }
+            
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                font.pixelSize: textSize * 0.5
+                color: "#666666"
+                text: availableSpace
             }
         }
     }
