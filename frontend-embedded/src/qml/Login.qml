@@ -30,6 +30,6 @@ Page {
     Button {
         anchors.fill: cardShadow
         flat: true
-        onClicked: internals.cardRead("12345")
+        onClicked: internals.cardRead("12345678")
     }
 }

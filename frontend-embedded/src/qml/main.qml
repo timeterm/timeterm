@@ -19,36 +19,34 @@ ApplicationWindow {
 
     StackView {
         id: stackView
-        initialItem: loginView
+        initialItem: Login {}
         anchors.fill: parent
-    }
-
-    Login {
-        id: loginView
-        visible: false
-    }
-
-    Router {
-        id: routerView
-        visible: false
     }
 
     Internals {
         id: internals
 
         onCardRead: function (uid) {
+            stackView.push("Router.qml", {"id": "routerView"})
+
             header.title = uid
 
             const startOfWeek = new Date().startOfWeek()
             const endOfWeek = new Date().endOfWeek()
             internals.getAppointments(startOfWeek, endOfWeek)
-            stackView.push(routerView)
         }
 
         onTimetableReceived: function (timetable) {
             console.log("Timetable received")
             console.log(timetable.data[0].locations[0])
-            routerView.redirectTimetable(timetable)
+
+            let routerItem = stackView.find(function(item, index) {
+                return item instanceof Router})
+            if (routerItem) {
+                routerItem.redirectTimetable(timetable)
+            } else {
+                console.log("No routerItem available")
+            }
         }
     }
 }
