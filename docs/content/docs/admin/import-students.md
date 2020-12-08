@@ -9,10 +9,10 @@ weight: 1
 ---
 
 1. Ga naar Leerlingen.
-2. Klik op Toevoegen.
+2. Klik op `Toevoegen`.
     ![Leerling importeren](/new-student.png)
 3. Geef de zermelo-gebruiker een naam, bijvoorbeeld een leerlingcode.
-4. Klik op pascode toewijzen, vul de pascode in en klik nogmaals op toewijzen.
+4. Klik op `Toewijzen`, vul de pascode in en klik nogmaals op `Toewijzen`.
     ![Pascode toewijzen](/assign-student-passcode.png)
 5. Het overzicht ziet er nu als volgt uit:
     ![Leerlingenoverzicht](/students-overview.png)

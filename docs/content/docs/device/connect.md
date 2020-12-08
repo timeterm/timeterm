@@ -24,4 +24,4 @@ Hier staat gedocumenteerd hoe een apparaat gekoppeld kan worden.
 5. Plaats het timeterm-config.json bestand op de geformatteerde USB.
 6. Doe de USB-stick in een USB-poort van een apparaat.
 7. Zet het apparaat aan.
-8. Het apparaat stelt zichzelf nu verder in en verbindt zelf met het netwerk.
+8. Het apparaat stelt zichzelf nu verder in en verbindt vanzelf met het netwerk.

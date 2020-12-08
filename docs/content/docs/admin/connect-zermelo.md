@@ -8,9 +8,9 @@ weight: 1
 # bookComments: true
 ---
 
-1. Ga naar de instellingen van de school en vervolgens naar Koppelingen.
+1. Ga naar Instellingen &rarr; Mijn school &rarr; Koppelingen &rarr; Zermelo.
 2. Kies de organisatie voor de roostersoftware waar je school gebruik van maakt.
-3. Vul de institutie en bijbehorende token in en klik op opslaan.
+3. Vul de institutie en bijbehorende token in en klik op `Opslaan`.
     ![Koppelen met Zermelo](/zermelo-connect-settings.png)
 
 {{< hint info >}}
