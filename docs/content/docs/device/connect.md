@@ -20,8 +20,8 @@ Hier staat gedocumenteerd hoe een apparaat gekoppeld kan worden.
 3. Indien het bestand niet de naam **timeterm-config.json** heeft, moet de naam hiernaar gewijzigd worden.
    Toevoegingen zoals (1), (2) enzovoorts zijn niet toegestaan! Als de naam niet correct is, zoals
    de koppeling niet werken!
-4. Formateer een USB-stick naar FAT32 bestandssysteem.
+4. Formateer een USB-stick naar FAT32-bestandssysteem.
 5. Plaats het timeterm-config.json bestand op de geformatteerde USB.
-6. Doe de USB-stick in een USB-poort van een Timetermapparaat.
+6. Doe de USB-stick in een USB-poort van een apparaat.
 7. Zet het apparaat aan.
-8. Het apparaat stelt zichzelf nu verder in en verbind zelf met het netwerk.
+8. Het apparaat stelt zichzelf nu verder in en verbindt zelf met het netwerk.
