@@ -8,3 +8,20 @@ weight: 1
 # bookComments: true
 ---
 
+Hier staat gedocumenteerd hoe een apparaat gekoppeld kan worden.
+{{< hint info >}}
+   Deze stap moet uitgevoerd worden **nadat** de netwerken 
+   en de andere dingen correct zijn ingesteld!
+{{< /hint >}}
+1. Ga naar Apparaten.
+2. Klik op Configuratie exporteren. Er wordt nu een bestand gedownload met de naam  
+   timeterm-config.json. Dit bestand mag **niet** hernoemd worden.
+    ![Configuratie exporteren](/export-config.png)
+3. Indien het bestand niet de naam **timeterm-config.json** heeft, moet de naam hiernaar gewijzigd worden.
+   Toevoegingen zoals (1), (2) enzovoorts zijn niet toegestaan! Als de naam niet correct is, zoals
+   de koppeling niet werken!
+4. Formateer een USB-stick naar FAT32 bestandssysteem.
+5. Plaats het timeterm-config.json bestand op de geformatteerde USB.
+6. Doe de USB-stick in een USB-poort van een Timetermapparaat.
+7. Zet het apparaat aan.
+8. Het apparaat stelt zichzelf nu verder in en verbind zelf met het netwerk.
