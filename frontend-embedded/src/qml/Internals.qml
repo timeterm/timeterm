@@ -114,7 +114,6 @@ Item {
         options: NatsOptions {
             id: connOpts
             url: "nats.timeterm.nl"
-            credsFilePath: "nats/EMDEV.creds"
         }
 
         onConnected: {

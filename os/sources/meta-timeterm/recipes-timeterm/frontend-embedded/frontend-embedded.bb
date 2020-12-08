@@ -2,7 +2,7 @@ SUMMARY = "Timeterm frontend-embedded"
 SECTION = "ui"
 LICENSE = "CLOSED"
 
-DEPENDS += "qtdeviceutilities qtdeclarative qtquickcontrols2 qttools qttools-native protobuf protobuf-native libgpiod"
+DEPENDS += "qtdeviceutilities qtdeclarative qtquickcontrols2 qttools qttools-native protobuf protobuf-native libgpiod openssl"
 
 # We're in a monorepo, this should be the root
 FILESEXTRAPATHS_prepend := "${THISDIR}/../../../../../:"

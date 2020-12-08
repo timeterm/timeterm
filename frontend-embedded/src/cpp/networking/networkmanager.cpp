@@ -121,20 +121,29 @@ NetworkState NetworkManager::getNetworkState()
 {
     auto state = NetworkState();
 #ifdef TIMETERMOS
+    qDebug() << "Getting network state";
     auto *svc = m_manager->currentWifiConnection();
     if (svc != nullptr) {
+        qDebug() << "Got current Wi-Fi connection";
         state.isOnline = svc->state() == QNetworkSettingsState::Online;
+        qDebug() << "Is online:" << state.isOnline;
         state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
+        qDebug() << "Is connected:" << state.isConnected;
         state.signalStrength = svc->wirelessConfig()->signalStrength();
+        qDebug() << "Signal strength:" << state.signalStrength;
     }
 
     svc = m_manager->currentWiredConnection();
     if (svc != nullptr && !state.isOnline) {
+        qDebug() << "Got current wired connection";
         state.isOnline = svc->state() == QNetworkSettingsState::Online;
+        qDebug() << "Is online:" << state.isOnline;
         if (!state.isConnected) {
             state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
+            qDebug() << "Is connected:" << state.isConnected;
         }
     }
+    qDebug() << "Done getting network state";
 #else
     if (m_configLoaded) {
         state.isOnline = true;

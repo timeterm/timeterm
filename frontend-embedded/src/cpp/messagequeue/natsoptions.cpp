@@ -1,7 +1,7 @@
 #include "natsoptions.h"
 #include "strings.h"
 
-#include <QDebug>
+#include <api/natscreds.h>
 
 namespace MessageQueue
 {
@@ -40,11 +40,9 @@ NatsStatus::Enum NatsOptions::configureOpts(natsOptions *pOpts)
         CHECK_NATS_STATUS(s);
     }
 
-    if (m_credsFilePath != "") {
-        auto credsFilePathCstr = asUtf8CString(m_credsFilePath);
-        s = natsOptions_SetUserCredentialsFromFiles(pOpts, credsFilePathCstr.get(), nullptr);
-        CHECK_NATS_STATUS(s);
-    }
+    auto credsFilePathCstr = asUtf8CString(createNatsCredsPath());
+    s = natsOptions_SetUserCredentialsFromFiles(pOpts, credsFilePathCstr.get(), nullptr);
+    CHECK_NATS_STATUS(s);
 
     // For JetStream compat.
     s = natsOptions_UseOldRequestStyle(pOpts, true);
@@ -68,19 +66,6 @@ void NatsOptions::setUrl(const QString &url)
     if (url != m_url) {
         m_url = url;
         emit urlChanged();
-    }
-}
-
-QString NatsOptions::credsFilePath() const
-{
-    return m_credsFilePath;
-}
-
-void NatsOptions::setCredsFilePath(const QString &path)
-{
-    if (path != m_credsFilePath) {
-        m_credsFilePath = path;
-        emit credsFilePathChanged();
     }
 }
 

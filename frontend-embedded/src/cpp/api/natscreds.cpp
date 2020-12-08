@@ -7,7 +7,21 @@ void NatsCredsResponse::read(const QJsonObject &json)
         credentials = json["credentials"].toString();
 }
 
-QString createNATSCredsPath()
+void NatsCredsResponse::writeToFile() const
+{
+    auto path = createNatsCredsPath();
+    auto f = QFile(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qCritical() << "Could not open NATS credentials file (for writing)";
+        return;
+    }
+
+    auto bytes = credentials.toUtf8();
+    f.write(bytes);
+    f.close();
+}
+
+QString createNatsCredsPath()
 {
     auto filename = "EMDEV.creds";
     auto relative = QStringLiteral("nats/");
@@ -21,18 +35,4 @@ QString createNATSCredsPath()
     QDir(dir).mkpath(".");
 
     return dir + filename;
-}
-
-void NatsCredsResponse::writeToFile() const
-{
-    auto path = createNATSCredsPath();
-    auto f = QFile(path);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        qCritical() << "Could not open NATS credentials file (for writing)";
-        return;
-    }
-
-    auto bytes = credentials.toUtf8();
-    f.write(bytes);
-    f.close();
 }

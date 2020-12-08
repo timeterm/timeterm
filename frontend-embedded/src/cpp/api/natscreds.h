@@ -3,6 +3,8 @@
 #include <QJsonObject>
 #include <QObject>
 
+QString createNatsCredsPath();
+
 class NatsCredsResponse
 {
     Q_GADGET

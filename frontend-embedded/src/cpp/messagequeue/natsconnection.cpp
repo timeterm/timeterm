@@ -59,8 +59,10 @@ void NatsConnection::connect()
             natsConnection *conn = nullptr;
             auto connectionStatus = natsConnection_Connect(&conn, opts);
             updateStatus(NatsStatus::fromC(connectionStatus));
-            if (connectionStatus != NATS_OK)
+            if (connectionStatus != NATS_OK) {
+                qCritical() << "Could not connect to NATS:" << nats_GetLastError(&connectionStatus);
                 return;
+            }
             holder->setConnection(conn);
             qDebug() << "Connected";
 
