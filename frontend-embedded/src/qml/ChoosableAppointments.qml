@@ -12,7 +12,7 @@ Page {
         cellWidth: width / 4.5
         cellHeight: height / 3.5
 
-        //model: appointment.
+        model: appointment.alternatives
 
         delegate: choosableAppointment
     }
@@ -22,10 +22,13 @@ Page {
         Rectangle {
             width: cellWidth
             height: cellHeight
+            radius: 5
+            color: "#e5e5e5"
 
             Text {
                 anchors.top: parent.top
                 anchors.left: parent.left
+                anchors.margins: parent.width * 0.06
                 font.pixelSize: textSize
                 text: teachers.join(", ")
             }
@@ -33,6 +36,7 @@ Page {
             Text {
                 anchors.top: parent.top
                 anchors.right: parent.right
+                anchors.margins: parent.width * 0.06
                 font.pixelSize: textSize
                 text: locations.join(", ")
             }
@@ -40,17 +44,41 @@ Page {
             Text {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: parent.width * 0.06
+                anchors.rightMargin: parent.width * 0.06
+                anchors.bottomMargin: parent.width * 0.12 + textSize*0.75
+                font.pixelSize: textSize * 0.75
                 color: "#666666"
-                font.pixelSize: textSize * 0.5
+                wrapMode: Text.Wrap
+                text: content
+            }
+
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width * 0.88
+                height: 2
+                color: "#666666"
+                border.color: "#666666"
+                border.width: 2
+            }
+
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.margins: parent.width * 0.06
+                font.pixelSize: textSize * 0.75
+                color: "#666666"
                 text: subjects.join(", ")
             }
             
             Text {
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
-                font.pixelSize: textSize * 0.5
+                anchors.margins: parent.width * 0.06
+                font.pixelSize: textSize * 0.75
                 color: "#666666"
-                text: availableSpace
+                text: availableSpace + " plaatsen vrij"
             }
         }
     }
