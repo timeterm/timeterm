@@ -163,10 +163,14 @@ Page {
                         && currTime < endOfDay
                         && currTime.getMillisecondsInDay() > dayAppointments.startFirstAppointment
                         && currTime.getMillisecondsInDay() < dayAppointments.endLastAppointment) {
-                        let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment.getMillisecondsInDay()) / 1000
+                        let offset = (currTime.getMillisecondsInDay() - dayAppointments.startFirstAppointment) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
-                        currentTime.visible = true
+                        if (currentTime.y > dayTimeLine.height) {
+                            currentTime.visible = false
+                        } else {
+                            currentTime.visible = true
+                        }
                     } else {
                         currentTime.visible = false
                     }

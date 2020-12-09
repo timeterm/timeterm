@@ -21,6 +21,14 @@ ApplicationWindow {
         id: stackView
         initialItem: Login {}
         anchors.fill: parent
+        pushEnter: Transition {
+        }
+        pushExit: Transition {
+        }
+        popEnter: Transition {
+        }
+        popExit: Transition {
+        }
     }
 
     Internals {

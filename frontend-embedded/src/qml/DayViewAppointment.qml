@@ -5,6 +5,45 @@ Rectangle {
     property var startFirstAppointment
     property var secondToPixelRatio
 
+    function setBackgroundColor() { // pick colors with 33% Saturation in HSV
+        if (appointment.isCanceled) {
+            return "#ffabab"
+        } else if (appointment.isOptional) {
+            if (!appointment.isStudentEnrolled) {
+                return "#ffddab"
+            }
+            return "#c4ffab"
+        }
+        return "#e5e5e5"
+    }
+
+    function setBorderColor() { // pick corresponding backgroundColor, set Saturation in HSV to 80%
+        if (appointment.isCanceled) {
+            return "#ff3333"
+        } else if (appointment.isOptional) {
+            if (!appointment.isStudentEnrolled) {
+                return "#ffad33"
+            }
+            return "#70ff33"
+        }
+        return "#b5b5b5"
+    }
+
+    function setTimeSlot() {
+        if (appointment.startTimeSlotName === "0") {
+            return ""
+        } else if (appointment.startTimeSlotName !== appointment.endTimeSlotName) {
+            return appointment.startTimeSlotName + "-" + appointment.endTimeSlotName
+        }
+        return appointment.startTimeSlotName
+    }
+
+    function openChoosableAppointments() {
+        if (appointment.isOptional) {
+            stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
+        }
+    }
+
     y: (appointment.startTime.getMillisecondsInDay()
        - startFirstAppointment) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
@@ -14,9 +53,9 @@ Rectangle {
     width: dayHeader.width
     anchors.right: parent.right
 
-    color: appointment.isCanceled ? "#FFB5AB" : "#e5e5e5"
+    color: setBackgroundColor()
     border.width: 1
-    border.color: appointment.isCanceled ? "#ff4229" :"#b5b5b5"
+    border.color: setBorderColor()
     radius: 5
 
     Text {
@@ -24,7 +63,7 @@ Rectangle {
         anchors.leftMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
-        text: (appointment.startTimeSlotName === appointment.endTimeSlotName ? appointment.startTimeSlotName : appointment.startTimeSlotName + " - " + appointment.endTimeSlotName)
+        text: setTimeSlot()
     }
 
     Text {
@@ -50,5 +89,10 @@ Rectangle {
         font.pixelSize: dayPage.textSize
         color: "#666666"
         text: appointment.teachers.join(", ")
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: openChoosableAppointments()
     }
 }

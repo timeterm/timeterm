@@ -27,9 +27,8 @@ Page {
         source: card
     }
 
-    Button {
+    MouseArea {
         anchors.fill: cardShadow
-        flat: true
         onClicked: internals.cardRead("12345678")
     }
 }

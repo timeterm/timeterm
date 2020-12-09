@@ -153,7 +153,11 @@ Page {
                         let offset = (currTime.getMillisecondsInDay() - weekAppointments.startFirstAppointment) / 1000
                         offset *= secToPixRatio
                         currentTime.y = offset
-                        currentTime.visible = true
+                        if (currentTime.y > weekTimeLine.height) {
+                            currentTime.visible = false
+                        } else {
+                            currentTime.visible = true
+                        }
                     } else {
                         currentTime.visible = false
                     }

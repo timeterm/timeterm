@@ -22,5 +22,6 @@
         <file>src/qml/Router.qml</file>
         <file>src/qml/Login.qml</file>
         <file>assets/icons/logout.svg</file>
+        <file>src/qml/ChoosableAppointmentView.qml</file>
     </qresource>
 </RCC>
