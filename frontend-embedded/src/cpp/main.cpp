@@ -14,13 +14,11 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include "api/zermeloappointment.h"
 #include <api/apiclient.h>
 #include <devcfg/configmanager.h>
 #include <logs/logmanager.h>
 #include <messagequeue/natssubscription.h>
 #include <networking/networkmanager.h>
-#include <openssl/ssl.h>
 #include <systemd/systemd.h>
 #include <timeterm_proto/mq/mq.pb.h>
 #include <util/scopeguard.h>
