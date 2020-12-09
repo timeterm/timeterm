@@ -12,75 +12,24 @@ import (
 	"gitlab.com/timeterm/timeterm/nats-manager/jwtmigrate"
 	"gitlab.com/timeterm/timeterm/nats-manager/manager"
 	"gitlab.com/timeterm/timeterm/nats-manager/pkg/jwtpatch"
-	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 )
 
-func defaultOperator() jwtmigrate.OperatorRef {
+func defaultOperator(operatorName string) jwtmigrate.OperatorRef {
 	return jwtmigrate.OperatorRef{
-		Name: "TIMETERM",
+		Name: operatorName,
 	}
 }
 
-func backendAccount() jwtmigrate.AccountRef {
-	return defaultOperator().Account("BACKEND")
+func backendAccount(operatorName string) jwtmigrate.AccountRef {
+	return defaultOperator(operatorName).Account("BACKEND")
 }
 
-func emdevsAccount() jwtmigrate.AccountRef {
-	return defaultOperator().Account("EMDEVS")
+func emdevsAccount(operatorName string) jwtmigrate.AccountRef {
+	return defaultOperator(operatorName).Account("EMDEVS")
 }
 
 func jwtMigrations() jwtmigrate.Migrations {
 	return jwtmigrate.Migrations{
-		{
-			Name:    "initial",
-			Version: 1,
-			CreateAccounts: jwtmigrate.AccountCreates{
-				backendAccount(): {},
-				emdevsAccount():  {},
-			},
-			CreateUsers: jwtmigrate.UserCreates{
-				backendAccount().User("superuser"): {
-					Patches: superuserPatches(),
-				},
-				backendAccount().User("backend"): {
-					Patches: &jwtpatch.UserClaimsPatches{
-						UserPatches: jwtpatch.UserPatches{
-							PermissionsPatches: jwtpatch.PermissionsPatches{
-								Pub: &jwtpatch.PermissionPatches{
-									Allow: jwtpatch.StringListPatches{
-										Add: []string{
-											nmsdk.SubjectGenerateDeviceCredentials,
-											nmsdk.SubjectProvisionNewDevice,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				backendAccount().User("nats-manager"): {
-					Patches: &jwtpatch.UserClaimsPatches{
-						UserPatches: jwtpatch.UserPatches{
-							PermissionsPatches: jwtpatch.PermissionsPatches{
-								Pub: &jwtpatch.PermissionPatches{
-									Allow: jwtpatch.StringListPatches{
-										Add: []string{"NATS-MANAGER.>", "_INBOX.>"},
-									},
-								},
-								Sub: &jwtpatch.PermissionPatches{
-									Allow: jwtpatch.StringListPatches{
-										Add: []string{"NATS-MANAGER.>"},
-									},
-								},
-							},
-						},
-					},
-				},
-				emdevsAccount().User("superuser"): {
-					Patches: superuserPatches(),
-				},
-			},
-		},
 		{
 			Name:    "Emdevs",
 			Version: 2,
