@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,7 +68,6 @@ func (s *Server) Serve(ctx context.Context, addr string) error {
 func (s *Server) registerRoutes() {
 	vla.GET(s.r, "/jwt/v1/accounts/", s.AccountsHealth)
 	vla.GET(s.r, "/jwt/v1/accounts/:pubkey", s.GetJWT)
-	vla.GET(s.r, "/jwt/v1/activations/:hash", s.GetActivation)
 	vla.GET(s.r, "/jwt/v1/operator", s.GetOperatorJWT)
 	vla.GET(s.r, "/meta/v1/systemaccount", s.GetSystemAccount)
 }
@@ -113,7 +113,7 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p v
 		}
 	}
 
-	etag := `"` + claims.ID + `"`
+	etag := strconv.Quote(claims.Claims().ID)
 	if match := r.Header.Get("If-None-Match"); match != "" {
 		if strings.Contains(match, etag) {
 			w.WriteHeader(http.StatusNotModified)
@@ -140,10 +140,6 @@ func (s *Server) GetJWT(w http.ResponseWriter, r *http.Request, _ vla.Route, p v
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(token))
-}
-
-func (s *Server) GetActivation(w http.ResponseWriter, r *http.Request, _ vla.Route, p vla.Params) {
-	_ = p.ByName("hash")
 }
 
 // GetOperatorJWT returns the JWT of the configured operator. Necessary for auto-configuring the NATS server.
