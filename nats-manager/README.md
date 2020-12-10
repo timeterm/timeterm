@@ -39,3 +39,7 @@ for usernames.
 
 &ast; = name can be specified by user in configuration  
 &ast;&ast; = JetStream topics are not imported as `$JS.>`, but instead under other subjects as not to conflict with account-specific JetStream topics. Importing JetStream streams from other accounts is possible since the nightly NATS build of 11/20/2020.
+
+Individual accounts for individual devices are created to allow for revocation of non-expiring accounts without making the `EMDEVS` account a big fat mess. 
+In the case where every device would be given its own user under the `EMDEVS` account with a non-expiring token, revocations of user tokens must be noted in the account JWT. The token would increase in size as more device users are revoked.
+In the first case, revoking access for a specific device is trivial: remove the account and activation, and the user and all access to streams from the `EMDEVS` account is void.
