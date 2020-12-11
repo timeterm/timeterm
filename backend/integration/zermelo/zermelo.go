@@ -133,6 +133,7 @@ type Appointment struct {
 	ChoosableInDepartmentCodes []string           `json:"choosableInDepartmentCodes"`
 	Remark                     string             `json:"remark"`
 	Subjects                   []string           `json:"subjects"`
+	Capacity                   int                `json:"capacity"`
 }
 
 func structJSONFields(s interface{}) (fields []string) {

@@ -831,6 +831,8 @@ type ZermeloAppointment struct {
 	StartTime           jsontypes.UnixTime    `json:"startTime"`
 	EndTime             jsontypes.UnixTime    `json:"endTime"`
 	Content             string                `json:"content"`
+	AvailableSpace      int                   `json:"availableSpace"`
+	Capacity            int                   `json:"capacity"`
 	Alternatives        []*ZermeloAppointment `json:"alternatives"`
 }
 

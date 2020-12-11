@@ -275,6 +275,8 @@ func (a *CombinedAppointment) ToAPI() *ZermeloAppointment {
 		StartTime:           a.Appointment.Start,
 		EndTime:             a.Appointment.End,
 		Content:             a.Participation.Content,
+		AvailableSpace:      a.Participation.AvailableSpace,
+		Capacity:            a.Appointment.Capacity,
 	}
 }
 
