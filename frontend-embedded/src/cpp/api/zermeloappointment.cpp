@@ -239,6 +239,9 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("isCanceled") && json["isCanceled"].isBool())
         m_isCanceled = json["isCanceled"].toBool();
 
+    if (json.contains("content") && json["content"].isString())
+        m_content = json["content"].toString();
+
     if (json.contains("alternatives") && json["alternatives"].isArray()) {
         auto alternatives = json["alternatives"].toArray();
         for (const auto &alternativeJson : alternatives) {
