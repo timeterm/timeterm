@@ -12,6 +12,7 @@ Page {
 
     property var appointment
     property var customMargin: height * 0.1
+    property var cellMargin: height * 0.015
     property var textSize: height * 0.04
 
     MouseArea {
@@ -32,7 +33,7 @@ Page {
             anchors.fill: parent
             clip: true
 
-            cellWidth: width / 4
+            cellWidth: width / 3
             cellHeight: height / 3
 
             model: appointment.alternatives
@@ -56,16 +57,20 @@ Page {
                 Text {
                     anchors.top: parent.top
                     anchors.left: parent.left
-                    anchors.margins: parent.width * 0.06
+                    anchors.margins: cellMargin
+                    width: parent.width * 0.5 - anchors.margins * 1.5
                     font.pixelSize: textSize
+                    elide: Text.ElideRight
                     text: modelData.teachers.join(", ")
                 }
 
                 Text {
                     anchors.top: parent.top
                     anchors.right: parent.right
-                    anchors.margins: parent.width * 0.06
+                    anchors.margins: cellMargin
+                    width: parent.width * 0.5 - anchors.margins * 1.5
                     font.pixelSize: textSize
+                    elide: Text.ElideRight
                     text: modelData.locations.join(", ")
                 }
 
@@ -73,20 +78,22 @@ Page {
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.leftMargin: parent.width * 0.06
-                    anchors.rightMargin: parent.width * 0.06
-                    anchors.bottomMargin: parent.width * 0.12 + textSize*0.75
-                    font.pixelSize: textSize * 0.75
+                    anchors.leftMargin: cellMargin
+                    anchors.rightMargin: cellMargin
+                    anchors.bottomMargin: cellMargin * 2 + textSize*0.75
+                    font.pixelSize: textSize * 0.55
                     color: "#666666"
                     wrapMode: Text.Wrap
+                    maximumLineCount: 4
+                    elide: Text.ElideRight
                     text: modelData.content
                 }
 
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottomMargin: parent.width * 0.09 + textSize*0.75
-                    width: parent.width * 0.88
+                    anchors.bottomMargin: cellMargin * 1.5 + textSize*0.75
+                    width: parent.width - cellMargin * 2
                     height: 2
                     color: "#666666"
                     border.color: "#666666"
@@ -96,16 +103,21 @@ Page {
                 Text {
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
-                    anchors.margins: parent.width * 0.06
+                    anchors.right: space.left
+                    anchors.leftMargin: cellMargin
+                    anchors.bottomMargin: cellMargin
+                    //width: parent.width * 0.33 - anchors.margins * 1.5
                     font.pixelSize: textSize * 0.75
                     color: "#666666"
+                    elide: Text.ElideRight
                     text: modelData.subjects.join(", ")
                 }
 
                 Text {
+                    id: space
                     anchors.bottom: parent.bottom
                     anchors.right: parent.right
-                    anchors.margins: parent.width * 0.06
+                    anchors.margins: cellMargin
                     font.pixelSize: textSize * 0.75
                     color: "#666666"
                     text: modelData.availableSpace + " plaatsen vrij"
