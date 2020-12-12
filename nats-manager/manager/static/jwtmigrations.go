@@ -148,6 +148,7 @@ func jwtMigrations() jwtmigrate.Migrations {
 
 						c.Pub.Allow.Add(
 							fmt.Sprintf("$JS.API.CONSUMER.MSG.NEXT.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-%s-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG", uid),
+							fmt.Sprintf("$JS.ACK.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-%s-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.>", uid),
 						)
 					},
 				},
