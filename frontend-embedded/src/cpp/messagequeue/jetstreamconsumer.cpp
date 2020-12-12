@@ -209,6 +209,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
         return;
     }
 
+    qDebug() << "Got JetStream reply with subject" << natsMsg_GetSubject(*reply);
     emit messageReceived(reply);
 
     // Acknowledge having received the message so JetStream doesn't redeliver it indefinitely.

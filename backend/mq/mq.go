@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
@@ -19,6 +21,8 @@ type Wrapper struct {
 	log logr.Logger
 	enc *nats.EncodedConn
 	dbw *database.Wrapper
+
+	debounces sync.Map
 }
 
 func NewWrapper(log logr.Logger, dbw *database.Wrapper) (*Wrapper, error) {
@@ -62,22 +66,6 @@ func (w *Wrapper) RebootDevice(id uuid.UUID) error {
 	return err
 }
 
-func (w *Wrapper) NetworkingConfigUpdated(organizationID uuid.UUID) {
-	log := w.log.WithValues("organizationId", organizationID)
-
-	go func() {
-		if err := w.dbw.WalkDevices(context.Background(), organizationID, func(d *database.Device) bool {
-			log = log.WithValues("deviceId", d.ID)
-			if err := w.RetrieveNewNetworkingConfig(d.ID); err != nil {
-				log.Error(err, "could not send message to device to retrieve new networking config")
-			}
-			return true
-		}); err != nil {
-			log.Error(err, "could not walk devices in organization (to send RetrieveNewNetworkingConfig messages)")
-		}
-	}()
-}
-
 func (w *Wrapper) RetrieveNewNetworkingConfig(deviceID uuid.UUID) error {
 	log := w.log.WithValues("deviceId", deviceID)
 
@@ -92,4 +80,70 @@ func (w *Wrapper) RetrieveNewNetworkingConfig(deviceID uuid.UUID) error {
 	}
 
 	return err
+}
+
+func (w *Wrapper) NetworkingConfigUpdated(organizationID uuid.UUID) {
+	w.GetNetworkConfigUpdatedDebounce(organizationID)()
+}
+
+func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func() {
+	if d, ok := w.debounces.Load(organizationID); ok {
+		return d.(func())
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(time.Second, func() {
+		cancel()
+		w.debounces.Delete(organizationID)
+	})
+
+	debfn := debounce(ctx, func() {
+		log := w.log.WithValues("organizationId", organizationID)
+
+		if err := w.dbw.WalkDevices(context.Background(), organizationID, func(d *database.Device) bool {
+			log = log.WithValues("deviceId", d.ID)
+			if err := w.RetrieveNewNetworkingConfig(d.ID); err != nil {
+				log.Error(err, "could not send message to device to retrieve new networking config")
+			}
+			return true
+		}); err != nil {
+			log.Error(err, "could not walk devices in organization (to send RetrieveNewNetworkingConfig messages)")
+		}
+	}, time.Second)
+
+	d, _ := w.debounces.LoadOrStore(organizationID, debfn)
+	return d.(func())
+}
+
+func debounce(ctx context.Context, f func(), d time.Duration) func() {
+	var mu sync.Mutex
+	var t *time.Timer
+	trigger := func() {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		mu.Lock()
+		defer mu.Unlock()
+
+		if t != nil {
+			t.Stop()
+		}
+		t = time.AfterFunc(d, f)
+	}
+
+	go func() {
+		<-ctx.Done()
+		mu.Lock()
+		defer mu.Unlock()
+
+		if t != nil {
+			t.Stop()
+			go f()
+		}
+	}()
+
+	return trigger
 }
