@@ -245,7 +245,13 @@ void ApiClient::updateChoice(const QVariant &unenrollFromParticipationId, const 
 
     auto data = QByteArray();
     auto reply = m_qnam->post(req, data);
-    connectReply(reply, [](QNetworkReply *reply) {});
+    connectReply(reply, [this](QNetworkReply *reply) {
+        return handleChoiceUpdateReply(reply);
+    });
+}
+
+void ApiClient::handleChoiceUpdateReply(QNetworkReply *) {
+   emit choiceUpdateSucceeded();
 }
 
 void ApiError::read(const QJsonObject &obj)

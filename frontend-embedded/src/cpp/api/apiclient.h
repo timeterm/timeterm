@@ -42,6 +42,7 @@ signals:
     void deviceCreated(CreateDeviceResponse);
     void natsCredsReceived(NatsCredsResponse);
     void heartbeatSucceeded();
+    void choiceUpdateSucceeded();
 
 private slots:
     void replyFinished();
@@ -54,6 +55,7 @@ private:
     void handleCreateDeviceReply(QNetworkReply *reply);
     void handleNatsCredsReply(QNetworkReply *reply);
     void handleHeartbeatReply(QNetworkReply *reply);
+    void handleChoiceUpdateReply(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://api.timeterm.nl/");
