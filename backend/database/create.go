@@ -49,18 +49,10 @@ type User struct {
 	OrganizationID uuid.UUID
 }
 
-type DeviceStatus string
-
-const (
-	DeviceStatusNotActivated DeviceStatus = "not_activated"
-	DeviceStatusOK           DeviceStatus = "ok"
-)
-
 type Device struct {
 	ID             uuid.UUID
 	OrganizationID uuid.UUID
 	Name           string
-	Status         DeviceStatus
 	LastHeartbeat  sql.NullTime
 }
 
@@ -134,12 +126,10 @@ func (w *Wrapper) CreateNetworkingService(
 func (w *Wrapper) CreateDevice(ctx context.Context,
 	organizationID uuid.UUID,
 	name string,
-	status DeviceStatus,
 ) (Device, uuid.UUID, error) {
 	dev := Device{
 		OrganizationID: organizationID,
 		Name:           name,
-		Status:         status,
 	}
 
 	token := uuid.New()
@@ -155,10 +145,10 @@ func (w *Wrapper) CreateDevice(ctx context.Context,
 	defer func() { _ = tx.Rollback() }()
 
 	err = tx.GetContext(ctx, &dev.ID, `
-		INSERT INTO "device" (organization_id, name, status)
-		VALUES ($1, $2, $3)
+		INSERT INTO "device" (organization_id, name)
+		VALUES ($1, $2)
 		RETURNING "id"
-	`, dev.OrganizationID, dev.Name, dev.Status)
+	`, dev.OrganizationID, dev.Name)
 	if err != nil {
 		return dev, token, err
 	}

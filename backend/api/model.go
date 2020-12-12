@@ -688,28 +688,6 @@ func StudentFrom(student database.Student) Student {
 	}
 }
 
-func SecondaryDeviceStatusFrom(s database.DeviceStatus) SecondaryDeviceStatus {
-	switch s {
-	case database.DeviceStatusNotActivated:
-		return SecondaryDeviceStatusNotActivated
-	case database.DeviceStatusOK:
-		fallthrough
-	default:
-		return SecondaryDeviceStatusOK
-	}
-}
-
-func DeviceStatusToDB(s SecondaryDeviceStatus) database.DeviceStatus {
-	switch s {
-	case SecondaryDeviceStatusNotActivated:
-		return database.DeviceStatusNotActivated
-	case SecondaryDeviceStatusOK:
-		fallthrough
-	default:
-		return database.DeviceStatusOK
-	}
-}
-
 func lastHeartbeatToPrimaryDeviceStatus(t sql.NullTime) PrimaryDeviceStatus {
 	if t.Valid && t.Time.After(time.Now().Add(-1*time.Minute)) {
 		return PrimaryDeviceStatusOnline
@@ -719,11 +697,10 @@ func lastHeartbeatToPrimaryDeviceStatus(t sql.NullTime) PrimaryDeviceStatus {
 
 func DeviceFrom(device database.Device) Device {
 	return Device{
-		ID:              device.ID,
-		OrganizationID:  device.OrganizationID,
-		Name:            device.Name,
-		PrimaryStatus:   lastHeartbeatToPrimaryDeviceStatus(device.LastHeartbeat),
-		SecondaryStatus: SecondaryDeviceStatusFrom(device.Status),
+		ID:             device.ID,
+		OrganizationID: device.OrganizationID,
+		Name:           device.Name,
+		PrimaryStatus:  lastHeartbeatToPrimaryDeviceStatus(device.LastHeartbeat),
 	}
 }
 
@@ -739,7 +716,6 @@ func DeviceToDB(device Device) database.Device {
 		ID:             device.ID,
 		OrganizationID: device.OrganizationID,
 		Name:           device.Name,
-		Status:         DeviceStatusToDB(device.SecondaryStatus),
 	}
 }
 

@@ -74,6 +74,15 @@ Item {
         }
     }
 
+    Timer {
+        id: heartbeat
+        repeat: true
+        interval: 10000 // Wait 10 seconds before reporting a heartbeat again
+        onTriggered: {
+            apiClient.doHeartbeat(configManager.deviceConfig.id)
+        }
+    }
+
     ConfigManager {
         id: configManager
 
@@ -98,6 +107,8 @@ Item {
         }
 
         function handleNewOnline(online) {
+            if (!online) heartbeat.stop()
+
             if (online && configManager.deviceConfig.needsRegistration) {
                 console.log("Registering")
                 apiClient.apiKey = configManager.deviceConfig.setupToken
@@ -106,6 +117,7 @@ Item {
                 console.log("Retrieving NATS credentials")
                 apiClient.getNatsCreds(configManager.deviceConfig.id)
             }
+            heartbeat.start()
         }
     }
 

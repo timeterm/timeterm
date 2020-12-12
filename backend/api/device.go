@@ -289,9 +289,7 @@ func (s *Server) createDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not bind data")
 	}
 
-	dbDevice, token, err := s.db.CreateDevice(c.Request().Context(),
-		org.ID, dev.Name, database.DeviceStatusNotActivated,
-	)
+	dbDevice, token, err := s.db.CreateDevice(c.Request().Context(), org.ID, dev.Name)
 	if err != nil {
 		s.log.Error(err, "could not create device")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create device")
@@ -388,7 +386,7 @@ func (s *Server) updateLastHeartbeat(c echo.Context) error {
 
 	err = s.db.ReplaceDeviceHeartbeat(c.Request().Context(), uid)
 	if err != nil {
-		s.log.Error(err, "could not update last hearbeat")
+		s.log.Error(err, "could not update last heartbeat")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update last heartbeat")
 	}
 

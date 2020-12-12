@@ -40,6 +40,7 @@ void NatsSubscription::start()
 void NatsSubscription::stop()
 {
     if (m_sub) {
+        qDebug() << "Destroying subscription to" << m_subject;
         natsSubscription_Destroy(m_sub);
         m_sub = nullptr;
     }
