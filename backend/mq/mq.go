@@ -109,7 +109,7 @@ func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func
 		}); err != nil {
 			log.Error(err, "could not walk devices in organization (to send RetrieveNewNetworkingConfig messages)")
 		}
-	}, time.Millisecond*100)
+	}, time.Millisecond*500)
 
 	d, _ := w.debounces.LoadOrStore(organizationID, debfn)
 	return d.(func())
