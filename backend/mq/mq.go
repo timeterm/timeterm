@@ -140,8 +140,9 @@ func debounce(ctx context.Context, f func(), d time.Duration) func() {
 		defer mu.Unlock()
 
 		if t != nil {
-			t.Stop()
-			go f()
+			if t.Stop() {
+				go f()
+			}
 		}
 	}()
 
