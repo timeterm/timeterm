@@ -689,7 +689,7 @@ func StudentFrom(student database.Student) Student {
 }
 
 func lastHeartbeatToPrimaryDeviceStatus(t sql.NullTime) PrimaryDeviceStatus {
-	if t.Valid && t.Time.After(time.Now().Add(-1*time.Minute)) {
+	if t.Valid && t.Time.After(time.Now().Add(-30*time.Second)) {
 		return PrimaryDeviceStatusOnline
 	}
 	return PrimaryDeviceStatusOffline
