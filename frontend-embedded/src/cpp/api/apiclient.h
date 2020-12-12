@@ -32,6 +32,7 @@ public:
     Q_INVOKABLE void createDevice();
     Q_INVOKABLE void getNatsCreds(const QString &deviceId);
     Q_INVOKABLE void doHeartbeat(const QString &deviceId);
+    Q_INVOKABLE void updateChoice(const QVariant &unenrollFromParticipationId, const QVariant &enrollIntoParticipationId);
 
 signals:
     void cardIdChanged();

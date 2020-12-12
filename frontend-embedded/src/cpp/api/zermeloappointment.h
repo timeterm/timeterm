@@ -7,6 +7,7 @@ class ZermeloAppointment
 {
     Q_GADGET
     Q_PROPERTY(qint64 id WRITE setId READ id)
+    Q_PROPERTY(qint64 participationId WRITE setParticipationId READ participationId)
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
     Q_PROPERTY(QString startTimeSlotName WRITE setStartTimeSlotName READ startTimeSlotName)
     Q_PROPERTY(QString endTimeSlotName WRITE setEndTimeSlotName READ endTimeSlotName)
@@ -28,6 +29,8 @@ class ZermeloAppointment
 public:
     void setId(qint64 id);
     [[nodiscard]] qint64 id() const;
+    void setParticipationId(qint64 id);
+    [[nodiscard]] qint64 participationId() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
     void setStartTimeSlotName(const QString& startTimeSlotName);
@@ -70,6 +73,7 @@ private:
     void appendAlternatives(const QList<ZermeloAppointment> &alternatives);
 
     qint64 m_id = 0;
+    qint64 m_participationId = 0;
     qint64 m_appointmentInstance = 0;
     QString m_startTimeSlotName;
     QString m_endTimeSlotName;

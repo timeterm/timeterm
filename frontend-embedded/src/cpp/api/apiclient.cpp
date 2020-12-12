@@ -226,6 +226,28 @@ void ApiClient::handleHeartbeatReply(QNetworkReply *)
     emit heartbeatSucceeded();
 }
 
+void ApiClient::updateChoice(const QVariant &unenrollFromParticipationId, const QVariant &enrollIntoParticipationId)
+{
+    auto url = m_baseUrl.resolved(QUrl("zermelo/enrollment"));
+    auto query = QUrlQuery();
+    if (!unenrollFromParticipationId.isNull()) {
+        query.addQueryItem("unenrollFromParticipation", QString::number(unenrollFromParticipationId.toInt()));
+    }
+    if (!enrollIntoParticipationId.isNull()) {
+        query.addQueryItem("enrollIntoParticipation", QString::number(enrollIntoParticipationId.toInt()));
+    }
+    url.setQuery(query);
+
+    auto req = QNetworkRequest(url);
+    setAuthHeaders(req);
+    // We're not actually sending any JSON but we just want Qt to stop complaining.
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    auto data = QByteArray();
+    auto reply = m_qnam->post(req, data);
+    connectReply(reply, [](QNetworkReply *reply) {});
+}
+
 void ApiError::read(const QJsonObject &obj)
 {
     if (obj.contains("message") && obj["message"].isString())

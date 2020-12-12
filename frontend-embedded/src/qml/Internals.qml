@@ -56,6 +56,8 @@ Item {
             console.log("Writing NATS credentials")
             response.writeToFile()
 
+            apiClient.updateChoice(0, undefined)
+
             natsConn.connect()
         }
 

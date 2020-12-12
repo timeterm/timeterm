@@ -14,6 +14,17 @@ qint64 ZermeloAppointment::id() const
     return m_id;
 }
 
+void ZermeloAppointment::setParticipationId(qint64 id)
+{
+    if (id != m_participationId)
+        m_participationId = id;
+}
+
+qint64 ZermeloAppointment::participationId() const
+{
+    return m_participationId;
+}
+
 void ZermeloAppointment::setAppointmentInstance(qint64 appointmentInstance)
 {
     if (appointmentInstance != m_appointmentInstance)
@@ -194,6 +205,9 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("id") && json["id"].isDouble())
         m_id = json["id"].toInt();
 
+    if (json.contains("participationId") && json["participationId"].isDouble())
+        m_participationId = json["participationId"].toInt();
+
     if (json.contains("appointmentInstance") && json["appointmentInstance"].isDouble())
         m_appointmentInstance = json["appointmentInstance"].toInt();
 
@@ -266,6 +280,7 @@ QJsonArray stringListAsQJsonArray(const QStringList &list)
 void ZermeloAppointment::write(QJsonObject &json) const
 {
     json["id"] = m_id;
+    json["participationId"] = m_participationId;
     json["appointmentInstance"] = m_appointmentInstance;
     json["startTimeSlotName"] = m_startTimeSlotName;
     json["endTimeSlotName"] = m_endTimeSlotName;
@@ -280,6 +295,7 @@ void ZermeloAppointment::write(QJsonObject &json) const
     json["isOnline"] = m_isOnline;
     json["isStudentEnrolled"] = m_isStudentEnrolled;
     json["isCanceled"] = m_isCanceled;
+    json["content"] = m_content;
 
     QJsonArray alternatives;
     for (const auto &alternative : m_alternatives) {
