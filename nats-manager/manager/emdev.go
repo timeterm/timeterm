@@ -13,8 +13,7 @@ func emdevEditor(devID uuid.UUID) UserClaimsEditor {
 			fmt.Sprintf("EMDEV.%s.>", devID),
 		)
 		c.Pub.Allow.Add(
-			fmt.Sprintf("$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-%s-EMDEV-DISOWN-TOKEN", devID),
-			fmt.Sprintf("$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-%s-EMDEV-DISOWN-TOKEN.>", devID),
+			fmt.Sprintf("$JS.API.CONSUMER.MSG.NEXT.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-%s-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG", devID),
 		)
 	}
 }
