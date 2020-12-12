@@ -261,6 +261,7 @@ type CombinedAppointment struct {
 func (a *CombinedAppointment) ToAPI() *ZermeloAppointment {
 	return &ZermeloAppointment{
 		ID:                  a.Appointment.ID,
+		ParticipationID:     a.Participation.ID,
 		AppointmentInstance: a.Appointment.AppointmentInstance,
 		IsOnline:            a.Participation.IsOnline,
 		IsOptional:          a.Participation.IsOptional,

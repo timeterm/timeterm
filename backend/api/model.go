@@ -793,6 +793,7 @@ type paginationParams struct {
 
 type ZermeloAppointment struct {
 	ID                  int                   `json:"id"`
+	ParticipationID     int                   `json:"participationId"`
 	AppointmentInstance int                   `json:"appointmentInstance"`
 	IsOnline            bool                  `json:"isOnline"`
 	IsOptional          bool                  `json:"isOptional"`
