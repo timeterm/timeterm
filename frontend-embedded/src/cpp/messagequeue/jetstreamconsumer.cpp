@@ -150,16 +150,18 @@ JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
 
 JetStreamPullConsumerWorker::~JetStreamPullConsumerWorker()
 {
-    m_timer.stop();
+    stop();
 }
 
 void JetStreamPullConsumerWorker::start()
 {
+    qDebug() << "Starting polling stream" << m_stream;
     m_timer.start();
 }
 
 void JetStreamPullConsumerWorker::stop()
 {
+    qDebug() << "Stopping polling stream" << m_stream;
     m_timer.stop();
 }
 

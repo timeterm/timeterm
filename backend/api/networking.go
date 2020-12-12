@@ -149,6 +149,8 @@ func (s *Server) replaceNetworkingService(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not update secret networking service")
 	}
 
+	s.mqw.NetworkingConfigUpdated(user.OrganizationID)
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -183,6 +185,8 @@ func (s *Server) createNetworkingService(c echo.Context) error {
 		s.log.Error(err, "could not create new secret networking service")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create new secret networking service")
 	}
+
+	s.mqw.NetworkingConfigUpdated(user.OrganizationID)
 
 	return c.JSON(http.StatusOK, ns)
 }
@@ -222,6 +226,8 @@ func (s *Server) deleteNetworkingService(c echo.Context) error {
 		s.log.Error(err, "could not delete networking service from database")
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not delete networking service from database")
 	}
+
+	s.mqw.NetworkingConfigUpdated(user.OrganizationID)
 
 	return c.NoContent(http.StatusNoContent)
 }
