@@ -92,7 +92,7 @@ func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(time.Second, func() {
+	time.AfterFunc(30*time.Second, func() {
 		cancel()
 		w.debounces.Delete(organizationID)
 	})
@@ -109,7 +109,7 @@ func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func
 		}); err != nil {
 			log.Error(err, "could not walk devices in organization (to send RetrieveNewNetworkingConfig messages)")
 		}
-	}, time.Millisecond*500)
+	}, time.Second)
 
 	d, _ := w.debounces.LoadOrStore(organizationID, debfn)
 	return d.(func())
