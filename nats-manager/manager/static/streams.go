@@ -24,10 +24,10 @@ func ConfigureStreams(ctx context.Context, log logr.Logger, mgr *manager.Manager
 
 	streams := streams{
 		"EMDEVS": {
-			"EMDEV-DISOWN-TOKEN": {
+			"EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG": {
 				options: []jsm.StreamOption{
 					jsm.FileStorage(),
-					jsm.Subjects("EMDEV.*.DISOWN-TOKEN"),
+					jsm.Subjects("EMDEV.*.RETRIEVE-NEW-NETWORKING-CONFIG"),
 				},
 			},
 		},

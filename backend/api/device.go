@@ -38,7 +38,7 @@ func (s *Server) getDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device does not belong to user's organization")
 	}
 
-	apiDevice := DeviceFrom(dbDevice)
+	apiDevice := DeviceFrom(&dbDevice)
 	return c.JSON(http.StatusOK, apiDevice)
 }
 
@@ -239,7 +239,7 @@ func (s *Server) patchDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Device not in organization")
 	}
 
-	oldAPIDevice := DeviceFrom(oldDBDevice)
+	oldAPIDevice := DeviceFrom(&oldDBDevice)
 
 	jsonDevice, err := json.Marshal(oldAPIDevice)
 	if err != nil {
@@ -304,7 +304,7 @@ func (s *Server) createDevice(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not provision new device")
 	}
 
-	rsp := CreateDeviceResponseFrom(dbDevice, token)
+	rsp := CreateDeviceResponseFrom(&dbDevice, token)
 	return c.JSON(http.StatusOK, rsp)
 }
 

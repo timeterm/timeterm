@@ -129,6 +129,30 @@ func jwtMigrations() jwtmigrate.Migrations {
 				},
 			},
 		},
+		{
+			Name:    "RETRIEVE-NEW-NETWORKING-CONFIG",
+			Version: 3,
+			UsersUp: []*jwtmigrate.UserMigration{
+				{
+					NameRegex:        `^emdev-.*$`,
+					AccountNameRegex: `^EMDEV$`,
+					Patch: func(log logr.Logger, r jwtmigrate.UserRef, c *jwt.UserClaims) {
+						id := strings.TrimPrefix(r.Name, "emdev-")
+						uid, err := uuid.Parse(id)
+						if err != nil {
+							log.Error(err, "could not parse device ID in migration",
+								"id", id, "userName", r.Name,
+							)
+							return
+						}
+
+						c.Pub.Allow.Add(
+							fmt.Sprintf("$JS.API.CONSUMER.MSG.NEXT.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-%s-RETRIEVE-NEW-NETWORKING-CONFIG", uid),
+						)
+					},
+				},
+			},
+		},
 	}
 }
 

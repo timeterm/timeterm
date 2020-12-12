@@ -55,7 +55,7 @@ type Pagination struct {
 
 type PaginatedDevices struct {
 	Pagination
-	Devices []Device
+	Devices []*Device
 }
 
 type GetDevicesOpts struct {

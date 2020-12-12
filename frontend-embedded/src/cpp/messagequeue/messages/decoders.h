@@ -5,10 +5,7 @@
 #include <QVariant>
 
 #include <functional>
-#include <messagequeue/jetstreamconsumer.h>
 #include <nats.h>
-
-#include "disowntokenmessage.h"
 
 namespace MessageQueue
 {
@@ -44,25 +41,5 @@ QVariant convertProto(natsMsg *msg)
         return convert(message);
     return QVariant();
 }
-
-class DisownTokenMessageDecoder: public Decoder
-{
-    Q_OBJECT
-
-public:
-    explicit DisownTokenMessageDecoder(QObject *parent = nullptr);
-
-    static QVariant convertDisownTokenMessage(const timeterm_proto::mq::DisownTokenMessage &msg);
-};
-
-class RetrieveNewTokenMessageDecoder: public Decoder
-{
-    Q_OBJECT
-
-public:
-    explicit RetrieveNewTokenMessageDecoder(QObject *parent = nullptr);
-
-    static QVariant convertRetrieveNewTokenMessage(const timeterm_proto::mq::RetrieveNewTokenMessage &msg);
-};
 
 } // namespace MessageQueue

@@ -1,9 +1,8 @@
 #pragma once
 
 #include "enums.h"
-#include "messagequeue/messages/disowntokenmessage.h"
-#include "messagequeue/messages/retrievenewtokenmessage.h"
 #include "natsconnection.h"
+#include "natssubscription.h"
 
 #include <QObject>
 #include <QSharedPointer>
@@ -13,6 +12,7 @@
 
 #include <nats.h>
 #include <timeterm_proto/mq/mq.pb.h>
+#include "messages/decoders.h"
 
 namespace MessageQueue
 {
@@ -57,6 +57,8 @@ public:
     explicit JetStreamConsumer(QObject *parent = nullptr);
     ~JetStreamConsumer() override;
 
+    Q_INVOKABLE void connectDecoder(MessageQueue::Decoder *decoder) const;
+
     [[nodiscard]] QString subject() const;
     void setSubject(const QString &subject);
     [[nodiscard]] QString stream() const;
@@ -77,17 +79,12 @@ signals:
     void streamChanged();
     void consumerIdChanged();
     void typeChanged();
-    void disownTokenMessage(const MessageQueue::DisownTokenMessage &msg);
-    void retrieveNewTokenMessage(const MessageQueue::RetrieveNewTokenMessage &msg);
+    void messageReceived(const QSharedPointer<natsMsg *> &msg);
 
 private slots:
-    void handleMessageSP(const QSharedPointer<natsMsg *> &msg);
+    void handleMessage(const QSharedPointer<natsMsg *> &msg);
 
 private:
-    void handleMessage(natsMsg *msg);
-    void handleRetrieveNewTokenProto(const timeterm_proto::mq::RetrieveNewTokenMessage &msg);
-    void handleDisownTokenProto(const timeterm_proto::mq::DisownTokenMessage &msg);
-
     QString m_subject;
     QString m_stream;
     QString m_consumerId;

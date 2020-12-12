@@ -70,7 +70,7 @@ void JetStreamConsumer::start()
 
                 connect(&m_workerThread, &QThread::finished, worker, &QObject::deleteLater);
                 connect(&m_workerThread, &QThread::started, worker, &JetStreamPullConsumerWorker::start);
-                connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessageSP);
+                connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessage);
 
                 m_workerThread.start();
                 break;
@@ -79,52 +79,17 @@ void JetStreamConsumer::start()
         m_type, m_stream, m_consumerId);
 }
 
+void JetStreamConsumer::connectDecoder(Decoder *decoder) const
+{
+    connect(this, &JetStreamConsumer::messageReceived, decoder, &Decoder::decodeMessage);
+}
+
 void JetStreamConsumer::stop()
 {
     if (m_workerThread.isRunning()) {
         m_workerThread.quit();
         m_workerThread.wait();
     }
-}
-
-void JetStreamConsumer::handleMessage(natsMsg *msg)
-{
-    auto subject = QString::fromUtf8(natsMsg_GetSubject(msg));
-    qDebug() << "Handling message with subject" << subject;
-
-    if (subject == QString("EMDEV.%1.DISOWN-TOKEN").arg(m_consumerId)) {
-        timeterm_proto::mq::DisownTokenMessage m;
-
-        if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))
-            handleDisownTokenProto(m);
-    } else if (subject == QString("EMDEV.%1.RETRIEVE-NEW-TOKEN").arg(m_consumerId)) {
-        timeterm_proto::mq::RetrieveNewTokenMessage m;
-
-        if (m.ParseFromArray(natsMsg_GetData(msg), natsMsg_GetDataLength(msg)))
-            handleRetrieveNewTokenProto(m);
-    }
-}
-
-void JetStreamConsumer::handleDisownTokenProto(const timeterm_proto::mq::DisownTokenMessage &msg)
-{
-    DisownTokenMessage m;
-
-    m.setDeviceId(QString::fromStdString(msg.device_id()));
-    m.setTokenHash(QString::fromStdString(msg.token_hash()));
-    m.setTokenHashAlg(QString::fromStdString(msg.token_hash_alg()));
-
-    emit disownTokenMessage(m);
-}
-
-void JetStreamConsumer::handleRetrieveNewTokenProto(const timeterm_proto::mq::RetrieveNewTokenMessage &msg)
-{
-    RetrieveNewTokenMessage m;
-
-    m.setDeviceId(QString::fromStdString(msg.device_id()));
-    m.setCurrentTokenHash(QString::fromStdString(msg.current_token_hash()));
-    m.setCurrentTokenHashAlg(QString::fromStdString(msg.current_token_hash_alg()));
-
-    emit retrieveNewTokenMessage(m);
 }
 
 JetStreamConsumerType::Enum JetStreamConsumer::type() const
@@ -166,9 +131,9 @@ void JetStreamConsumer::setConsumerId(const QString &consumerId)
     }
 }
 
-void JetStreamConsumer::handleMessageSP(const QSharedPointer<natsMsg *> &msg)
+void JetStreamConsumer::handleMessage(const QSharedPointer<natsMsg *> &msg)
 {
-    handleMessage(*msg);
+    emit messageReceived(msg);
 }
 
 JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(

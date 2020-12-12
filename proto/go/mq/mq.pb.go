@@ -25,18 +25,14 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-type DisownTokenMessage struct {
+type RetrieveNewNetworkingConfigMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	DeviceId     string `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	TokenHash    string `protobuf:"bytes,2,opt,name=token_hash,json=tokenHash,proto3" json:"token_hash,omitempty"`
-	TokenHashAlg string `protobuf:"bytes,3,opt,name=token_hash_alg,json=tokenHashAlg,proto3" json:"token_hash_alg,omitempty"`
 }
 
-func (x *DisownTokenMessage) Reset() {
-	*x = DisownTokenMessage{}
+func (x *RetrieveNewNetworkingConfigMessage) Reset() {
+	*x = RetrieveNewNetworkingConfigMessage{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mq_mq_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -44,13 +40,13 @@ func (x *DisownTokenMessage) Reset() {
 	}
 }
 
-func (x *DisownTokenMessage) String() string {
+func (x *RetrieveNewNetworkingConfigMessage) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DisownTokenMessage) ProtoMessage() {}
+func (*RetrieveNewNetworkingConfigMessage) ProtoMessage() {}
 
-func (x *DisownTokenMessage) ProtoReflect() protoreflect.Message {
+func (x *RetrieveNewNetworkingConfigMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_mq_mq_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -62,107 +58,21 @@ func (x *DisownTokenMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DisownTokenMessage.ProtoReflect.Descriptor instead.
-func (*DisownTokenMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use RetrieveNewNetworkingConfigMessage.ProtoReflect.Descriptor instead.
+func (*RetrieveNewNetworkingConfigMessage) Descriptor() ([]byte, []int) {
 	return file_mq_mq_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *DisownTokenMessage) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *DisownTokenMessage) GetTokenHash() string {
-	if x != nil {
-		return x.TokenHash
-	}
-	return ""
-}
-
-func (x *DisownTokenMessage) GetTokenHashAlg() string {
-	if x != nil {
-		return x.TokenHashAlg
-	}
-	return ""
-}
-
-type RetrieveNewTokenMessage struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	DeviceId            string `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	CurrentTokenHash    string `protobuf:"bytes,2,opt,name=current_token_hash,json=currentTokenHash,proto3" json:"current_token_hash,omitempty"`
-	CurrentTokenHashAlg string `protobuf:"bytes,3,opt,name=current_token_hash_alg,json=currentTokenHashAlg,proto3" json:"current_token_hash_alg,omitempty"`
-}
-
-func (x *RetrieveNewTokenMessage) Reset() {
-	*x = RetrieveNewTokenMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mq_mq_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RetrieveNewTokenMessage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RetrieveNewTokenMessage) ProtoMessage() {}
-
-func (x *RetrieveNewTokenMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_mq_mq_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RetrieveNewTokenMessage.ProtoReflect.Descriptor instead.
-func (*RetrieveNewTokenMessage) Descriptor() ([]byte, []int) {
-	return file_mq_mq_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *RetrieveNewTokenMessage) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
-}
-
-func (x *RetrieveNewTokenMessage) GetCurrentTokenHash() string {
-	if x != nil {
-		return x.CurrentTokenHash
-	}
-	return ""
-}
-
-func (x *RetrieveNewTokenMessage) GetCurrentTokenHashAlg() string {
-	if x != nil {
-		return x.CurrentTokenHashAlg
-	}
-	return ""
 }
 
 type RebootMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	DeviceId string `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 }
 
 func (x *RebootMessage) Reset() {
 	*x = RebootMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mq_mq_proto_msgTypes[2]
+		mi := &file_mq_mq_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -175,7 +85,7 @@ func (x *RebootMessage) String() string {
 func (*RebootMessage) ProtoMessage() {}
 
 func (x *RebootMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_mq_mq_proto_msgTypes[2]
+	mi := &file_mq_mq_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -188,14 +98,7 @@ func (x *RebootMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebootMessage.ProtoReflect.Descriptor instead.
 func (*RebootMessage) Descriptor() ([]byte, []int) {
-	return file_mq_mq_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *RebootMessage) GetDeviceId() string {
-	if x != nil {
-		return x.DeviceId
-	}
-	return ""
+	return file_mq_mq_proto_rawDescGZIP(), []int{1}
 }
 
 var File_mq_mq_proto protoreflect.FileDescriptor
@@ -203,30 +106,13 @@ var File_mq_mq_proto protoreflect.FileDescriptor
 var file_mq_mq_proto_rawDesc = []byte{
 	0x0a, 0x0b, 0x6d, 0x71, 0x2f, 0x6d, 0x71, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x11, 0x74,
 	0x69, 0x6d, 0x65, 0x74, 0x65, 0x72, 0x6d, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x6d, 0x71,
-	0x22, 0x76, 0x0a, 0x12, 0x44, 0x69, 0x73, 0x6f, 0x77, 0x6e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x4d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x64, 0x65, 0x76, 0x69, 0x63,
-	0x65, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x68, 0x61, 0x73,
-	0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x48, 0x61,
-	0x73, 0x68, 0x12, 0x24, 0x0a, 0x0e, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x68, 0x61, 0x73, 0x68,
-	0x5f, 0x61, 0x6c, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x74, 0x6f, 0x6b, 0x65,
-	0x6e, 0x48, 0x61, 0x73, 0x68, 0x41, 0x6c, 0x67, 0x22, 0x99, 0x01, 0x0a, 0x17, 0x52, 0x65, 0x74,
-	0x72, 0x69, 0x65, 0x76, 0x65, 0x4e, 0x65, 0x77, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x4d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x69,
-	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x49,
-	0x64, 0x12, 0x2c, 0x0a, 0x12, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x74, 0x6f, 0x6b,
-	0x65, 0x6e, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x10, 0x63,
-	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x48, 0x61, 0x73, 0x68, 0x12,
-	0x33, 0x0a, 0x16, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e,
-	0x5f, 0x68, 0x61, 0x73, 0x68, 0x5f, 0x61, 0x6c, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x13, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x48, 0x61, 0x73,
-	0x68, 0x41, 0x6c, 0x67, 0x22, 0x2c, 0x0a, 0x0d, 0x52, 0x65, 0x62, 0x6f, 0x6f, 0x74, 0x4d, 0x65,
-	0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65, 0x5f,
-	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x64, 0x65, 0x76, 0x69, 0x63, 0x65,
-	0x49, 0x64, 0x42, 0x2f, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x6c, 0x61, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x74, 0x69, 0x6d, 0x65, 0x74, 0x65, 0x72, 0x6d, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x74, 0x65,
-	0x72, 0x6d, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x2f, 0x6d, 0x71, 0x3b, 0x6d,
-	0x71, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0x24, 0x0a, 0x22, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x4e, 0x65, 0x77, 0x4e,
+	0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x69, 0x6e, 0x67, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x0f, 0x0a, 0x0d, 0x52, 0x65, 0x62, 0x6f, 0x6f, 0x74,
+	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x42, 0x2f, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x6c, 0x61,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x74, 0x65, 0x72, 0x6d, 0x2f, 0x74,
+	0x69, 0x6d, 0x65, 0x74, 0x65, 0x72, 0x6d, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f,
+	0x2f, 0x6d, 0x71, 0x3b, 0x6d, 0x71, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -241,11 +127,10 @@ func file_mq_mq_proto_rawDescGZIP() []byte {
 	return file_mq_mq_proto_rawDescData
 }
 
-var file_mq_mq_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_mq_mq_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_mq_mq_proto_goTypes = []interface{}{
-	(*DisownTokenMessage)(nil),      // 0: timeterm_proto.mq.DisownTokenMessage
-	(*RetrieveNewTokenMessage)(nil), // 1: timeterm_proto.mq.RetrieveNewTokenMessage
-	(*RebootMessage)(nil),           // 2: timeterm_proto.mq.RebootMessage
+	(*RetrieveNewNetworkingConfigMessage)(nil), // 0: timeterm_proto.mq.RetrieveNewNetworkingConfigMessage
+	(*RebootMessage)(nil),                      // 1: timeterm_proto.mq.RebootMessage
 }
 var file_mq_mq_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -262,7 +147,7 @@ func file_mq_mq_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_mq_mq_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DisownTokenMessage); i {
+			switch v := v.(*RetrieveNewNetworkingConfigMessage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -274,18 +159,6 @@ func file_mq_mq_proto_init() {
 			}
 		}
 		file_mq_mq_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrieveNewTokenMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mq_mq_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RebootMessage); i {
 			case 0:
 				return &v.state
@@ -304,7 +177,7 @@ func file_mq_mq_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mq_mq_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

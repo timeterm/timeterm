@@ -18,8 +18,8 @@ func (w *Wrapper) ReplaceOrganization(ctx context.Context, org Organization) err
 
 func (w *Wrapper) ReplaceDevice(ctx context.Context, dev Device) error {
 	_, err := w.db.ExecContext(ctx,
-		`UPDATE "device" SET "name" = $1, "organization_id" = $2, "status" = $3 WHERE "id" = $4`,
-		dev.Name, dev.OrganizationID, dev.Status, dev.ID,
+		`UPDATE "device" SET "name" = $1, "organization_id" = $2 WHERE "id" = $3`,
+		dev.Name, dev.OrganizationID, dev.ID,
 	)
 
 	return err

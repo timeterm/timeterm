@@ -8,6 +8,7 @@
 #include <nats.h>
 
 #include "messages/decoders.h"
+#include "natsconnection.h"
 
 namespace MessageQueue
 {
@@ -22,8 +23,8 @@ public:
     explicit NatsSubscription(QObject *parent = nullptr);
     ~NatsSubscription() override;
 
-    Q_INVOKABLE void connectDecoder(Decoder *decoder) const;
-    Q_INVOKABLE void useConnection(NatsConnection *connection);
+    Q_INVOKABLE void connectDecoder(MessageQueue::Decoder *decoder) const;
+    Q_INVOKABLE void useConnection(MessageQueue::NatsConnection *connection);
 
     [[nodiscard]] NatsStatus::Enum lastStatus();
     [[nodiscard]] QString subject() const;

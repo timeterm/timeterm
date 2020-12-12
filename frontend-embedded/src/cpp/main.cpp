@@ -3,8 +3,6 @@
 #include "devcfg/connmanserviceconfig.h"
 #include "messagequeue/enums.h"
 #include "messagequeue/jetstreamconsumer.h"
-#include "messagequeue/messages/disowntokenmessage.h"
-#include "messagequeue/messages/retrievenewtokenmessage.h"
 #include "messagequeue/natsconnection.h"
 #include "messagequeue/natsoptions.h"
 #include "messagequeue/natsstatusstringer.h"
@@ -55,15 +53,11 @@ int runApp(int argc, char *argv[])
     qRegisterMetaType<QSharedPointer<natsMsg *>>();
     qRegisterMetaType<QSharedPointer<natsSubscription *>>();
     qRegisterMetaType<QSharedPointer<MessageQueue::NatsConnectionHolder>>();
-    qRegisterMetaType<MessageQueue::DisownTokenMessage>();
-    qRegisterMetaType<MessageQueue::RetrieveNewTokenMessage>();
     qmlRegisterType<MessageQueue::NatsOptions>("Timeterm.MessageQueue", 1, 0, "NatsOptions");
     qmlRegisterType<MessageQueue::NatsConnection>("Timeterm.MessageQueue", 1, 0, "NatsConnection");
     qmlRegisterType<MessageQueue::JetStreamConsumer>("Timeterm.MessageQueue", 1, 0, "JetStreamConsumer");
     qmlRegisterType<MessageQueue::NatsSubscription>("Timeterm.MessageQueue", 1, 0, "NatsSubscription");
     qmlRegisterType<MessageQueue::Decoder>("Timeterm.MessageQueue", 1, 0, "Decoder");
-    qmlRegisterType<MessageQueue::DisownTokenMessageDecoder>("Timeterm.MessageQueue", 1, 0, "DisownTokenMessageDecoder");
-    qmlRegisterType<MessageQueue::RetrieveNewTokenMessageDecoder>("Timeterm.MessageQueue", 1, 0, "RetrieveNewTokenMessageDecoder");
     qmlRegisterSingletonInstance("Timeterm.MessageQueue", 1, 0, "NatsStatusStringer", &natsStatusStringer);
     qmlRegisterUncreatableType<MessageQueue::NatsStatusStringer>("Timeterm.MessageQueue", 1, 0, "NatsStatusStringerType", "singleton");
     qmlRegisterType<ConfigManager>("Timeterm.Config", 1, 0, "ConfigManager");

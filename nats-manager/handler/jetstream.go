@@ -9,10 +9,10 @@ import (
 )
 
 func setUpDeviceConsumers(devID uuid.UUID, mgr *jsm.Manager) error {
-	consumerName := fmt.Sprintf("EMDEV-%s-EMDEV-DISOWN-TOKEN", devID)
-	wantDisownTokenSubject := fmt.Sprintf("EMDEV.%s.DISOWN-TOKEN", devID)
+	consumerName := fmt.Sprintf("EMDEV-%s-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG", devID)
+	wantDisownTokenSubject := fmt.Sprintf("EMDEV.%s.RETRIEVE-NEW-NETWORKING-CONFIG", devID)
 
-	_, err := mgr.NewConsumer("EMDEV-DISOWN-TOKEN",
+	_, err := mgr.NewConsumer("EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG",
 		jsm.DurableName(consumerName),
 		jsm.FilterStreamBySubject(wantDisownTokenSubject),
 		jsm.AckWait(time.Second*30),
@@ -20,7 +20,7 @@ func setUpDeviceConsumers(devID uuid.UUID, mgr *jsm.Manager) error {
 		jsm.DeliverAllAvailable(),
 	)
 	if err != nil {
-		return fmt.Errorf("could not set up EMDEV-DISOWN-TOKEN consumer: %w", err)
+		return fmt.Errorf("could not set up EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG consumer: %w", err)
 	}
 	return nil
 }

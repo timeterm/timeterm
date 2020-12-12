@@ -5,17 +5,16 @@ nats-manager manages accounts for embedded Timeterm (frontend-embedded) devices,
 ## Granted Permissions
 
 Streams:
-- Stream: `EMDEV-DISOWN-TOKEN`  
-  Consumer: `EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN`   
-  Consumer topic filter: `EMDEV.{deviceId}.DISOWN-TOKEN`  
-  Source topic: `EMDEV.*.DISOWN-TOKEN`  
+- Stream: `EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG`  
+  Consumer: `EMDEV-{deviceId}-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG`   
+  Consumer topic filter: `EMDEV.{deviceId}.RETRIEVE-NEW-NETWORKING-CONFIG`
+  Source topic: `EMDEV.*.RETRIEVE-NEW-NETWORKING-CONFIG`
   
   Makes for ACL entries: 
-  - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN`  
-      
+  - <kbd>pub</kbd> `$JS.API.CONSUMER.MSG.NEXT.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-{deviceId}-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG`
     > Required for requesting new messages.
 
-  - <kbd>pub</kbd> `$JS.ACK.EMDEV-DISOWN-TOKEN.EMDEV-{deviceId}-EMDEV-DISOWN-TOKEN.>`  
+  - <kbd>pub</kbd> `$JS.ACK.EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.EMDEV-{deviceId}-EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG.>`  
       
     > Required for ACKing messages.  
       Not manually created by the client but set by the NATS server as 
