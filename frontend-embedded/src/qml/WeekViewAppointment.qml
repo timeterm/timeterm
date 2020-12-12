@@ -39,12 +39,6 @@ Rectangle {
         return appointment.startTimeSlotName
     }
 
-    function openChoosableAppointments() {
-        if (appointment.isOptional) {
-            stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
-        }
-    }
-
     x: weekTimeLine.width + weekPage.height * 0.02 + (appointment.startTime.getDay() - 1) * (weekAppointmentWidth + weekPage.height * 0.02); // timeLineWidth + margin + day * (weekAppointmentWidth + margin)
     y: (appointment.startTime.getMillisecondsInDay()
        - startFirstAppointment) / 1000 // time in seconds calculated from the start of the first appointment of the day
@@ -61,40 +55,83 @@ Rectangle {
     radius: 5
 
     Text {
+        id: timeSlot
         anchors.left: parent.left
         anchors.leftMargin: weekPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize * 0.75
+        font.pixelSize: weekPage.textSize * 0.7
         text: setTimeSlot()
     }
 
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width / 6 + weekPage.customMargin / 2
+        anchors.left: parent.left
+        anchors.leftMargin: parent.width * 0.2
+        anchors.right: locations.left
+        anchors.rightMargin: weekPage.customMargin * 0.5
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize * 0.75
+        font.pixelSize: weekPage.textSize * 0.7
+        elide: Text.ElideRight
         text: appointment.subjects.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
 
     Text {
+        id: locations
+        width: (parent.width - weekPage.customMargin * 2) * 0.3
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: parent.width / 6 - weekPage.customMargin / 2
+        anchors.horizontalCenterOffset: parent.width * 0.05
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: weekPage.textSize * 0.75
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: weekPage.textSize * 0.7
+        elide: Text.ElideRight
         text: appointment.locations.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
     
     Text {
+        anchors.left: locations.right
+        anchors.leftMargin: weekPage.customMargin * 0.5
         anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: weekPage.customMargin
-        font.pixelSize: weekPage.textSize * 0.75
+        anchors.verticalCenter: parent.verticalCenter
+        horizontalAlignment: Text.AlignRight
+        font.pixelSize: weekPage.textSize * 0.7
         color: "#666666"
+        elide: Text.ElideRight
         text: appointment.teachers.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
 
     MouseArea {
         anchors.fill: parent
-        onClicked: openChoosableAppointments()
+        enabled: appointment.isOptional
+        onClicked: stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
     }
 }

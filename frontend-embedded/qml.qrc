@@ -23,5 +23,6 @@
         <file>src/qml/Login.qml</file>
         <file>assets/icons/logout.svg</file>
         <file>src/qml/ChoosableAppointmentView.qml</file>
+        <file>src/qml/TapToolTip.qml</file>
     </qresource>
 </RCC>

@@ -62,6 +62,16 @@ Page {
                     font.pixelSize: textSize
                     elide: Text.ElideRight
                     text: modelData.teachers.join(", ")
+
+                    property bool isPressed: false
+
+                    TapHandler {
+                        onPressedChanged: parent.isPressed = pressed
+                    }
+
+                    TapToolTip {
+                        visible: parent.truncated && parent.isPressed
+                    }
                 }
 
                 Text {
@@ -69,9 +79,20 @@ Page {
                     anchors.right: parent.right
                     anchors.margins: cellMargin
                     width: parent.width * 0.5 - anchors.margins * 1.5
+                    horizontalAlignment: Text.AlignRight
                     font.pixelSize: textSize
                     elide: Text.ElideRight
                     text: modelData.locations.join(", ")
+
+                    property bool isPressed: false
+
+                    TapHandler {
+                        onPressedChanged: parent.isPressed = pressed
+                    }
+
+                    TapToolTip {
+                        visible: parent.truncated && parent.isPressed
+                    }
                 }
 
                 Text {
@@ -87,6 +108,16 @@ Page {
                     maximumLineCount: 4
                     elide: Text.ElideRight
                     text: modelData.content
+
+                    property bool isPressed: false
+
+                    TapHandler {
+                        onPressedChanged: parent.isPressed = pressed
+                    }
+
+                    TapToolTip {
+                        visible: parent.truncated && parent.isPressed
+                    }
                 }
 
                 Rectangle {
@@ -111,6 +142,16 @@ Page {
                     color: "#666666"
                     elide: Text.ElideRight
                     text: modelData.subjects.join(", ")
+
+                    property bool isPressed: false
+
+                    TapHandler {
+                        onPressedChanged: parent.isPressed = pressed
+                    }
+
+                    TapToolTip {
+                        visible: parent.truncated && parent.isPressed
+                    }
                 }
 
                 Text {

@@ -12,7 +12,7 @@ Page {
     height: stack.height
 
     property int textSize: weekPage.height * 0.04
-    property int customMargin: weekPage.height * 0.025
+    property int customMargin: weekPage.height * 0.02
     property var secondToPixelRatio: (weekAppointments.height - weekPage.height * 0.08) * 0.000037
     property var startOfWeek
     property var endOfWeek
@@ -117,7 +117,7 @@ Page {
 
         property var startFirstAppointment
         property var endLastAppointment
-        property var weekAppointmentWidth: weekPage.width * 0.8 / 3.5
+        property var weekAppointmentWidth: weekPage.width * 0.85 / 3.5
 
         contentWidth: weekPage.width * 0.15 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 5
         flickableDirection: Flickable.HorizontalAndVerticalFlick 
@@ -129,7 +129,7 @@ Page {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            width: weekPage.width * 0.15
+            width: weekPage.width * 0.1
             color: "#D6E6FF"
             radius: 5
 
@@ -180,7 +180,7 @@ Page {
             id: monday
             anchors.top: parent.top
             x: weekTimeLine.width + weekPage.height * 0.02
-            width: weekPage.width * 0.8 / 3.5
+            width: weekPage.width * 0.85 / 3.5
             height: weekPage.height * 0.06
             color: "#b5b5b5"
             radius: 5
@@ -195,8 +195,8 @@ Page {
         Rectangle {
             id: tuesday
             anchors.top: parent.top
-            x: weekTimeLine.width + weekPage.height * 0.02 * 2 + (weekPage.width * 0.8 / 3.5) * 1
-            width: weekPage.width * 0.8 / 3.5
+            x: weekTimeLine.width + weekPage.height * 0.02 * 2 + (weekPage.width * 0.85 / 3.5) * 1
+            width: weekPage.width * 0.85 / 3.5
             height: weekPage.height * 0.06
             color: "#b5b5b5"
             radius: 5
@@ -211,8 +211,8 @@ Page {
         Rectangle {
             id: wednesday
             anchors.top: parent.top
-            x: weekTimeLine.width + weekPage.height * 0.02 * 3 + (weekPage.width * 0.8 / 3.5) * 2
-            width: weekPage.width * 0.8 / 3.5
+            x: weekTimeLine.width + weekPage.height * 0.02 * 3 + (weekPage.width * 0.85 / 3.5) * 2
+            width: weekPage.width * 0.85 / 3.5
             height: weekPage.height * 0.06
             color: "#b5b5b5"
             radius: 5
@@ -227,8 +227,8 @@ Page {
         Rectangle {
             id: thursday
             anchors.top: parent.top
-            x: weekTimeLine.width + weekPage.height * 0.02 * 4 + (weekPage.width * 0.8 / 3.5) * 3
-            width: weekPage.width * 0.8 / 3.5
+            x: weekTimeLine.width + weekPage.height * 0.02 * 4 + (weekPage.width * 0.85 / 3.5) * 3
+            width: weekPage.width * 0.85 / 3.5
             height: weekPage.height * 0.06
             color: "#b5b5b5"
             radius: 5
@@ -243,8 +243,8 @@ Page {
         Rectangle {
             id: friday
             anchors.top: parent.top
-            x: weekTimeLine.width + weekPage.height * 0.02 * 5 + (weekPage.width * 0.8 / 3.5) * 4
-            width: weekPage.width * 0.8 / 3.5
+            x: weekTimeLine.width + weekPage.height * 0.02 * 5 + (weekPage.width * 0.85 / 3.5) * 4
+            width: weekPage.width * 0.85 / 3.5
             height: weekPage.height * 0.06
             color: "#b5b5b5"
             radius: 5

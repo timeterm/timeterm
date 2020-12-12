@@ -38,12 +38,6 @@ Rectangle {
         return appointment.startTimeSlotName
     }
 
-    function openChoosableAppointments() {
-        if (appointment.isOptional) {
-            stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
-        }
-    }
-
     y: (appointment.startTime.getMillisecondsInDay()
        - startFirstAppointment) / 1000 // time in seconds calculated from the start of the first appointment of the day
        * secondToPixelRatio
@@ -59,6 +53,7 @@ Rectangle {
     radius: 5
 
     Text {
+        id: timeSlot
         anchors.left: parent.left
         anchors.leftMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
@@ -67,32 +62,73 @@ Rectangle {
     }
 
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -parent.width / 6 + dayPage.customMargin / 2
+        anchors.left: parent.left
+        anchors.leftMargin: parent.width * 0.12
+        anchors.right: locations.left
+        anchors.rightMargin: dayPage.customMargin
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: dayPage.textSize
+        elide: Text.ElideRight
         text: appointment.subjects.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
 
     Text {
+        id: locations
+        width: (parent.width - dayPage.customMargin * 2) * 0.32
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: parent.width / 6 - dayPage.customMargin / 2
         anchors.verticalCenter: parent.verticalCenter
+        horizontalAlignment: Text.AlignHCenter
         font.pixelSize: dayPage.textSize
+        elide: Text.ElideRight
         text: appointment.locations.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
     
     Text {
+        anchors.left: locations.right
+        anchors.leftMargin: dayPage.customMargin
         anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: dayPage.customMargin
+        anchors.verticalCenter: parent.verticalCenter
+        horizontalAlignment: Text.AlignRight
         font.pixelSize: dayPage.textSize
         color: "#666666"
+        elide: Text.ElideRight
         text: appointment.teachers.join(", ")
+
+        property bool isPressed: false
+
+        TapHandler {
+            onPressedChanged: parent.isPressed = pressed
+        }
+
+        TapToolTip {
+            visible: parent.truncated && parent.isPressed
+        }
     }
 
     MouseArea {
         anchors.fill: parent
-        onClicked: openChoosableAppointments()
+        enabled: appointment.isOptional
+        onClicked: stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
     }
 }

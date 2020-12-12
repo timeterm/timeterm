@@ -12,7 +12,7 @@ Page {
     height: stack.height
 
     property int textSize: dayPage.height * 0.04
-    property int customMargin: dayPage.height * 0.05
+    property int customMargin: dayPage.height * 0.04
     property var secondToPixelRatio: dayAppointments.height * 0.000037
     property var startOfDay
     property var endOfDay
@@ -109,7 +109,7 @@ Page {
 
     Rectangle {
         id: dayHeader
-        width: parent.width - dayPage.width * 0.15 - dayPage.height * 0.06
+        width: parent.width - dayPage.width * 0.1 - dayPage.height * 0.06
         height: parent.height * 0.06
         anchors.top: parent.top
         anchors.right: parent.right
@@ -144,7 +144,7 @@ Page {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            width: dayPage.width * 0.15
+            width: dayPage.width * 0.1
             color: "#D6E6FF"
             radius: 5
 
