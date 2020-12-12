@@ -35,27 +35,13 @@ void JetStreamConsumer::setSubject(const QString &subject)
     }
 }
 
-NatsConnection *JetStreamConsumer::connection() const
-{
-    return m_connection;
-}
-
-void JetStreamConsumer::setConnection(NatsConnection *connection)
-{
-    if (connection != m_connection) {
-        m_connection = connection;
-        emit connectionChanged();
-    }
-}
-
 void JetStreamConsumer::start()
 {
-    if (m_connection == nullptr) {
+    if (m_connHolder.isNull()) {
         qCritical("JetStreamConsumer::start() called without a connection, not starting");
         return;
     }
-
-    auto conn = m_connection->getHolder();
+    auto conn = m_connHolder;
 
     QtConcurrent::run(
         [this, conn](JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
@@ -136,6 +122,17 @@ void JetStreamConsumer::handleMessage(const QSharedPointer<natsMsg *> &msg)
     emit messageReceived(msg);
 }
 
+void JetStreamConsumer::useConnection(MessageQueue::NatsConnection *connection)
+{
+    if (!connection)
+        stop();
+    if (m_connHolder != connection->getHolder()) {
+        stop();
+        auto newHolder = connection->getHolder();
+        m_connHolder.swap(newHolder);
+    }
+}
+
 JetStreamPullConsumerWorker::JetStreamPullConsumerWorker(
     const QSharedPointer<NatsConnectionHolder> &connHolder,
     QString stream,
@@ -189,7 +186,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
                 delete ppMsg;
             }
         });
-    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.EMDEV-%2").arg(m_stream).arg(m_consumerId);
+    QString jsSubj = QString("$JS.API.CONSUMER.MSG.NEXT.%1.EMDEV-%2-%3").arg(m_stream).arg(m_consumerId).arg(m_stream);
     auto jsSubjCstr = asUtf8CString(jsSubj);
     auto status = natsConnection_RequestString(reply.get(), m_connHolder->getConnection(), jsSubjCstr.get(), "", 1000);
 

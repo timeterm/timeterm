@@ -47,7 +47,6 @@ private:
 class JetStreamConsumer: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MessageQueue::NatsConnection *connection READ connection WRITE setConnection NOTIFY connectionChanged)
     Q_PROPERTY(QString subject READ subject WRITE setSubject NOTIFY subjectChanged)
     Q_PROPERTY(QString stream READ stream WRITE setStream NOTIFY streamChanged)
     Q_PROPERTY(QString consumerId READ consumerId WRITE setConsumerId NOTIFY consumerIdChanged)
@@ -58,6 +57,7 @@ public:
     ~JetStreamConsumer() override;
 
     Q_INVOKABLE void connectDecoder(MessageQueue::Decoder *decoder) const;
+    Q_INVOKABLE void useConnection(MessageQueue::NatsConnection *connection);
 
     [[nodiscard]] QString subject() const;
     void setSubject(const QString &subject);
@@ -65,8 +65,6 @@ public:
     void setStream(const QString &stream);
     [[nodiscard]] QString consumerId() const;
     void setConsumerId(const QString &consumerId);
-    [[nodiscard]] NatsConnection *connection() const;
-    void setConnection(NatsConnection *connection);
     [[nodiscard]] JetStreamConsumerType::Enum type() const;
     void setType(JetStreamConsumerType::Enum consumerType);
 
@@ -74,7 +72,6 @@ public:
     Q_INVOKABLE void stop();
 
 signals:
-    void connectionChanged();
     void subjectChanged();
     void streamChanged();
     void consumerIdChanged();
@@ -90,7 +87,7 @@ private:
     QString m_consumerId;
     JetStreamConsumerType::Enum m_type = JetStreamConsumerType::Pull;
     QThread m_workerThread;
-    NatsConnection *m_connection = nullptr;
+    QSharedPointer<NatsConnectionHolder> m_connHolder;
 };
 
 } // namespace MessageQueue

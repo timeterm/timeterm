@@ -38,7 +38,6 @@ signals:
     void errorOccurred(MessageQueue::NatsStatus::Enum s, const QString &message);
     void messageReceived(const QSharedPointer<natsMsg *> &msg);
     void subjectChanged();
-    void connectionChanged();
     void lastStatusChanged();
 
 private:

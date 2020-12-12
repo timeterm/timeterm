@@ -132,7 +132,9 @@ Item {
             console.log("Connected to NATS")
 
             rebootSub.useConnection(natsConn)
+            retrieveNewNetworkConfigConsumer.useConnection(natsConn)
             rebootSub.start()
+            retrieveNewNetworkConfigConsumer.start()
         }
 
         onErrorOccurred: function (code, msg) {
@@ -150,8 +152,9 @@ Item {
         }
 
         onConnectionLost: {
-            console.log("Connection lost")
+            console.log("Connection lost, stopping all subscriptions and consumers")
             rebootSub.stop()
+            retrieveNewNetworkConfigConsumer.stop()
 
             // Try to reconnect
             natsConnReconnectWait.restart()
@@ -169,6 +172,16 @@ Item {
         onMessageReceived: {
             console.log("Rebooting...")
             systemd.rebootDevice()
+        }
+    }
+
+    JetStreamConsumer {
+        id: retrieveNewNetworkConfigConsumer
+        stream: "EMDEV-RETRIEVE-NEW-NETWORKING-CONFIG"
+        consumerId: configManager.deviceConfig.id
+
+        onMessageReceived: {
+            console.log("Retrieving new networking configuration")
         }
     }
 }
