@@ -79,7 +79,7 @@ func YearWeekFromTime(t time.Time) YearWeek {
 }
 
 func (yw YearWeek) String() string {
-	return fmt.Sprintf("%d%d", yw.Year, yw.Week)
+	return fmt.Sprintf("%d%02d", yw.Year, yw.Week)
 }
 
 type AppointmentsResponse struct {

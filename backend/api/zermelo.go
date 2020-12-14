@@ -128,6 +128,11 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 			}
 		}
 
+		if current != nil && !current.IsStudentEnrolled && len(alternatives) == 1 && alternatives[0].IsCanceled {
+			currentClone := *current
+			currentClone.Alternatives = nil
+			current = &ZermeloAppointment{Alternatives: append(current.Alternatives, &currentClone)}
+		}
 		if current == nil {
 			current = new(ZermeloAppointment)
 		}
@@ -140,8 +145,8 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 }
 
 type EnrollParams struct {
-	UnenrollFromParticipation *int `query:"unenrollFromParticipation"`
-	EnrollIntoParticipation   *int `query:"enrollIntoParticipation"`
+	UnenrollFromParticipation int `query:"unenrollFromParticipation"`
+	EnrollIntoParticipation   int `query:"enrollIntoParticipation"`
 }
 
 func (s *Server) enrollZermelo(c echo.Context) error {
@@ -181,8 +186,8 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
 	}
 
-	if params.UnenrollFromParticipation != nil {
-		upart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.UnenrollFromParticipation)
+	if params.UnenrollFromParticipation != 0 {
+		upart, err := client.GetAppointmentParticipation(c.Request().Context(), params.UnenrollFromParticipation)
 		if err != nil {
 			log.Error(err, "could not get participation to unenroll from")
 
@@ -201,8 +206,8 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.EnrollIntoParticipation != nil {
-		epart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.EnrollIntoParticipation)
+	if params.EnrollIntoParticipation != 0 {
+		epart, err := client.GetAppointmentParticipation(c.Request().Context(), params.EnrollIntoParticipation)
 		if err != nil {
 			log.Error(err, "could not get participation to enroll into")
 
@@ -221,9 +226,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.UnenrollFromParticipation != nil {
+	if params.UnenrollFromParticipation != 0 {
 		if err = client.ChangeParticipation(c.Request().Context(), &zermelo.ChangeParticipationRequest{
-			ParticipationID: *params.UnenrollFromParticipation,
+			ParticipationID: params.UnenrollFromParticipation,
 			Enrolled:        false,
 		}); err != nil {
 			log.Error(err, "could not unenroll")
@@ -232,9 +237,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.EnrollIntoParticipation != nil {
+	if params.EnrollIntoParticipation != 0 {
 		if err = client.ChangeParticipation(c.Request().Context(), &zermelo.ChangeParticipationRequest{
-			ParticipationID: *params.EnrollIntoParticipation,
+			ParticipationID: params.EnrollIntoParticipation,
 			Enrolled:        true,
 		}); err != nil {
 			log.Error(err, "could not enroll")
