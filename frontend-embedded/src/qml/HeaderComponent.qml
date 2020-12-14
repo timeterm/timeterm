@@ -20,6 +20,10 @@ Item {
         }
     }
 
+    function networkStateChanged(state) {
+        wifi.setWiFiIcon(-100 + state.signalStrength, state.isOnline)
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "#242424"
@@ -101,7 +105,4 @@ Item {
         triggeredOnStart: true
         onTriggered: dateTime.setDateTime()
     }
-
-    Component.onCompleted: wifi.setWiFiIcon(
-                               -30) // Only for devellopment without true RSSI values
 }

@@ -2,13 +2,15 @@
 
 #include "createdevice.h"
 #include "natscreds.h"
+#include "servicesresponse.h"
 #include "timetermuser.h"
 #include "zermeloappointments.h"
 
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
-#include <QJsonObject>
+#include <devcfg/connmanserviceconfig.h>
 
 class ApiClient: public QObject
 {
@@ -32,6 +34,7 @@ public:
     Q_INVOKABLE void createDevice();
     Q_INVOKABLE void getNatsCreds(const QString &deviceId);
     Q_INVOKABLE void doHeartbeat(const QString &deviceId);
+    Q_INVOKABLE void getAllNetworkingServices(const QString &deviceId);
     Q_INVOKABLE void updateChoice(const QVariant &unenrollFromParticipationId, const QVariant &enrollIntoParticipationId);
 
 signals:
@@ -43,6 +46,7 @@ signals:
     void natsCredsReceived(NatsCredsResponse);
     void heartbeatSucceeded();
     void choiceUpdateSucceeded();
+    void newNetworkingServices(NetworkingServicesResponse);
 
 private slots:
     void replyFinished();
@@ -56,6 +60,7 @@ private:
     void handleNatsCredsReply(QNetworkReply *reply);
     void handleHeartbeatReply(QNetworkReply *reply);
     void handleChoiceUpdateReply(QNetworkReply *reply);
+    void handleNewNetworkingServices(QNetworkReply *reply);
     void setAuthHeaders(QNetworkRequest &req);
 
     QUrl m_baseUrl = QUrl("https://api.timeterm.nl/");

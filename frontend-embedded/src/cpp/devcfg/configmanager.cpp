@@ -178,8 +178,8 @@ void ConfigManager::loadConfig()
 
         m_deviceConfig->setSetupToken(setupConfig->token());
         m_deviceConfig->setSetupTokenOrganizationId(setupConfig->organizationId());
-        saveDeviceConfig();
 
+        ConnManServiceConfig::deleteCurrentConnManConfigs();
         for (auto &svc : setupConfig->networkingServices()) {
             qDebug() << "Configuring ethernet service" << svc->name();
             svc->saveCerts();

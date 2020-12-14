@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -339,25 +340,9 @@ func (s *Server) getRegistrationConfig(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not create token")
 	}
 
-	dbNetworkingServices, err := s.db.GetAllNetworkingServices(c.Request().Context(), user.OrganizationID)
+	apiNetworkingServices, err := s.apiGetAllNetworkingServices(c.Request().Context(), user.OrganizationID)
 	if err != nil {
-		s.log.Error(err, "could not read networking services from database")
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
-	}
-
-	apiNetworkingServices := make([]NetworkingService, len(dbNetworkingServices))
-
-	for i, networkingService := range dbNetworkingServices {
-		uid := networkingService.ID
-		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
-		if err != nil {
-			s.log.Error(err, "could not read secret networking service")
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
-		}
-
-		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, networkingService)
-
-		apiNetworkingServices[i] = apiNetworkingService
+		return err
 	}
 
 	rsp := RegistrationConfig{
@@ -391,4 +376,52 @@ func (s *Server) updateLastHeartbeat(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (s *Server) getAllNetworkingServices(c echo.Context) error {
+	dev, ok := authn.DeviceFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Not authenticated")
+	}
+
+	deviceID := c.Param("id")
+	uid, err := uuid.Parse(deviceID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+	}
+
+	if dev.ID != uid {
+		return echo.NewHTTPError(http.StatusBadRequest, "ID mismatch")
+	}
+
+	apiNetworkingServices, err := s.apiGetAllNetworkingServices(c.Request().Context(), dev.OrganizationID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, apiNetworkingServices)
+}
+
+func (s *Server) apiGetAllNetworkingServices(ctx context.Context, organizationID uuid.UUID) ([]NetworkingService, error) {
+	dbNetworkingServices, err := s.db.GetAllNetworkingServices(ctx, organizationID)
+	if err != nil {
+		s.log.Error(err, "could not read networking services from database")
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Could not read networking services from database")
+	}
+
+	apiNetworkingServices := make([]NetworkingService, len(dbNetworkingServices))
+
+	for i, networkingService := range dbNetworkingServices {
+		uid := networkingService.ID
+		secretNetworkingService, err := s.secr.GetNetworkingService(uid)
+		if err != nil {
+			s.log.Error(err, "could not read secret networking service")
+			return nil, echo.NewHTTPError(http.StatusInternalServerError, "Could not read secret networking service")
+		}
+
+		apiNetworkingService := NetworkingServiceFrom(secretNetworkingService, networkingService)
+
+		apiNetworkingServices[i] = apiNetworkingService
+	}
+
+	return apiNetworkingServices, nil
 }

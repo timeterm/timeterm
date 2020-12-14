@@ -59,3 +59,5 @@ private:
     QNetworkSettingsManager *m_manager;
 #endif
 };
+
+Q_DECLARE_METATYPE(NetworkState)

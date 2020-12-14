@@ -319,8 +319,8 @@ public:
     };
 
     void read(const QJsonObject &obj, ReadError *error = nullptr);
-    void saveCerts(QFile::FileError *error = nullptr);
-    void saveConnManConf(QFile::FileError *error = nullptr);
+    Q_INVOKABLE void saveCerts(QFile::FileError *error = nullptr);
+    Q_INVOKABLE void saveConnManConf(QFile::FileError *error = nullptr);
 
     static ServiceType readServiceType(const QString &t);
     static Ipv6Privacy readIpv6Privacy(const QString &p);
@@ -337,6 +337,8 @@ public:
     static QString eapTypeToConnManString(EapType t);
     static QString privateKeyPassphraseTypeToConnManString(PrivateKeyPassphraseType t);
     static QString phase2TypeToConnManString(Phase2Type t, bool isEapBased);
+
+    static void deleteCurrentConnManConfigs();
 
 signals:
     void nameChanged();

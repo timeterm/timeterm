@@ -12,6 +12,7 @@ Item {
 
     signal cardRead(string uid)
     signal timetableReceived(var timetable)
+    signal networkStateChanged(var networkState)
 
     function getAppointments(start, end) {
         apiClient.getAppointments(start, end)
@@ -56,13 +57,19 @@ Item {
             console.log("Writing NATS credentials")
             response.writeToFile()
 
-            apiClient.updateChoice(0, undefined)
-
             natsConn.connect()
         }
 
         onTimetableReceived: function (timetable) {
             internalsItem.timetableReceived(timetable)
+        }
+
+        onNewNetworkingServices: function (services) {
+            console.log("Got new networking services, saving")
+            services.save()
+            console.log("New networking services saved, reloading system")
+            configManager.reloadSystem()
+            console.log("System reloaded")
         }
     }
 
@@ -106,6 +113,10 @@ Item {
         onOnlineChanged: function (online) {
             console.log(`Online changed to ${online}`)
             handleNewOnline(online)
+        }
+
+        onStateChanged: function (state) {
+            internalsItem.networkStateChanged(state)
         }
 
         function handleNewOnline(online) {
@@ -184,6 +195,7 @@ Item {
 
         onMessageReceived: {
             console.log("Retrieving new networking configuration")
+            apiClient.getAllNetworkingServices(configManager.deviceConfig.id)
         }
     }
 }

@@ -9,6 +9,7 @@
 #include <QJsonParseError>
 #include <QNetworkReply>
 #include <QUrlQuery>
+#include <devcfg/connmanserviceconfig.h>
 
 ApiClient::ApiClient(QObject *parent)
     : QObject(parent)
@@ -118,6 +119,25 @@ std::optional<T> readJsonObject(QNetworkReply *reply)
     auto decoded = T();
     decoded.read(json.object());
     return decoded;
+}
+
+template<typename T>
+std::optional<QList<QSharedPointer<T>>> readJsonObjectSPArray(QNetworkReply *reply)
+{
+    auto bytes = reply->readAll();
+    auto json = QJsonDocument::fromJson(bytes);
+
+    if (!json.isArray())
+        return std::nullopt;
+
+    auto list = QList<QSharedPointer<T>>();
+    for (const auto &it : json.array()) {
+        auto decoded = new T();
+        if (!it.isObject()) continue;
+        decoded->read(it.toObject());
+        list.append(QSharedPointer<T>(decoded));
+    }
+    return list;
 }
 
 void ApiClient::handleGetCurrentUserReply(QNetworkReply *reply)
@@ -250,8 +270,32 @@ void ApiClient::updateChoice(const QVariant &unenrollFromParticipationId, const 
     });
 }
 
-void ApiClient::handleChoiceUpdateReply(QNetworkReply *) {
-   emit choiceUpdateSucceeded();
+void ApiClient::handleChoiceUpdateReply(QNetworkReply *)
+{
+    emit choiceUpdateSucceeded();
+}
+
+void ApiClient::getAllNetworkingServices(const QString &deviceId)
+{
+    auto url = m_baseUrl.resolved(QUrl(QStringLiteral("device/%1/config/networks").arg(deviceId)));
+    auto req = QNetworkRequest(url);
+    setAuthHeaders(req);
+
+    auto reply = m_qnam->get(req);
+    connectReply(reply, [this](QNetworkReply *reply) {
+        return handleNewNetworkingServices(reply);
+    });
+}
+
+void ApiClient::handleNewNetworkingServices(QNetworkReply *reply)
+{
+    auto rsp = readJsonObjectSPArray<ConnManServiceConfig>(reply);
+    if (!rsp.has_value())
+        return;
+    auto services = NetworkingServicesResponse();
+    services.append(*rsp);
+
+    emit newNetworkingServices(services);
 }
 
 void ApiError::read(const QJsonObject &obj)

@@ -116,6 +116,7 @@ func (s *Server) registerRoutes() {
 	devConfigGroup := s.echo.Group("/device/:id/config")
 	devConfigGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
 	devConfigGroup.GET("/natscreds", s.generateNATSCredentials)
+	devConfigGroup.GET("/networks", s.getAllNetworkingServices)
 
 	devHeartbeatGroup := s.echo.Group("/device/:id/heartbeat")
 	devHeartbeatGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
@@ -177,3 +178,4 @@ func (s *Server) Run(ctx context.Context) error {
 		return ctx.Err()
 	}
 }
+

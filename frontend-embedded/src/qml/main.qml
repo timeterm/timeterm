@@ -56,5 +56,9 @@ ApplicationWindow {
                 console.log("No routerItem available")
             }
         }
+
+        onNetworkStateChanged: function (state) {
+            header.networkStateChanged(state)
+        }
     }
 }

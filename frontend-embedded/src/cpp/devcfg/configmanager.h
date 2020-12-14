@@ -49,13 +49,13 @@ public:
 public slots:
     void loadConfig();
     void saveDeviceConfig();
+    void reloadSystem();
 
 signals:
     void configLoaded();
     void deviceConfigChanged();
 
 private:
-    void reloadSystem();
     void loadDeviceConfig();
 
     DeviceConfig *m_deviceConfig;

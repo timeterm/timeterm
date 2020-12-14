@@ -868,14 +868,25 @@ void ConnManServiceConfig::saveCerts(QFile::FileError *error)
     }
 }
 
-QString createConnManConfigPath(const QString &serviceName)
-{
-    auto relative = QStringLiteral("%1.config").arg(serviceName);
+QString createConnManConfigDir() {
+    auto relative = QStringLiteral("connman/");
 
 #if TIMETERMOS
-    return "/var/lib/connman/" + relative;
+    QString dir = "/var/lib/" + relative;
+#else
+    const QString &dir = relative;
 #endif
-    return relative;
+
+    QDir(dir).mkpath(".");
+
+    return dir;
+}
+
+QString createConnManConfigPath(const QString &serviceName)
+{
+    auto filename = QStringLiteral("%1.config").arg(serviceName);
+
+    return createConnManConfigDir() + filename;
 }
 
 void ConnManServiceConfig::saveConnManConf(QFile::FileError *error)
@@ -1027,5 +1038,15 @@ QString ConnManServiceConfig::phase2TypeToConnManString(ConnManServiceConfig::Ph
         return prefix + "GTC";
     default:
         return "";
+    }
+}
+
+void ConnManServiceConfig::deleteCurrentConnManConfigs()
+{
+    QDir dir = createConnManConfigDir();
+    dir.setFilter(QDir::Files);
+    dir.setNameFilters(QStringList() << "*.config");
+    for (const auto &dirFile : dir.entryList()) {
+        dir.remove(dirFile);
     }
 }
