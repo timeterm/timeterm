@@ -63,7 +63,6 @@ void DeviceConfig::write(QJsonObject &json) const
 {
     json["id"] = m_id;
     json["name"] = m_name;
-    json["setupToken"] = m_setupToken;
     json["deviceToken"] = m_deviceToken;
     json["deviceTokenOrganizationId"] = m_deviceTokenOrganizationId;
     json["setupTokenOrganizationId"] = m_setupTokenOrganizationId;
@@ -75,8 +74,6 @@ void DeviceConfig::read(const QJsonObject &json)
         setId(json["id"].toString());
     if (json.contains("name") && json["name"].isString())
         setName(json["name"].toString());
-    if (json.contains("setupToken") && json["setupToken"].isString())
-        setSetupToken(json["setupToken"].toString());
     if (json.contains("deviceToken") && json["deviceToken"].isString())
         setDeviceToken(json["deviceToken"].toString());
     if (json.contains("deviceTokenOrganizationId") && json["deviceTokenOrganizationId"].isString())
