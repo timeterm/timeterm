@@ -121,18 +121,15 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 				continue
 			}
 
-			if current == nil || current.IsCanceled {
+			if current == nil ||
+				apt.Participation.IsAttendancePlanned ||
+				apt.Participation.AttendanceType == zermelo.AttendanceTypeMandatory {
 				current = apiAppointment
 			} else {
 				alternatives = append(alternatives, apiAppointment)
 			}
 		}
 
-		if current != nil && !current.IsStudentEnrolled && len(alternatives) == 1 && alternatives[0].IsCanceled {
-			currentClone := *current
-			currentClone.Alternatives = nil
-			current = &ZermeloAppointment{Alternatives: append(current.Alternatives, &currentClone)}
-		}
 		if current == nil {
 			current = new(ZermeloAppointment)
 		}

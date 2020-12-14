@@ -175,6 +175,13 @@ const (
 	AllowedStudentActionsAll    AllowedStudentActions = "all"
 )
 
+type AttendanceType string
+
+const (
+	AttendanceTypeNone      AttendanceType = "none"
+	AttendanceTypeMandatory AttendanceType = "mandatory"
+)
+
 type AppointmentParticipation struct {
 	ID                    int                   `json:"id"`
 	AppointmentInstance   int                   `json:"appointmentInstance"`
@@ -189,6 +196,7 @@ type AppointmentParticipation struct {
 	StudentCode           string                `json:"studentCode"`
 	AvailableSpace        int                   `json:"availableSpace"`
 	Groups                []string              `json:"groups"`
+	AttendanceType        AttendanceType        `json:"attendanceType"`
 }
 
 type AppointmentParticipationsResponse struct {
