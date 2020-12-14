@@ -168,6 +168,15 @@ func EnrollParamsFromRequest(r *http.Request) (EnrollParams, error) {
 	return p, nil
 }
 
+type enrollAction int
+
+const (
+	enrollActionNone   enrollAction = 0
+	enrollActionEnroll enrollAction = 1 << (iota - 1)
+	enrollActionUnenroll
+	enrollActionSwitch enrollAction = enrollActionEnroll | enrollActionUnenroll
+)
+
 func (s *Server) enrollZermelo(c echo.Context) error {
 	dev, ok := authn.DeviceFromContext(c)
 	if !ok {
@@ -205,6 +214,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
 	}
 
+	action := enrollActionNone
+
+	canUnenroll := false
 	if params.UnenrollFromParticipation != nil {
 		upart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.UnenrollFromParticipation)
 		if err != nil {
@@ -224,6 +236,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		if !upart.AllowedStudentActions.CanSwitch() {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to switch participation")
 		}
+		canUnenroll = upart.AllowedStudentActions == zermelo.AllowedStudentActionsAll
+
+		action |= enrollActionUnenroll
 	}
 
 	if params.EnrollIntoParticipation != nil {
@@ -245,6 +260,12 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		if !epart.AllowedStudentActions.CanSwitch() {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to switch participation")
 		}
+
+		action |= enrollActionEnroll
+	}
+
+	if action == enrollActionUnenroll && !canUnenroll {
+		return echo.NewHTTPError(http.StatusForbidden, "Can not unenroll (can only switch)")
 	}
 
 	if params.UnenrollFromParticipation != nil {
