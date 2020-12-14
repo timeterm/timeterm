@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/moul/http2curl"
 
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
@@ -296,9 +295,6 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
-	command, _ := http2curl.GetCurlCommand(hreq)
-	fmt.Println(command)
-	c.log.Info("sending request to zermelo", "cmd", command)
 
 	hrsp, err := c.Client.Do(hreq)
 	if err != nil {
