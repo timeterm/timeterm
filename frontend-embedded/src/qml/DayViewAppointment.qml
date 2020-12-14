@@ -126,9 +126,11 @@ Rectangle {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
+    TapHandler {
         enabled: appointment.isOptional
-        onClicked: stackView.push("ChoosableAppointmentView.qml", {"appointment": appointment})
+        onTapped: function() {
+            popup.appointment = appointment
+            popup.open()
+        }
     }
 }

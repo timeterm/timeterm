@@ -8,8 +8,6 @@ Page {
     width: stackView.width
     height: stackView.height
 
-    StackView.visible: true
-
     function redirectTimetable(timetable) {
         dayView.setTimetable(timetable)
         weekView.setTimetable(timetable)
@@ -260,5 +258,9 @@ Page {
             startOfWeek: new Date().startOfWeek()
             endOfWeek: new Date().endOfWeek()
         }
+    }
+
+    ChoosableAppointmentView {
+        id: popup
     }
 }

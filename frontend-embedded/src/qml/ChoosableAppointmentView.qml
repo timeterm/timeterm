@@ -1,58 +1,145 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Page {
+Popup {
     id: choosableAppointmentView
-    width: stackView.width
-    height: stackView.height
+    x: stackView.width * 0.15 + stackView.height * 0.1
+    y: stackView.height * 0.1
+    width: stackView.width * 0.85 - stackView.height * 0.2
+    height: stackView.height - stackView.height * 0.2
+
+    padding: 0
+    modal: true
 
     background: Rectangle {
-        color: "#AA000000"
+        border.color: "#399cf8"
+        radius: 5
     }
 
     property var appointment
-    property var customMargin: height * 0.1
     property var cellMargin: height * 0.015
-    property var textSize: height * 0.04
+    property var textSize: height * 0.05
+    property var headerTextColor: "#e5e5e5"
+    property var enrollIntoParticipationId
+    property var unenrollFromParticipationId
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: stackView.pop()
+    onAppointmentChanged: function() {
+        appointmentName.text = appointment.startTime.toLocaleString(Qt.locale("nl_NL"), "dddd") + " " + appointment.startTimeSlotName + "e"
+        appointmentTime.text = appointment.startTime.toLocaleString(Qt.locale("nl_NL"), "h:mm") + "-" + appointment.endTime.toLocaleString(Qt.locale("nl_NL"), "h:mm")
+        grid.header = choosableAppointment
+        grid.model = appointment.alternatives
+        enrollIntoParticipationId = null
+        unenrollFromParticipationId = null
+        if (appointment.isStudentEnrolled) {
+            subscribe.visible = false
+            change.visible = true
+            unsubscribe.visible = true
+            unenrollFromParticipationId = appointment.participationId
+        } else {
+            subscribe.visible = true
+            change.visible = false
+            unsubscribe.visible = false
+        }
     }
 
     Rectangle {
-        anchors.fill: parent
-        anchors.topMargin: customMargin
-        anchors.leftMargin: stackView.width * 0.15 + customMargin
-        anchors.rightMargin: customMargin
-        anchors.bottomMargin: customMargin
-        radius: 5
+        id: header
+        height: parent.height * 0.1
+        width: parent.width
+        color: "#242424"
 
-        GridView {
-            id: grid
-            anchors.fill: parent
-            clip: true
-
-            cellWidth: width / 3
-            cellHeight: height / 3
-
-            model: appointment.alternatives
-            delegate: choosableAppointment
+        Label {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: parent.width / -3
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
+            color: headerTextColor
+            text: "Keuze-uren"
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
         }
+
+        Label {
+            id: appointmentName
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
+            color: headerTextColor
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
+            font.capitalization: Font.Capitalize
+        }
+
+        Label {
+            id: appointmentTime
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: parent.width / 3
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
+            color: headerTextColor
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
+        }
+    }
+
+    GridView {
+        id: grid
+        anchors.margins: choosableAppointmentView.height * 0.02
+        anchors.top: header.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: footer.top
+        clip: true
+
+        cellWidth: width / 3
+        cellHeight: height / 2.5
+
+        delegate: choosableAppointment
+        focus: true
     }
 
     Component {
         id: choosableAppointment
         Rectangle {
+            id: choosableAppointmentRect
             width: grid.cellWidth
             height: grid.cellHeight
             color: "#00000000"
+
+            property bool isHeader: typeof index === 'undefined'
 
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: choosableAppointmentView.height * 0.02
                 radius: 5
-                color: "#e5e5e5"
+                color: setBackgroundColor()
+
+                function setBackgroundColor() {
+                    if (isHeader) {
+                        if (appointment.isStudentEnrolled) {
+                            return "#c4ffab"
+                        } else if (appointment.availableSpace <= 0) {
+                            return "#ffabab"
+                        }
+                    } /*else if (enrollIntoParticipationId === modelData.availableSpace) {
+                        return "#d6e6ff"
+                    }*/ else if (modelData.availableSpace <= 0) {
+                        return "#ffabab"
+                    }
+                    return "#e5e5e5"
+                }
+
+                function selectThisAppointment() {
+                    if (isHeader) {
+                        enrollIntoParticipationId = appointment.participationId
+                    } else {
+                        enrollIntoParticipationId = modelData.participationId
+                    }
+                    color = "#d6e6ff"
+                }
 
                 Text {
                     anchors.top: parent.top
@@ -61,7 +148,7 @@ Page {
                     width: parent.width * 0.5 - anchors.margins * 1.5
                     font.pixelSize: textSize
                     elide: Text.ElideRight
-                    text: modelData.teachers.join(", ")
+                    text: isHeader ? appointment.teachers.join(", ") : modelData.teachers.join(", ")
 
                     property bool isPressed: false
 
@@ -82,7 +169,7 @@ Page {
                     horizontalAlignment: Text.AlignRight
                     font.pixelSize: textSize
                     elide: Text.ElideRight
-                    text: modelData.locations.join(", ")
+                    text: isHeader ? appointment.locations.join(", ") : modelData.locations.join(", ")
 
                     property bool isPressed: false
 
@@ -105,9 +192,9 @@ Page {
                     font.pixelSize: textSize * 0.55
                     color: "#666666"
                     wrapMode: Text.Wrap
-                    maximumLineCount: 4
+                    maximumLineCount: 3
                     elide: Text.ElideRight
-                    text: modelData.content
+                    text: isHeader ? appointment.content : modelData.content
 
                     property bool isPressed: false
 
@@ -136,12 +223,12 @@ Page {
                     anchors.left: parent.left
                     anchors.right: space.left
                     anchors.leftMargin: cellMargin
+                    anchors.rightMargin: cellMargin
                     anchors.bottomMargin: cellMargin
-                    //width: parent.width * 0.33 - anchors.margins * 1.5
                     font.pixelSize: textSize * 0.75
                     color: "#666666"
                     elide: Text.ElideRight
-                    text: modelData.subjects.join(", ")
+                    text: isHeader ? appointment.subjects.join(", ") : modelData.subjects.join(", ")
 
                     property bool isPressed: false
 
@@ -161,9 +248,92 @@ Page {
                     anchors.margins: cellMargin
                     font.pixelSize: textSize * 0.75
                     color: "#666666"
-                    text: modelData.availableSpace + " plaatsen vrij"
+                    text: setAvailableSpace() + " plaatsen vrij"
+
+                    function setAvailableSpace() {
+                        if (isHeader) {
+                            if (appointment.availableSpace <= 0) {
+                                return "geen"
+                            }
+                            return appointment.availableSpace
+                        } else {
+                            if (modelData.availableSpace <= 0) {
+                                return "geen"
+                            }
+                            return modelData.availableSpace
+                        }
+                    }
+                }
+
+                TapHandler {
+                    onTapped: parent.selectThisAppointment()
                 }
             }
         }
+    }
+
+    Rectangle {
+        id: footer
+        anchors.bottom: parent.bottom
+        height: parent.height * 0.1
+        width: parent.width
+        color: "#242424"
+
+        Button {
+            id: subscribe
+            anchors.centerIn: parent
+            width: grid.cellWidth - choosableAppointmentView.height * 0.04
+            height: parent.height * 0.5
+            enabled: !!enrollIntoParticipationId
+            text: "Inschrijven"
+
+            background: Rectangle {
+                radius: 5
+            }
+
+            onClicked: internals.updateChoice(null, enrollIntoParticipationId)
+        }
+
+        Button {
+            id: change
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: parent.width / -3
+            anchors.verticalCenter: parent.verticalCenter
+            width: grid.cellWidth - choosableAppointmentView.height * 0.04
+            height: parent.height * 0.5
+            enabled: !!unenrollFromParticipationId && !!enrollIntoParticipationId && enrollIntoParticipationId !== unenrollFromParticipationId
+            text: "Wijzigen"
+
+            background: Rectangle {
+                radius: 5
+            }
+
+            onClicked: internals.updateChoice(unenrollFromParticipationId, enrollIntoParticipationId)
+        }
+
+        Button {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: parent.width / 3
+            anchors.verticalCenter: parent.verticalCenter
+            width: grid.cellWidth - choosableAppointmentView.height * 0.04
+            height: parent.height * 0.5
+            id: unsubscribe
+            enabled: !!unenrollFromParticipationId
+            text: "Uitschrijven"
+
+            background: Rectangle {
+                radius: 5
+            }
+
+            onClicked: internals.updateChoice(unenrollFromParticipationId, null)
+        }
+    }
+
+    enter: Transition {
+        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0 }
+    }
+
+    exit: Transition {
+        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0 }
     }
 }

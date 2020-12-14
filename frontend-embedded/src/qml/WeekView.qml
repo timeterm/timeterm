@@ -119,7 +119,7 @@ Page {
         property var endLastAppointment
         property var weekAppointmentWidth: weekPage.width * 0.85 / 3.5
 
-        contentWidth: weekPage.width * 0.15 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 5
+        contentWidth: weekPage.width * 0.1 + weekAppointmentWidth * 5 + weekPage.height * 0.02 * 5
         flickableDirection: Flickable.HorizontalAndVerticalFlick 
         clip: true
 

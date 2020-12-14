@@ -18,6 +18,10 @@ Item {
         apiClient.getAppointments(start, end)
     }
 
+    function updateChoice(unenrollFromParticipationId, enrollIntoParticipationId) {
+        apiClient.updateChoice(unenrollFromParticipationId, enrollIntoParticipationId)
+    }
+
     Connections {
         target: CardReaderController
 
