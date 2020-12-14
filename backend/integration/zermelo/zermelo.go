@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/moul/http2curl"
 
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
@@ -285,7 +286,7 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 	id int,
 ) (*AppointmentParticipation, error) {
 	uri := c.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/appointmentparticipations/%d", id),
+		Path: fmt.Sprintf("appointmentparticipations/%d", id),
 		RawQuery: url.Values{
 			"fields": {strings.Join(appointmentParticipationJSONFields(), ",")},
 		}.Encode(),
@@ -295,6 +296,9 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
+	command, _ := http2curl.GetCurlCommand(hreq)
+	fmt.Println(command)
+	c.log.Info("sending request to zermelo", "cmd", command)
 
 	hrsp, err := c.Client.Do(hreq)
 	if err != nil {
@@ -306,11 +310,14 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 		return nil, StatusError{Code: hrsp.StatusCode}
 	}
 
-	var rsp AppointmentParticipation
+	var rsp AppointmentParticipationsResponse
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
 		return nil, fmt.Errorf("could not decode Zermelo response: %w", err)
 	}
-	return &rsp, nil
+	if len(rsp.Response.Data) != 1 {
+		return nil, fmt.Errorf("unexpected Zermelo response")
+	}
+	return rsp.Response.Data[0], nil
 }
 
 type ChangeParticipationRequest struct {
@@ -328,7 +335,7 @@ func (e StatusError) Error() string {
 
 func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *ChangeParticipationRequest) error {
 	uri := c.BaseURL.ResolveReference(&url.URL{
-		Path: fmt.Sprintf("/appointmentparticipations/%d", req.ParticipationID),
+		Path: fmt.Sprintf("appointmentparticipations/%d", req.ParticipationID),
 	})
 
 	body, err := json.Marshal(req)
@@ -336,7 +343,7 @@ func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *Chang
 		return fmt.Errorf("could not marshal request body: %w", err)
 	}
 
-	hreq, err := http.NewRequestWithContext(ctx, http.MethodGet, uri.String(), bytes.NewReader(body))
+	hreq, err := http.NewRequestWithContext(ctx, http.MethodPut, uri.String(), bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}

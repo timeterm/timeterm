@@ -145,8 +145,30 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 }
 
 type EnrollParams struct {
-	UnenrollFromParticipation int `query:"unenrollFromParticipation"`
-	EnrollIntoParticipation   int `query:"enrollIntoParticipation"`
+	UnenrollFromParticipation *int
+	EnrollIntoParticipation   *int
+}
+
+func EnrollParamsFromRequest(r *http.Request) (EnrollParams, error) {
+	var p EnrollParams
+
+	if unenroll := r.URL.Query().Get("unenrollFromParticipation"); unenroll != "" {
+		unenrollFrom, err := strconv.Atoi(unenroll)
+		if err != nil {
+			return p, err
+		}
+		p.UnenrollFromParticipation = &unenrollFrom
+	}
+
+	if enroll := r.URL.Query().Get("enrollIntoParticipation"); enroll != "" {
+		enrollInto, err := strconv.Atoi(enroll)
+		if err != nil {
+			return p, err
+		}
+		p.EnrollIntoParticipation = &enrollInto
+	}
+
+	return p, nil
 }
 
 func (s *Server) enrollZermelo(c echo.Context) error {
@@ -171,8 +193,8 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Device / user organization ID mismatch")
 	}
 
-	var params EnrollParams
-	if err := c.Bind(&params); err != nil {
+	params, err := EnrollParamsFromRequest(c.Request())
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request data")
 	}
 
@@ -186,8 +208,8 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User has no Zermelo user associated")
 	}
 
-	if params.UnenrollFromParticipation != 0 {
-		upart, err := client.GetAppointmentParticipation(c.Request().Context(), params.UnenrollFromParticipation)
+	if params.UnenrollFromParticipation != nil {
+		upart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.UnenrollFromParticipation)
 		if err != nil {
 			log.Error(err, "could not get participation to unenroll from")
 
@@ -199,6 +221,7 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get participation to unenroll from")
 		}
 		if upart.StudentCode != student.ZermeloUser.String {
+			log.Error(nil, "Unauthorized to unenroll from participation", "participation", upart)
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to unenroll from participation")
 		}
 		if !upart.AllowedStudentActions.CanSwitch() {
@@ -206,8 +229,8 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.EnrollIntoParticipation != 0 {
-		epart, err := client.GetAppointmentParticipation(c.Request().Context(), params.EnrollIntoParticipation)
+	if params.EnrollIntoParticipation != nil {
+		epart, err := client.GetAppointmentParticipation(c.Request().Context(), *params.EnrollIntoParticipation)
 		if err != nil {
 			log.Error(err, "could not get participation to enroll into")
 
@@ -219,6 +242,7 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get participation to enroll into")
 		}
 		if epart.StudentCode != student.ZermeloUser.String {
+			log.Error(nil, "Unauthorized to enroll into participation", "participation", epart)
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to enroll into participation")
 		}
 		if !epart.AllowedStudentActions.CanSwitch() {
@@ -226,9 +250,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.UnenrollFromParticipation != 0 {
+	if params.UnenrollFromParticipation != nil {
 		if err = client.ChangeParticipation(c.Request().Context(), &zermelo.ChangeParticipationRequest{
-			ParticipationID: params.UnenrollFromParticipation,
+			ParticipationID: *params.UnenrollFromParticipation,
 			Enrolled:        false,
 		}); err != nil {
 			log.Error(err, "could not unenroll")
@@ -237,9 +261,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 	}
 
-	if params.EnrollIntoParticipation != 0 {
+	if params.EnrollIntoParticipation != nil {
 		if err = client.ChangeParticipation(c.Request().Context(), &zermelo.ChangeParticipationRequest{
-			ParticipationID: params.EnrollIntoParticipation,
+			ParticipationID: *params.EnrollIntoParticipation,
 			Enrolled:        true,
 		}); err != nil {
 			log.Error(err, "could not enroll")
