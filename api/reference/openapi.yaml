@@ -471,14 +471,16 @@ paths:
           in: header
           required: true
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
+            description: Start time of the time range to search in (UNIX seconds).
         - name: endTime
           in: header
           required: true
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
+            description: End time of the time range to search in (UNIX seconds).
       responses:
         "200":
           description: A list of appointments
