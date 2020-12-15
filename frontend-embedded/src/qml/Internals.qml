@@ -31,14 +31,6 @@ Item {
         }
     }
 
-    // FakeApiClient {
-    //     id: apiClient
-    //
-    //     onTimetableReceived: function (timetable) {
-    //         internalsItem.timetableReceived(timetable)
-    //     }
-    // }
-
     ApiClient {
         id: apiClient
 

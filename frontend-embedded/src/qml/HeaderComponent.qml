@@ -10,15 +10,6 @@ Item {
 
     property int textSize: height * 0.5
     property var textColor: "#e5e5e5"
-    property var title: ""
-
-    Connections {
-        target: header
-
-        function onTitleChanged() {
-            titleLabel.text = "Timeterm" + (title === "" ? "" : "-"+title)
-        }
-    }
 
     function networkStateChanged(state) {
         wifi.setWiFiIcon(-100 + state.signalStrength, state.isOnline)
@@ -36,7 +27,7 @@ Item {
             anchors.bottom: parent.bottom
             verticalAlignment: "AlignVCenter"
             color: textColor
-            text: "Timeterm" + title
+            text: "Timeterm"
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
         }

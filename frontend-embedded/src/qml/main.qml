@@ -29,17 +29,12 @@ ApplicationWindow {
         onCardRead: function (uid) {
             stackView.push("Router.qml", {"id": "routerView"})
 
-            header.title = uid
-
             const startOfWeek = new Date().startOfWeek()
             const endOfWeek = new Date().endOfWeek()
             internals.getAppointments(startOfWeek, endOfWeek)
         }
 
         onTimetableReceived: function (timetable) {
-            console.log("Timetable received")
-            console.log(timetable.data[0].locations[0])
-
             let routerItem = stackView.find(function(item, index) {
                 return item instanceof Router})
             if (routerItem) {

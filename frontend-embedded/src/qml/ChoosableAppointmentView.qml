@@ -20,6 +20,7 @@ Popup {
     property var cellMargin: height * 0.015
     property var textSize: height * 0.05
     property var headerTextColor: "#e5e5e5"
+    property var enrollIntoParticipationAllowedActions
     property var enrollIntoParticipationId
     property var unenrollFromParticipationId
 
@@ -28,6 +29,7 @@ Popup {
         appointmentTime.text = appointment.startTime.toLocaleString(Qt.locale("nl_NL"), "h:mm") + "-" + appointment.endTime.toLocaleString(Qt.locale("nl_NL"), "h:mm")
         grid.header = choosableAppointment
         grid.model = appointment.alternatives
+        enrollIntoParticipationAllowedActions = null
         enrollIntoParticipationId = null
         unenrollFromParticipationId = null
         if (appointment.isStudentEnrolled) {
@@ -135,8 +137,10 @@ Popup {
                 function selectThisAppointment() {
                     if (isHeader) {
                         enrollIntoParticipationId = appointment.participationId
+                        enrollIntoParticipationAllowedActions = appointment.allowedStudentActions
                     } else {
                         enrollIntoParticipationId = modelData.participationId
+                        enrollIntoParticipationAllowedActions = modelData.allowedStudentActions
                     }
                     color = "#d6e6ff"
                 }
@@ -285,6 +289,7 @@ Popup {
             width: grid.cellWidth - choosableAppointmentView.height * 0.04
             height: parent.height * 0.5
             enabled: !!enrollIntoParticipationId
+                        && (enrollIntoParticipationAllowedActions === "All" || enrollIntoParticipationAllowedActions === "Switch")
             text: "Inschrijven"
 
             background: Rectangle {
@@ -301,7 +306,11 @@ Popup {
             anchors.verticalCenter: parent.verticalCenter
             width: grid.cellWidth - choosableAppointmentView.height * 0.04
             height: parent.height * 0.5
-            enabled: !!unenrollFromParticipationId && !!enrollIntoParticipationId && enrollIntoParticipationId !== unenrollFromParticipationId
+            enabled: !!unenrollFromParticipationId
+                        && !!enrollIntoParticipationId
+                        && enrollIntoParticipationId !== unenrollFromParticipationId
+                        && (appointment.allowedStudentActions === "All" || appointment.allowedStudentActions === "Switch")
+                        && (enrollIntoParticipationAllowedActions === "All" || enrollIntoParticipationAllowedActions === "Switch")
             text: "Wijzigen"
 
             background: Rectangle {
@@ -319,6 +328,7 @@ Popup {
             height: parent.height * 0.5
             id: unsubscribe
             enabled: !!unenrollFromParticipationId
+                        && appointment.allowedStudentActions === "All"
             text: "Uitschrijven"
 
             background: Rectangle {
