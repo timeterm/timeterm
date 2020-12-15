@@ -113,7 +113,14 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 		for _, apt := range group {
 			apiAppointment := apt.ToAPI()
 
-			if apt.Participation.IsStudentEnrolled {
+			planned := apt.Participation.IsAttendancePlanned != nil && *apt.Participation.IsAttendancePlanned
+			enrolled := apt.Participation.IsStudentEnrolled != nil && *apt.Participation.IsStudentEnrolled
+			optional := apt.Participation.IsOptional != nil && *apt.Participation.IsOptional
+			canceled := apt.Appointment.IsCanceled != nil && *apt.Appointment.IsCanceled
+			if enrolled ||
+				planned ||
+				(!optional && !canceled) ||
+				apt.Participation.AttendanceType == zermelo.AttendanceTypeMandatory {
 				if current != nil {
 					alternatives = append(alternatives, current)
 				}
@@ -121,17 +128,22 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 				continue
 			}
 
-			if current == nil ||
-				apt.Participation.IsAttendancePlanned ||
-				apt.Participation.AttendanceType == zermelo.AttendanceTypeMandatory {
-				current = apiAppointment
-			} else {
-				alternatives = append(alternatives, apiAppointment)
-			}
+			alternatives = append(alternatives, apiAppointment)
 		}
 
 		if current == nil {
 			current = new(ZermeloAppointment)
+			if len(alternatives) != 0 {
+				a0 := alternatives[0]
+				true := true
+				current = &ZermeloAppointment{
+					StartTimeSlotName: a0.StartTimeSlotName,
+					EndTimeSlotName:   a0.EndTimeSlotName,
+					StartTime:         a0.StartTime,
+					EndTime:           a0.EndTime,
+					IsOptional:        &true,
+				}
+			}
 		}
 		current.Alternatives = alternatives
 		converted = append(converted, current)
@@ -259,6 +271,9 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		}
 		if !epart.AllowedStudentActions.CanSwitch() {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to switch participation")
+		}
+		if epart.AvailableSpace != nil && *epart.AvailableSpace <= 0 {
+			return echo.NewHTTPError(http.StatusForbidden, "Not enough space available")
 		}
 
 		action |= enrollActionEnroll

@@ -796,10 +796,10 @@ type ZermeloAppointment struct {
 	ID                    int                           `json:"id"`
 	ParticipationID       int                           `json:"participationId"`
 	AppointmentInstance   int                           `json:"appointmentInstance"`
-	IsOnline              bool                          `json:"isOnline"`
-	IsOptional            bool                          `json:"isOptional"`
-	IsStudentEnrolled     bool                          `json:"isStudentEnrolled"`
-	IsCanceled            bool                          `json:"isCanceled"`
+	IsOnline              *bool                         `json:"isOnline"`
+	IsOptional            *bool                         `json:"isOptional"`
+	IsStudentEnrolled     *bool                         `json:"isStudentEnrolled"`
+	IsCanceled            *bool                         `json:"isCanceled"`
 	StartTimeSlotName     string                        `json:"startTimeSlotName"`
 	EndTimeSlotName       string                        `json:"endTimeSlotName"`
 	Subjects              []string                      `json:"subjects"`
@@ -809,8 +809,8 @@ type ZermeloAppointment struct {
 	StartTime             jsontypes.UnixTime            `json:"startTime"`
 	EndTime               jsontypes.UnixTime            `json:"endTime"`
 	Content               string                        `json:"content"`
-	AvailableSpace        int                           `json:"availableSpace"`
-	Capacity              int                           `json:"capacity"`
+	AvailableSpace        *int                          `json:"availableSpace"`
+	Capacity              *int                          `json:"capacity"`
 	Alternatives          []*ZermeloAppointment         `json:"alternatives"`
 	AllowedStudentActions zermelo.AllowedStudentActions `json:"allowedStudentActions"`
 }

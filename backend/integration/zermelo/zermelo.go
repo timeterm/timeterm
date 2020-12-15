@@ -121,19 +121,19 @@ type Appointment struct {
 	GroupsInDepartments        []int              `json:"groupsInDepartments"`
 	Locations                  []string           `json:"locations"`
 	LocationsOfBranch          []int              `json:"locationsOfBranch"`
-	IsOptional                 bool               `json:"optional"`
-	IsValid                    bool               `json:"valid"`
-	IsCanceled                 bool               `json:"cancelled"`
-	HasTeacherChanged          bool               `json:"teacherChanged"`
-	HasGroupChanged            bool               `json:"groupChanged"`
-	HasLocationChanged         bool               `json:"locationChanged"`
-	HasTimeChanged             bool               `json:"timeChanged"`
+	IsOptional                 *bool              `json:"optional"`
+	IsValid                    *bool              `json:"valid"`
+	IsCanceled                 *bool              `json:"cancelled"`
+	HasTeacherChanged          *bool              `json:"teacherChanged"`
+	HasGroupChanged            *bool              `json:"groupChanged"`
+	HasLocationChanged         *bool              `json:"locationChanged"`
+	HasTimeChanged             *bool              `json:"timeChanged"`
 	ChangeDescription          string             `json:"changeDescription"`
 	SchedulerRemark            string             `json:"schedulerRemark"`
 	ChoosableInDepartmentCodes []string           `json:"choosableInDepartmentCodes"`
 	Remark                     string             `json:"remark"`
 	Subjects                   []string           `json:"subjects"`
-	Capacity                   int                `json:"capacity"`
+	Capacity                   *int               `json:"capacity"`
 }
 
 func structJSONFields(s interface{}) (fields []string) {
@@ -185,16 +185,16 @@ const (
 type AppointmentParticipation struct {
 	ID                    int                   `json:"id"`
 	AppointmentInstance   int                   `json:"appointmentInstance"`
-	StudentInDepartment   int                   `json:"studentInDepartment"`
-	IsOptional            bool                  `json:"optional"`
-	IsStudentEnrolled     bool                  `json:"studentEnrolled"`
+	StudentInDepartment   *int                  `json:"studentInDepartment"`
+	IsOptional            *bool                 `json:"optional"`
+	IsStudentEnrolled     *bool                 `json:"studentEnrolled"`
 	Content               string                `json:"content"`
-	IsOnline              bool                  `json:"online"`
-	IsAttendancePlanned   bool                  `json:"plannedAttendance"`
-	Capacity              int                   `json:"capacity"`
+	IsOnline              *bool                 `json:"online"`
+	IsAttendancePlanned   *bool                 `json:"plannedAttendance"`
+	Capacity              *int                  `json:"capacity"`
 	AllowedStudentActions AllowedStudentActions `json:"allowedStudentActions"`
 	StudentCode           string                `json:"studentCode"`
-	AvailableSpace        int                   `json:"availableSpace"`
+	AvailableSpace        *int                  `json:"availableSpace"`
 	Groups                []string              `json:"groups"`
 	AttendanceType        AttendanceType        `json:"attendanceType"`
 }
