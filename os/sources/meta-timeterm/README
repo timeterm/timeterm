@@ -8,6 +8,7 @@ Dependencies
   . meta-qt5
   . meta-boot2qt
   . meta-poky
+  . meta-oe
 
 Patches
 =======
