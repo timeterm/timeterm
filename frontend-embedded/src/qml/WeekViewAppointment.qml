@@ -137,11 +137,10 @@ Rectangle {
     }
 
     TapHandler {
-        enabled: appointment.isOptional
+        enabled: appointment.isOptional && !popup.opened
         onTapped: function() {
             popup.appointment = appointment
             popup.open()
-            console.log("TapHandler tapped")
         }
     }
 }

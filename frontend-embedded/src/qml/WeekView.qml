@@ -22,6 +22,16 @@ Page {
     }
 
     function setTimetable(timetable) {
+        weekAppointments.startFirstAppointment = null
+        weekAppointments.endLastAppointment = null
+        weekAppointments.contentHeight = 0
+
+        for (var childCount = weekAppointments.contentItem.children.length; childCount > 0; childCount--) {
+            if (weekAppointments.contentItem.children[childCount-1] instanceof WeekViewAppointment) {
+                weekAppointments.contentItem.children[childCount-1].destroy()
+            }
+        }
+
         if (!startOfWeek || !endOfWeek) {
             startOfWeek = new Date().startOfWeek()
             endOfWeek = new Date().endOfWeek()
@@ -75,6 +85,12 @@ Page {
     }
 
     function fillWeekTimeLine() {
+        for (var childCount = weekTimeLine.children.length; childCount > 0; childCount--) {
+            if (weekTimeLine.children[childCount-1] instanceof TimeLineItem) {
+                weekTimeLine.children[childCount-1].destroy()
+            }
+        }
+
         let currentLineTime = new Date()
         currentLineTime.setTime(weekAppointments.startFirstAppointment)
 

@@ -236,7 +236,10 @@ Page {
 
         text: "<font color=\"#424242\">Log uit</font>"
 
-        onClicked: stackView.pop()
+        onClicked: {
+            stackView.pop()
+            internals.setApiClientCardUid("")
+        }
     }
 
     StackLayout {
@@ -262,5 +265,10 @@ Page {
 
     ChoosableAppointmentView {
         id: popup
+    }
+
+    StackView.onRemoved: {
+        popup.close()
+        popup.destroy()
     }
 }

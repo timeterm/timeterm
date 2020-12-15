@@ -27,11 +27,14 @@ ApplicationWindow {
         id: internals
 
         onCardRead: function (uid) {
-            stackView.push("Router.qml", {"id": "routerView"})
+            if (internals.getApiClientCardUid() === "") {
+                internals.setApiClientCardUid(uid)
+                logoutTimer.restart()
 
-            const startOfWeek = new Date().startOfWeek()
-            const endOfWeek = new Date().endOfWeek()
-            internals.getAppointments(startOfWeek, endOfWeek)
+                const startOfWeek = new Date().startOfWeek()
+                const endOfWeek = new Date().endOfWeek()
+                internals.getAppointments(startOfWeek, endOfWeek)
+            }
         }
 
         onTimetableReceived: function (timetable) {
@@ -40,12 +43,39 @@ ApplicationWindow {
             if (routerItem) {
                 routerItem.redirectTimetable(timetable)
             } else {
-                console.log("No routerItem available")
+                stackView.push("Router.qml", {"id": "routerView"})
+                internals.timetableReceived(timetable)
             }
+        }
+
+        onChoiceUpdateSucceeded: function () {
+            const startOfWeek = new Date().startOfWeek()
+            const endOfWeek = new Date().endOfWeek()
+            internals.getAppointments(startOfWeek, endOfWeek)
         }
 
         onNetworkStateChanged: function (state) {
             header.networkStateChanged(state)
+        }
+    }
+
+    // Use this to check if there was some action
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        onPressed: {
+            logoutTimer.restart()
+            mouse.accepted = false
+        }
+    }
+
+    Timer {
+        id: logoutTimer
+        interval: 1000 * 10 // 10 seconds
+        running: false
+        onTriggered: {
+            stackView.pop(null) // logout
+            internals.setApiClientCardUid("")
         }
     }
 }

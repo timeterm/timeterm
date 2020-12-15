@@ -123,31 +123,41 @@ Popup {
             property bool isHeader: typeof index === 'undefined'
 
             Rectangle {
+                id: appointmentData
                 anchors.fill: parent
                 anchors.margins: choosableAppointmentView.height * 0.02
                 radius: 5
-                color: setBackgroundColor()
+
+                Component.onCompleted: setBackgroundColor()
+
+                Connections {
+                    target: choosableAppointmentView
+                    function onEnrollIntoParticipationIdChanged() {
+                        appointmentData.setBackgroundColor()
+                    }
+                }
 
                 function setBackgroundColor() {
                     if (isHeader) {
                         if (appointment.isStudentEnrolled) {
-                            return "#c4ffab"
+                            color = "#c4ffab"
                         } else if (appointment.availableSpace <= 0) {
-                            return "#ffabab"
+                            color = "#ffabab"
                         }
-                    } /*else if (enrollIntoParticipationId === modelData.participationId) {
-                        return "#d6e6ff"
-                    }*/ else if (modelData.availableSpace <= 0) {
-                        return "#ffabab"
+                    } else if (enrollIntoParticipationId === modelData.participationId) {
+                        color = "#d6e6ff"
+                    } else if (modelData.availableSpace <= 0) {
+                        color = "#ffabab"
+                    } else {
+                        color = "#e5e5e5"
                     }
-                    return "#e5e5e5"
                 }
 
                 function selectThisAppointment() {
                     if (!isHeader) {
                         enrollIntoParticipationId = modelData.participationId
                         enrollIntoParticipationAllowedActions = modelData.allowedStudentActions
-                        color = "#d6e6ff"
+                        //color = "#d6e6ff"
                     }
                 }
 
@@ -163,8 +173,8 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
+                        enabled: parent.truncated
                         onPressedChanged: parent.isPressed = pressed
-                        gesturePolicy: TapHandler.WithinBounds
                     }
 
                     TapToolTip {
@@ -185,7 +195,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
-                        gesturePolicy: TapHandler.WithinBounds
+                        enabled: parent.truncated
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -211,7 +221,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
-                        gesturePolicy: TapHandler.WithinBounds
+                        enabled: parent.truncated
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -246,7 +256,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
-                        gesturePolicy: TapHandler.WithinBounds
+                        enabled: parent.truncated
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -356,5 +366,22 @@ Popup {
 
     exit: Transition {
         NumberAnimation { property: "opacity"; from: 1.0; to: 0.0 }
+    }
+
+    Connections {
+        target: internals
+        function onChoiceUpdateSucceeded() {
+            close()
+        }
+    }
+
+    // Use this to check if there was some action
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        onPressed: {
+            logoutTimer.restart()
+            mouse.accepted = false
+        }
     }
 }

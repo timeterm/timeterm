@@ -12,6 +12,7 @@ Item {
 
     signal cardRead(string uid)
     signal timetableReceived(var timetable)
+    signal choiceUpdateSucceeded
     signal networkStateChanged(var networkState)
 
     function getAppointments(start, end) {
@@ -22,11 +23,18 @@ Item {
         apiClient.updateChoice(unenrollFromParticipationId, enrollIntoParticipationId)
     }
 
+    function getApiClientCardUid() {
+        return apiClient.cardId
+    }
+
+    function setApiClientCardUid(uid) {
+        apiClient.cardId = uid
+    }
+
     Connections {
         target: CardReaderController
 
         function onCardRead(uid) {
-            apiClient.cardId = uid
             internalsItem.cardRead(uid)
         }
     }
@@ -58,6 +66,10 @@ Item {
 
         onTimetableReceived: function (timetable) {
             internalsItem.timetableReceived(timetable)
+        }
+
+        onChoiceUpdateSucceeded: function () {
+            internalsItem.choiceUpdateSucceeded()
         }
 
         onNewNetworkingServices: function (services) {
