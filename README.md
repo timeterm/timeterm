@@ -8,7 +8,7 @@ Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zi
 
 ## Opleverdatum
 
-Het project wordt woensdag 16 december 2020 opgeleverd voor BM3a (beoordeelingsmoment 3a).
+Het project wordt woensdag 16 december 2020 opgeleverd voor BM3a (beoordelingsmoment 3a).
 
 Een (poster)presentatie staat gepland voor 12 februari 2020.
 
