@@ -2,9 +2,7 @@
 #include "createdevice.h"
 
 #include <optional>
-#include <utility>
 
-#include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QNetworkReply>
@@ -62,9 +60,14 @@ void ApiClient::getAppointments(const QDateTime &start, const QDateTime &end)
     setAuthHeaders(req);
 
     auto reply = m_qnam->get(req);
-    connectReply(reply, [this](QNetworkReply *reply) {
-        return handleGetAppointmentsReply(reply);
-    });
+    connectReply(
+        reply,
+        [this](QNetworkReply *reply) {
+            return handleGetAppointmentsReply(reply);
+        },
+        [this](QNetworkReply::NetworkError error, QNetworkReply *reply) {
+            return handleGetAppointmentsFailure(error, reply);
+        });
 }
 
 void ApiClient::getCurrentUser()
@@ -78,9 +81,9 @@ void ApiClient::getCurrentUser()
     });
 }
 
-void ApiClient::connectReply(QNetworkReply *reply, ReplyHandler handler)
+void ApiClient::connectReply(QNetworkReply *reply, const ReplyHandler &rh, const ErrorHandler &eh)
 {
-    m_handlers[reply] = std::move(handler);
+    m_replyHandlers[reply] = {rh, eh};
 
     reply->setParent(this);
     connect(reply, &QNetworkReply::finished, this, &ApiClient::replyFinished);
@@ -98,11 +101,11 @@ void ApiClient::replyFinished()
 {
     auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
 
-    auto handler = m_handlers[reply];
-    if (handler != nullptr) {
-        handler(reply);
-        m_handlers.remove(reply);
+    auto [rh, _] = m_replyHandlers[reply];
+    if (rh) {
+        rh(reply);
     }
+    m_replyHandlers.remove(reply);
 
     reply->deleteLater();
 }
@@ -158,10 +161,8 @@ void ApiClient::handleGetAppointmentsReply(QNetworkReply *reply)
     emit timetableReceived(appointments.value());
 }
 
-void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
+void ApiClient::defaultErrorHandler(QNetworkReply::NetworkError error, QNetworkReply *reply)
 {
-    auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
-
     auto jsonBytes = reply->readAll();
     auto parseError = QJsonParseError();
     auto jsonDoc = QJsonDocument::fromJson(jsonBytes, &parseError);
@@ -173,8 +174,17 @@ void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
     } else {
         qDebug() << "An error occurred with status code" << error << "in a network request to" << reply->request().url().toString();
     }
+}
 
-    m_handlers.remove(reply);
+void ApiClient::handleReplyError(QNetworkReply::NetworkError error)
+{
+    auto reply = qobject_cast<QNetworkReply *>(QObject::sender());
+
+    auto [_, eh] = m_replyHandlers[reply];
+    if (eh) {
+        eh(error, reply);
+    }
+    m_replyHandlers.remove(reply);
 
     reply->deleteLater();
 }
@@ -265,9 +275,14 @@ void ApiClient::updateChoice(const QVariant &unenrollFromParticipationId, const 
 
     auto data = QByteArray();
     auto reply = m_qnam->post(req, data);
-    connectReply(reply, [this](QNetworkReply *reply) {
-        return handleChoiceUpdateReply(reply);
-    });
+    connectReply(
+        reply,
+        [this](QNetworkReply *reply) {
+            return handleChoiceUpdateReply(reply);
+        },
+        [this](QNetworkReply::NetworkError error, QNetworkReply *reply) {
+            return handleChoiceUpdateFailure(error, reply);
+        });
 }
 
 void ApiClient::handleChoiceUpdateReply(QNetworkReply *)
@@ -296,6 +311,18 @@ void ApiClient::handleNewNetworkingServices(QNetworkReply *reply)
     services.append(*rsp);
 
     emit newNetworkingServices(services);
+}
+
+void ApiClient::handleChoiceUpdateFailure(QNetworkReply::NetworkError error, QNetworkReply *reply)
+{
+    defaultErrorHandler(error, reply);
+    emit choiceUpdateFailed();
+}
+
+void ApiClient::handleGetAppointmentsFailure(QNetworkReply::NetworkError error, QNetworkReply *reply)
+{
+    defaultErrorHandler(error, reply);
+    emit timetableRequestFailed();
 }
 
 void ApiError::read(const QJsonObject &obj)

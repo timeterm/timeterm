@@ -1,11 +1,16 @@
 # Timeterm
 
 Timeterm is een embedded roostersysteem voor scholen, wat op het moment alleen streeft Zermelo aan te spreken.
-Het is een PWS-project wat nog in ontwikkeling is, het is nog niet klaar.
 
 Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zie de verschillende mappen voor de verschillende licenties die gebruikt zijn. De root van de repository valt onder Apache 2.
 
 © 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
+
+## Opleverdatum
+
+Het project wordt woensdag 16 december 2020 opgeleverd voor BM3a (beoordeelingsmoment 3a).
+
+Een (poster)presentatie staat gepland voor 12 februari 2020.
 
 ## Projectstructuur
 

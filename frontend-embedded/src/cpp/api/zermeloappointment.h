@@ -25,6 +25,7 @@ class ZermeloAppointment
     Q_PROPERTY(bool isStudentEnrolled WRITE setIsStudentEnrolled READ isStudentEnrolled)
     Q_PROPERTY(bool isCanceled WRITE setIsCanceled READ isCanceled)
     Q_PROPERTY(QString content WRITE setContent READ content)
+    Q_PROPERTY(QString allowedStudentActions WRITE setAllowedStudentActions READ allowedStudentActions)
     Q_PROPERTY(QList<ZermeloAppointment> alternatives READ alternatives)
 
 public:
@@ -64,6 +65,8 @@ public:
     [[nodiscard]] bool isCanceled() const;
     void setContent(const QString &content);
     [[nodiscard]] QString content() const;
+    void setAllowedStudentActions(const QString &allowedStudentActions);
+    [[nodiscard]] QString allowedStudentActions();
     void appendAlternative(const ZermeloAppointment &appointment);
     QList<ZermeloAppointment> alternatives();
 
@@ -91,6 +94,7 @@ private:
     bool m_isStudentEnrolled = false;
     bool m_isCanceled = false;
     QString m_content;
+    QString m_allowedStudentActions;
     QList<ZermeloAppointment> m_alternatives;
 };
 

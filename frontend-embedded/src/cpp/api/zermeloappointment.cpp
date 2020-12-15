@@ -346,3 +346,14 @@ QString ZermeloAppointment::content() const
 {
     return m_content;
 }
+
+void ZermeloAppointment::setAllowedStudentActions(const QString &allowedStudentActions)
+{
+    if (m_allowedStudentActions != allowedStudentActions)
+        m_allowedStudentActions = allowedStudentActions;
+}
+
+QString ZermeloAppointment::allowedStudentActions()
+{
+    return m_allowedStudentActions;
+}

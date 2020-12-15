@@ -19,6 +19,7 @@ class ApiClient: public QObject
     Q_PROPERTY(QString apiKey WRITE setApiKey READ apiKey NOTIFY apiKeyChanged)
 
     using ReplyHandler = std::function<void(QNetworkReply *)>;
+    using ErrorHandler = std::function<void(QNetworkReply::NetworkError error, QNetworkReply *reply)>;
 
 public:
     explicit ApiClient(QObject *parent = nullptr);
@@ -42,10 +43,12 @@ signals:
     void apiKeyChanged();
     void currentUserReceived(TimetermUser);
     void timetableReceived(ZermeloAppointments);
+    void timetableRequestFailed();
     void deviceCreated(CreateDeviceResponse);
     void natsCredsReceived(NatsCredsResponse);
     void heartbeatSucceeded();
     void choiceUpdateSucceeded();
+    void choiceUpdateFailed();
     void newNetworkingServices(NetworkingServicesResponse);
 
 private slots:
@@ -53,7 +56,8 @@ private slots:
     void handleReplyError(QNetworkReply::NetworkError error);
 
 private:
-    void connectReply(QNetworkReply *reply, ReplyHandler handler);
+    static void defaultErrorHandler(QNetworkReply::NetworkError error, QNetworkReply *reply);
+    void connectReply(QNetworkReply *reply, const ReplyHandler &rh, const ErrorHandler &eh = defaultErrorHandler);
     void handleGetCurrentUserReply(QNetworkReply *reply);
     void handleGetAppointmentsReply(QNetworkReply *reply);
     void handleCreateDeviceReply(QNetworkReply *reply);
@@ -67,7 +71,9 @@ private:
     QString m_cardId;
     QString m_apiKey;
     QNetworkAccessManager *m_qnam;
-    QHash<QNetworkReply *, ReplyHandler> m_handlers;
+    QHash<QNetworkReply *, QPair<ReplyHandler, ErrorHandler>> m_replyHandlers;
+    void handleChoiceUpdateFailure(QNetworkReply::NetworkError Error, QNetworkReply *PReply);
+    void handleGetAppointmentsFailure(QNetworkReply::NetworkError Error, QNetworkReply *PReply);
 };
 
 class ApiError
