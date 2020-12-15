@@ -2,6 +2,7 @@
 
 #include <QDateTime>
 #include <QObject>
+#include <QVariant>
 
 class ZermeloAppointment
 {
@@ -11,8 +12,8 @@ class ZermeloAppointment
     Q_PROPERTY(qint64 appointmentInstance WRITE setAppointmentInstance READ appointmentInstance)
     Q_PROPERTY(QString startTimeSlotName WRITE setStartTimeSlotName READ startTimeSlotName)
     Q_PROPERTY(QString endTimeSlotName WRITE setEndTimeSlotName READ endTimeSlotName)
-    Q_PROPERTY(qint32 capacity WRITE setCapacity READ capacity)
-    Q_PROPERTY(qint32 availableSpace WRITE setAvailableSpace READ availableSpace)
+    Q_PROPERTY(QVariant capacity WRITE setCapacity READ capacity)
+    Q_PROPERTY(QVariant availableSpace WRITE setAvailableSpace READ availableSpace)
     Q_PROPERTY(QDateTime startTime WRITE setStartTime READ startTime)
     Q_PROPERTY(QDateTime endTime WRITE setEndTime READ endTime)
     Q_PROPERTY(QStringList subjects WRITE setSubjects READ subjects)
@@ -33,14 +34,14 @@ public:
     [[nodiscard]] qint64 participationId() const;
     void setAppointmentInstance(qint64 appointmentInstance);
     [[nodiscard]] qint64 appointmentInstance() const;
-    void setStartTimeSlotName(const QString& startTimeSlotName);
+    void setStartTimeSlotName(const QString &startTimeSlotName);
     [[nodiscard]] QString startTimeSlotName() const;
-    void setEndTimeSlotName(const QString& endTimeSlotName);
+    void setEndTimeSlotName(const QString &endTimeSlotName);
     [[nodiscard]] QString endTimeSlotName() const;
-    void setCapacity(qint32 capacity);
-    [[nodiscard]] qint32 capacity() const;
-    void setAvailableSpace(qint32 availableSpace);
-    [[nodiscard]] qint32 availableSpace() const;
+    void setCapacity(const QVariant &capacity);
+    [[nodiscard]] QVariant capacity() const;
+    void setAvailableSpace(const QVariant &availableSpace);
+    [[nodiscard]] QVariant availableSpace() const;
     void setStartTime(const QDateTime &startTime);
     [[nodiscard]] QDateTime startTime() const;
     void setEndTime(const QDateTime &endTime);
@@ -77,8 +78,8 @@ private:
     qint64 m_appointmentInstance = 0;
     QString m_startTimeSlotName;
     QString m_endTimeSlotName;
-    qint32 m_capacity = 0;
-    qint32 m_availableSpace = 0;
+    QVariant m_capacity{QVariant::Int};
+    QVariant m_availableSpace{QVariant::Int};
     QDateTime m_startTime;
     QDateTime m_endTime;
     QStringList m_subjects;

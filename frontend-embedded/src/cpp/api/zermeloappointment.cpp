@@ -36,7 +36,7 @@ qint64 ZermeloAppointment::appointmentInstance() const
     return m_appointmentInstance;
 }
 
-void ZermeloAppointment::setStartTimeSlotName(const QString& startTimeSlotName)
+void ZermeloAppointment::setStartTimeSlotName(const QString &startTimeSlotName)
 {
     if (startTimeSlotName != m_startTimeSlotName)
         m_startTimeSlotName = startTimeSlotName;
@@ -47,7 +47,7 @@ QString ZermeloAppointment::startTimeSlotName() const
     return m_startTimeSlotName;
 }
 
-void ZermeloAppointment::setEndTimeSlotName(const QString& endTimeSlotName)
+void ZermeloAppointment::setEndTimeSlotName(const QString &endTimeSlotName)
 {
     if (endTimeSlotName != m_endTimeSlotName)
         m_endTimeSlotName = endTimeSlotName;
@@ -58,24 +58,38 @@ QString ZermeloAppointment::endTimeSlotName() const
     return m_endTimeSlotName;
 }
 
-void ZermeloAppointment::setCapacity(qint32 capacity)
+void ZermeloAppointment::setCapacity(const QVariant &capacity)
 {
-    if (capacity != m_capacity)
+    if (capacity != m_capacity) {
+        if (!capacity.isNull()) {
+            if (!capacity.canConvert<int>()) {
+                qWarning() << "Failed attempt to set appointment capacity with non-int and non-null value";
+                return;
+            }
+        }
         m_capacity = capacity;
+    }
 }
 
-qint32 ZermeloAppointment::capacity() const
+QVariant ZermeloAppointment::capacity() const
 {
     return m_capacity;
 }
 
-void ZermeloAppointment::setAvailableSpace(qint32 availableSpace)
+void ZermeloAppointment::setAvailableSpace(const QVariant &availableSpace)
 {
-    if (availableSpace != m_availableSpace)
+    if (availableSpace != m_availableSpace) {
+        if (!availableSpace.isNull()) {
+            if (!availableSpace.canConvert<int>()) {
+                qWarning() << "Failed attempt to set appointment availableSpace with non-int and non-null value";
+                return;
+            }
+        }
         m_availableSpace = availableSpace;
+    }
 }
 
-qint32 ZermeloAppointment::availableSpace() const
+QVariant ZermeloAppointment::availableSpace() const
 {
     return m_availableSpace;
 }
@@ -284,8 +298,8 @@ void ZermeloAppointment::write(QJsonObject &json) const
     json["appointmentInstance"] = m_appointmentInstance;
     json["startTimeSlotName"] = m_startTimeSlotName;
     json["endTimeSlotName"] = m_endTimeSlotName;
-    json["capacity"] = m_capacity;
-    json["availableSpace"] = m_availableSpace;
+    json["capacity"] = m_capacity.toJsonValue();
+    json["availableSpace"] = m_availableSpace.toJsonValue();
     json["startTime"] = m_startTime.toString();
     json["endTime"] = m_endTime.toString();
     json["subjects"] = stringListAsQJsonArray(m_subjects);
