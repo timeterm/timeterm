@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
@@ -340,7 +341,7 @@ func (a *CombinedAppointment) ToAPI() *ZermeloAppointment {
 		Content:               a.Participation.Content,
 		AvailableSpace:        a.Participation.AvailableSpace,
 		Capacity:              a.Appointment.Capacity,
-		AllowedStudentActions: a.Participation.AllowedStudentActions,
+		AllowedStudentActions: strings.Title(string(a.Participation.AllowedStudentActions)),
 	}
 }
 

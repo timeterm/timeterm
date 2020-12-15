@@ -10,7 +10,6 @@ import (
 	devcfgpb "gitlab.com/timeterm/timeterm/proto/go/devcfg"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
-	"gitlab.com/timeterm/timeterm/backend/integration/zermelo"
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
@@ -36,22 +35,17 @@ type StudentZermeloInfo struct {
 }
 
 type PrimaryDeviceStatus string
-type SecondaryDeviceStatus string
 
 const (
 	PrimaryDeviceStatusOnline  = "Online"
 	PrimaryDeviceStatusOffline = "Offline"
-
-	SecondaryDeviceStatusNotActivated = "NotActivated"
-	SecondaryDeviceStatusOK           = "Ok"
 )
 
 type Device struct {
-	ID              uuid.UUID             `json:"id"`
-	OrganizationID  uuid.UUID             `json:"organizationId"`
-	Name            string                `json:"name"`
-	PrimaryStatus   PrimaryDeviceStatus   `json:"primaryStatus"`
-	SecondaryStatus SecondaryDeviceStatus `json:"secondaryStatus"`
+	ID             uuid.UUID           `json:"id"`
+	OrganizationID uuid.UUID           `json:"organizationId"`
+	Name           string              `json:"name"`
+	PrimaryStatus  PrimaryDeviceStatus `json:"primaryStatus"`
 }
 
 type User struct {
@@ -793,26 +787,26 @@ type paginationParams struct {
 }
 
 type ZermeloAppointment struct {
-	ID                    int                           `json:"id"`
-	ParticipationID       int                           `json:"participationId"`
-	AppointmentInstance   int                           `json:"appointmentInstance"`
-	IsOnline              *bool                         `json:"isOnline"`
-	IsOptional            *bool                         `json:"isOptional"`
-	IsStudentEnrolled     *bool                         `json:"isStudentEnrolled"`
-	IsCanceled            *bool                         `json:"isCanceled"`
-	StartTimeSlotName     string                        `json:"startTimeSlotName"`
-	EndTimeSlotName       string                        `json:"endTimeSlotName"`
-	Subjects              []string                      `json:"subjects"`
-	Groups                []string                      `json:"groups"`
-	Locations             []string                      `json:"locations"`
-	Teachers              []string                      `json:"teachers"`
-	StartTime             jsontypes.UnixTime            `json:"startTime"`
-	EndTime               jsontypes.UnixTime            `json:"endTime"`
-	Content               string                        `json:"content"`
-	AvailableSpace        *int                          `json:"availableSpace"`
-	Capacity              *int                          `json:"capacity"`
-	Alternatives          []*ZermeloAppointment         `json:"alternatives"`
-	AllowedStudentActions zermelo.AllowedStudentActions `json:"allowedStudentActions"`
+	ID                    int                   `json:"id"`
+	ParticipationID       int                   `json:"participationId"`
+	AppointmentInstance   int                   `json:"appointmentInstance"`
+	IsOnline              *bool                 `json:"isOnline"`
+	IsOptional            *bool                 `json:"isOptional"`
+	IsStudentEnrolled     *bool                 `json:"isStudentEnrolled"`
+	IsCanceled            *bool                 `json:"isCanceled"`
+	StartTimeSlotName     string                `json:"startTimeSlotName"`
+	EndTimeSlotName       string                `json:"endTimeSlotName"`
+	Subjects              []string              `json:"subjects"`
+	Groups                []string              `json:"groups"`
+	Locations             []string              `json:"locations"`
+	Teachers              []string              `json:"teachers"`
+	StartTime             jsontypes.UnixTime    `json:"startTime"`
+	EndTime               jsontypes.UnixTime    `json:"endTime"`
+	Content               string                `json:"content"`
+	AvailableSpace        *int                  `json:"availableSpace"`
+	Capacity              *int                  `json:"capacity"`
+	Alternatives          []*ZermeloAppointment `json:"alternatives"`
+	AllowedStudentActions string                `json:"allowedStudentActions"`
 }
 
 type ZermeloAppointmentsResponse struct {
