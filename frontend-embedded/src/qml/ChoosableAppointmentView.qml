@@ -164,6 +164,7 @@ Popup {
 
                     TapHandler {
                         onPressedChanged: parent.isPressed = pressed
+                        gesturePolicy: TapHandler.WithinBounds
                     }
 
                     TapToolTip {
@@ -184,6 +185,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
+                        gesturePolicy: TapHandler.WithinBounds
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -209,6 +211,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
+                        gesturePolicy: TapHandler.WithinBounds
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -243,6 +246,7 @@ Popup {
                     property bool isPressed: false
 
                     TapHandler {
+                        gesturePolicy: TapHandler.WithinBounds
                         onPressedChanged: parent.isPressed = pressed
                     }
 
@@ -276,6 +280,7 @@ Popup {
                 }
 
                 TapHandler {
+                    gesturePolicy: TapHandler.WithinBounds
                     onTapped: parent.selectThisAppointment()
                 }
             }
