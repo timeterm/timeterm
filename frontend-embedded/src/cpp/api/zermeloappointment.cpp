@@ -270,6 +270,9 @@ void ZermeloAppointment::read(const QJsonObject &json)
     if (json.contains("content") && json["content"].isString())
         m_content = json["content"].toString();
 
+    if (json.contains("allowedStudentActions") && json["allowedStudentActions"].isString())
+        m_allowedStudentActions = json["allowedStudentActions"].toString();
+
     if (json.contains("alternatives") && json["alternatives"].isArray()) {
         auto alternatives = json["alternatives"].toArray();
         for (const auto &alternativeJson : alternatives) {
@@ -310,6 +313,7 @@ void ZermeloAppointment::write(QJsonObject &json) const
     json["isStudentEnrolled"] = m_isStudentEnrolled;
     json["isCanceled"] = m_isCanceled;
     json["content"] = m_content;
+    json["allowedStudentActions"] = m_allowedStudentActions;
 
     QJsonArray alternatives;
     for (const auto &alternative : m_alternatives) {
