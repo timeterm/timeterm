@@ -27,7 +27,7 @@ func TestWrapper_GetDevice(t *testing.T) {
 	org, err := f.dbw.CreateOrganization(context.Background(), "test", "example")
 	require.NoError(t, err)
 
-	want, err := f.dbw.CreateDevice(context.Background(), org.ID, "example device", DeviceStatusOnline)
+	want, _, err := f.dbw.CreateDevice(context.Background(), org.ID, "example device")
 	require.NoError(t, err)
 
 	got, err := f.dbw.GetDevice(context.Background(), want.ID)
@@ -42,7 +42,9 @@ func TestWrapper_GetStudent(t *testing.T) {
 	org, err := f.dbw.CreateOrganization(context.Background(), "test", "example")
 	require.NoError(t, err)
 
-	want, err := f.dbw.CreateStudent(context.Background(), org.ID)
+	want, err := f.dbw.CreateStudent(context.Background(), Student{
+		OrganizationID: org.ID,
+	})
 	require.NoError(t, err)
 
 	got, err := f.dbw.GetStudent(context.Background(), want.ID)

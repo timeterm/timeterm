@@ -29,7 +29,7 @@ func TestWrapper_DeleteDevice(t *testing.T) {
 	org, err := f.dbw.CreateOrganization(context.Background(), "test", "example")
 	require.NoError(t, err)
 
-	dev, err := f.dbw.CreateDevice(context.Background(), org.ID, "test", DeviceStatusOnline)
+	dev, _, err := f.dbw.CreateDevice(context.Background(), org.ID, "test")
 	require.NoError(t, err)
 
 	err = f.dbw.DeleteDevice(context.Background(), dev.ID)
@@ -46,7 +46,9 @@ func TestWrapper_DeleteStudent(t *testing.T) {
 	org, err := f.dbw.CreateOrganization(context.Background(), "test", "example")
 	require.NoError(t, err)
 
-	student, err := f.dbw.CreateStudent(context.Background(), org.ID)
+	student, err := f.dbw.CreateStudent(context.Background(), Student{
+		OrganizationID: org.ID,
+	})
 	require.NoError(t, err)
 
 	err = f.dbw.DeleteStudent(context.Background(), student.ID)

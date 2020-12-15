@@ -37,11 +37,10 @@ func TestWrapper_ReplaceDevice(t *testing.T) {
 	org2, err := f.dbw.CreateOrganization(context.Background(), "org2", "institution2")
 	require.NoError(t, err)
 
-	dev, err := f.dbw.CreateDevice(context.Background(), org1.ID, "dev1", DeviceStatusOnline)
+	dev, _, err := f.dbw.CreateDevice(context.Background(), org1.ID, "dev1")
 	require.NoError(t, err)
 
 	dev.Name = "test"
-	dev.Status = DeviceStatusOffline
 	dev.OrganizationID = org2.ID
 
 	err = f.dbw.ReplaceDevice(context.Background(), dev)
