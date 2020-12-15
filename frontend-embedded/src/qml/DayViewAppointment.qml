@@ -126,6 +126,13 @@ Rectangle {
         }
     }
 
+    Text {
+        visible: appointment.participationId === 0
+        anchors.centerIn: parent
+        font.pixelSize: dayPage.textSize
+        text: "Inschrijven"
+    }
+
     TapHandler {
         enabled: appointment.isOptional
         onTapped: function() {

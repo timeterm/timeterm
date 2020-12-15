@@ -10,6 +10,7 @@ Popup {
 
     padding: 0
     modal: true
+    focus: true
 
     background: Rectangle {
         border.color: "#399cf8"
@@ -27,11 +28,19 @@ Popup {
     onAppointmentChanged: function() {
         appointmentName.text = appointment.startTime.toLocaleString(Qt.locale("nl_NL"), "dddd") + " " + appointment.startTimeSlotName + "e"
         appointmentTime.text = appointment.startTime.toLocaleString(Qt.locale("nl_NL"), "h:mm") + "-" + appointment.endTime.toLocaleString(Qt.locale("nl_NL"), "h:mm")
-        grid.header = choosableAppointment
+
+        if (appointment.participationId === 0) {
+            grid.header = null
+        } else {
+            grid.header = choosableAppointment
+        }
+
         grid.model = appointment.alternatives
+
         enrollIntoParticipationAllowedActions = null
         enrollIntoParticipationId = null
         unenrollFromParticipationId = null
+
         if (appointment.isStudentEnrolled) {
             subscribe.visible = false
             change.visible = true
@@ -126,7 +135,7 @@ Popup {
                         } else if (appointment.availableSpace <= 0) {
                             return "#ffabab"
                         }
-                    } /*else if (enrollIntoParticipationId === modelData.availableSpace) {
+                    } /*else if (enrollIntoParticipationId === modelData.participationId) {
                         return "#d6e6ff"
                     }*/ else if (modelData.availableSpace <= 0) {
                         return "#ffabab"
@@ -135,14 +144,11 @@ Popup {
                 }
 
                 function selectThisAppointment() {
-                    if (isHeader) {
-                        enrollIntoParticipationId = appointment.participationId
-                        enrollIntoParticipationAllowedActions = appointment.allowedStudentActions
-                    } else {
+                    if (!isHeader) {
                         enrollIntoParticipationId = modelData.participationId
                         enrollIntoParticipationAllowedActions = modelData.allowedStudentActions
+                        color = "#d6e6ff"
                     }
-                    color = "#d6e6ff"
                 }
 
                 Text {

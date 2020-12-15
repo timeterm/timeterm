@@ -129,11 +129,19 @@ Rectangle {
         }
     }
 
+    Text {
+        visible: appointment.participationId === 0
+        anchors.centerIn: parent
+        font.pixelSize: weekPage.textSize * 0.7
+        text: "Inschrijven"
+    }
+
     TapHandler {
         enabled: appointment.isOptional
         onTapped: function() {
             popup.appointment = appointment
             popup.open()
+            console.log("TapHandler tapped")
         }
     }
 }
