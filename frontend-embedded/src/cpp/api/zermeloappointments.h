@@ -10,7 +10,7 @@ class ZermeloAppointments
     Q_PROPERTY(QList<ZermeloAppointment> data READ data)
 
 public:
-    void append(const ZermeloAppointment& appointment);
+    void append(const ZermeloAppointment &appointment);
 
     QList<ZermeloAppointment> data();
 
