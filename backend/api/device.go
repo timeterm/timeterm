@@ -263,7 +263,6 @@ func (s *Server) patchDevice(c echo.Context) error {
 
 	newAPIDevice.ID = oldDBDevice.ID
 	newAPIDevice.PrimaryStatus = oldAPIDevice.PrimaryStatus
-	newAPIDevice.SecondaryStatus = oldAPIDevice.SecondaryStatus
 	newAPIDevice.OrganizationID = oldDBDevice.OrganizationID
 
 	newDBDevice := DeviceToDB(newAPIDevice)
