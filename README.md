@@ -6,9 +6,10 @@ Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zi
 
 © 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
 
-## Opleverdatum
+## Oplevering
 
-Het project wordt woensdag 16 december 2020 opgeleverd voor BM3a (beoordelingsmoment 3a).
+Het project is woensdag 16 december 2020 opgeleverd voor BM3a. Er is toen een tag met de naam 'bm3a' aangemaakt.
+Klik [hier](https://gitlab.com/timeterm/timeterm/-/tree/bm3a) om de broncode op dat moment in GitLab te bekijken.
 
 Een (poster)presentatie staat gepland voor 12 februari 2020.
 
