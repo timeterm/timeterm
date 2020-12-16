@@ -9,7 +9,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/../../../../../:"
 # frontend-embedded and proto are in the monorepo root
 SRC_URI = "file://frontend-embedded/ \
            file://proto/ \
-	   file://mfrc522"
+           file://mfrc522"
 
 S = "${WORKDIR}/frontend-embedded"
 
