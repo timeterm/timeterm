@@ -15,6 +15,8 @@ Leerlingen kunnen zowel handmatig als automatisch worden toegevoegd.
 2. Klik op `Toevoegen`.
     ![Leerling importeren](/new-student.png)
 3. Geef de zermelo-gebruiker een naam, bijvoorbeeld een leerlingcode.
+    Dit kan door op de naam te klikken. Wanneer naast het veld geklikt wordt, slaat Timeterm het op.
+    Voor wijzigingen geldt hetzelfde.
 4. Klik op `Toewijzen`, vul de pascode in en klik nogmaals op `Toewijzen`.
     ![Pascode toewijzen](/assign-student-passcode.png)
 5. Het overzicht ziet er nu als volgt uit:

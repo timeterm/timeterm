@@ -26,3 +26,5 @@ Hier staat gedocumenteerd hoe een apparaat gekoppeld kan worden.
 7. Zet het apparaat aan.
 8. Het apparaat stelt zichzelf nu verder in en verbindt vanzelf met het netwerk.
    U kunt het WiFi-icoontje in de gaten houden om te kijken of het apparaat al verbonden is.
+9. Het apparaat voegt zichzelf aan de database toe. De naam wijzigen kan door
+op het veld naam te klikken. De wijziging wordt opgeslagen als naast het veld geklikt wordt.
