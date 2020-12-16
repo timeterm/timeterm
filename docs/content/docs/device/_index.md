@@ -8,3 +8,4 @@ weight: 1
 # bookComments: true
 ---
 
+- [Koppelen]({{< relref "/docs/device/connect" >}})
