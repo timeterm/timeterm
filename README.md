@@ -1,5 +1,7 @@
 # Timeterm
 
+[![Pipeline Status](https://gitlab.com/timeterm/timeterm/badges/master/pipeline.svg)](https://gitlab.com/timeterm/timeterm/-/pipelines)
+
 Timeterm is een embedded roostersysteem voor scholen, wat op het moment alleen streeft Zermelo aan te spreken.
 
 Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zie de verschillende mappen voor de verschillende licenties die gebruikt zijn. De root van de repository valt onder Apache 2.
