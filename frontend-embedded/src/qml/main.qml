@@ -77,5 +77,6 @@ ApplicationWindow {
             stackView.pop(null) // logout
             internals.setApiClientCardUid("")
         }
+        //onRunningChanged: console.log("Timer running? " + running)
     }
 }
