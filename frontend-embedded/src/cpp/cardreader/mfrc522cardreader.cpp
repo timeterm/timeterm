@@ -8,6 +8,7 @@ Mfrc522CardReader::Mfrc522CardReader(QObject *parent)
     : CardReader(parent)
 {
     m_mfrcDev.pcdInit();
+    m_mfrcDev.pcdSetAntennaGain(0x07u << 4u);
 }
 
 void Mfrc522CardReader::start()
