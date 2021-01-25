@@ -176,6 +176,79 @@ Page {
             text: "<font color=\"#424242\">Week</font>"
         }
 
+        TabButton {
+            id: logsViewButton
+            width: menuBar.width * 0.75
+            height: width
+            anchors.left: parent.left
+            anchors.top: weekViewButton.bottom
+            anchors.topMargin: menuBar.width * 0.125
+
+            background: Rectangle {
+                id: thirdRect
+                color: "#E5E5E5"
+                radius: parent.width * 0.10
+
+                visible: false
+            }
+
+            DropShadow {
+                anchors.fill: thirdRect
+                transparentBorder: true
+                horizontalOffset: parent.width * 0.10
+                verticalOffset: parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#BEBEC0"
+                source: secondRect
+                visible: !logsViewButton.checked
+            }
+
+            DropShadow {
+                anchors.fill: thirdRect
+                transparentBorder: true
+                horizontalOffset: -parent.width * 0.10
+                verticalOffset: -parent.width * 0.10
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#FFFFFF"
+                source: thirdRect
+                visible: !logsViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: thirdRect
+                horizontalOffset: -parent.width * 0.033
+                verticalOffset: -parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#FFFFFF"
+                source: thirdRect
+                visible: logsViewButton.checked
+            }
+
+            InnerShadow {
+                anchors.fill: logsViewButton
+                horizontalOffset: parent.width * 0.033
+                verticalOffset: parent.width * 0.033
+                radius: parent.width * 0.20
+                samples: 32
+                color: "#BEBEC0"
+                source: logsViewButton
+                visible: logsViewButton.checked
+            }
+
+            icon.color: "#424242"
+            icon.width: width * (logsViewButton.checked ? 0.375 : 0.40)
+            icon.height: width * (logsViewButton.checked ? 0.375 : 0.40)
+            icon.source: "../../assets/icons/bug.svg"
+            display: AbstractButton.TextUnderIcon
+
+            font.pixelSize: height * (logsViewButton.checked ? 0.15 : 0.16)
+
+            text: "<font color=\"#424242\">Logs</font>"
+        }
+
         layer.enabled: true
         layer.effect: DropShadow {
             color: "#40000000"
@@ -262,6 +335,10 @@ Page {
             id: weekView
             startOfWeek: new Date().startOfWeek()
             endOfWeek: new Date().endOfWeek()
+        }
+
+        LogsView {
+            id: logsView
         }
     }
 

@@ -131,6 +131,11 @@ NetworkState NetworkManager::getNetworkState()
         qDebug() << "Is connected:" << state.isConnected;
         state.signalStrength = svc->wirelessConfig()->signalStrength();
         qDebug() << "Signal strength:" << state.signalStrength;
+
+        if (svc->ipv4() != nullptr && svc->ipv4()->address() != "")
+            state.ip = svc->ipv4()->address();
+        else if (svc->ipv6() != nullptr && svc->ipv6()->address() != "")
+            state.ip = svc->ipv6()->address();
     }
 
     svc = m_manager->currentWiredConnection();
@@ -142,6 +147,11 @@ NetworkState NetworkManager::getNetworkState()
             state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
             qDebug() << "Is connected:" << state.isConnected;
         }
+
+        if (svc->ipv4() != nullptr && svc->ipv4()->address() != "")
+            state.ip = svc->ipv4()->address();
+        else if (svc->ipv6() != nullptr && svc->ipv6()->address() != "")
+            state.ip = svc->ipv6()->address();
     }
     qDebug() << "Done getting network state";
 #else

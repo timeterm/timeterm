@@ -13,6 +13,7 @@ Item {
 
     function networkStateChanged(state) {
         wifi.setWiFiIcon(-100 + state.signalStrength, state.isOnline)
+        ip.text = state.ip
     }
 
     Rectangle {
@@ -44,6 +45,18 @@ Item {
                             Qt.locale("nl_NL"),
                             "d MMMM yyyy    h:mm:ss") // eg. 17 september 2020  13:08:22
             }
+        }
+
+        Label {
+            id: ip
+            anchors.right: wifi.left
+            anchors.rightMargin: parent.height * 0.5
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            color: textColor
+            fontSizeMode: Text.Fit
+            font.pixelSize: textSize
+            antialiasing: true
         }
 
         Image {

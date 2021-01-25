@@ -17,12 +17,12 @@ Page {
 
     Flickable {
         anchors.fill: parent
-        contentHeight: blabla.height
+        contentHeight: messageList.height
 
         Text {
             width: parent.width
 
-            id: blabla
+            id: messageList 
             font.family: "Fira Code"
             wrapMode: Text.Wrap
             text: LogManager.messages.join("\n")
@@ -33,7 +33,7 @@ Page {
         target: LogManager
 
         function onMessagesChanged() {
-            blabla.text = LogManager.messages.join("\n")
+            messageList.text = LogManager.messages.join("\n")
         }
     }
 }
