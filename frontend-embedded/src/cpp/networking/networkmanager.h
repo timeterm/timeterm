@@ -41,6 +41,7 @@ public slots:
     void start();
     void configLoaded();
     void retrieveNewNetworkState();
+    void activateInactiveNetworkingInterfaces();
 
 protected:
     void timerEvent(QTimerEvent *event) override;
@@ -67,6 +68,7 @@ signals:
     void onlineChanged(bool online);
     void retrieveNewNetworkState();
     void forwardConfigLoaded();
+    void activateInactiveNetworkingInterfaces();
 
 public slots:
     void configLoaded();
@@ -77,8 +79,6 @@ private slots:
     void networkStateRetrieved(NetworkState state);
 
 private:
-    void activateInactiveNetworkingInterfaces();
-
     bool m_configLoaded = false;
     std::optional<NetworkState> m_lastState = std::nullopt;
 

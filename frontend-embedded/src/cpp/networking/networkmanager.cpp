@@ -31,6 +31,7 @@ NetworkManager::NetworkManager(QObject *parent)
     connect(m_worker, &NetworkManagerWorker::networkStateRetrieved, this, &NetworkManager::networkStateRetrieved);
     connect(this, &NetworkManager::retrieveNewNetworkState, m_worker, &NetworkManagerWorker::retrieveNewNetworkState);
     connect(this, &NetworkManager::forwardConfigLoaded, m_worker, &NetworkManagerWorker::configLoaded);
+    connect(this, &NetworkManager::activateInactiveNetworkingInterfaces, m_worker, &NetworkManagerWorker::activateInactiveNetworkingInterfaces);
     m_workerThread->start();
 }
 
@@ -43,42 +44,14 @@ NetworkManager::~NetworkManager()
 void NetworkManager::configLoaded()
 {
     m_configLoaded = true;
-    activateInactiveNetworkingInterfaces();
+    emit activateInactiveNetworkingInterfaces();
     emit forwardConfigLoaded();
 }
 
 void NetworkManager::networkingInterfacesChanged()
 {
     if (m_configLoaded)
-        activateInactiveNetworkingInterfaces();
-}
-
-void NetworkManager::activateInactiveNetworkingInterfaces()
-{
-#ifdef TIMETERMOS
-    auto interfaces = m_manager->interfaces()->getModel();
-    qDebug() << "TtNetworkManager: found" << interfaces.size() << "interfaces";
-
-    int i = 0;
-    for (auto &iface : interfaces) {
-        i++;
-
-        if (iface->type() == QNetworkSettingsType::Wifi)
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless interface";
-        else {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not a wireless interface";
-            continue;
-        }
-
-        if (!iface->powered()) {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not yet powered, powering it on";
-            iface->setPowered(true);
-        } else {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is already powered, scanning";
-            iface->scanServices();
-        }
-    }
-#endif
+        emit activateInactiveNetworkingInterfaces();
 }
 
 void NetworkManager::servicesChanged()
@@ -221,6 +194,7 @@ void NetworkManagerWorker::retrieveNewNetworkState()
     }
     qDebug() << "Done getting network state";
 #else
+    QThread::sleep(3);
     if (m_configLoaded) {
         state.isOnline = true;
         state.isWired = false;
@@ -229,5 +203,33 @@ void NetworkManagerWorker::retrieveNewNetworkState()
     }
 #endif
     emit networkStateRetrieved(state);
+}
+
+void NetworkManagerWorker::activateInactiveNetworkingInterfaces()
+{
+#ifdef TIMETERMOS
+    auto interfaces = m_manager->interfaces()->getModel();
+    qDebug() << "TtNetworkManager: found" << interfaces.size() << "interfaces";
+
+    int i = 0;
+    for (auto &iface : interfaces) {
+        i++;
+
+        if (iface->type() == QNetworkSettingsType::Wifi)
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless interface";
+        else {
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not a wireless interface";
+            continue;
+        }
+
+        if (!iface->powered()) {
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not yet powered, powering it on";
+            iface->setPowered(true);
+        } else {
+            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is already powered, scanning";
+            iface->scanServices();
+        }
+    }
+#endif
 }
 
