@@ -15,22 +15,14 @@
 NetworkManager::NetworkManager(QObject *parent)
     : QObject(parent)
     , m_workerThread(new QThread(this))
-#ifdef TIMETERMOS
-    , m_manager(new QNetworkSettingsManager(this))
-#endif
 {
-#ifdef TIMETERMOS
-    QObject::connect(m_manager, &QNetworkSettingsManager::interfacesChanged, this, &NetworkManager::networkingInterfacesChanged);
-    QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManager::servicesChanged);
-#endif
-
     m_worker = new NetworkManagerWorker();
     m_worker->moveToThread(m_workerThread);
     connect(m_workerThread, &QThread::started, m_worker, &NetworkManagerWorker::start);
     connect(m_workerThread, &QThread::finished, m_worker, &NetworkManagerWorker::deleteLater);
     connect(m_worker, &NetworkManagerWorker::networkStateRetrieved, this, &NetworkManager::networkStateRetrieved);
     connect(this, &NetworkManager::retrieveNewNetworkState, m_worker, &NetworkManagerWorker::retrieveNewNetworkState);
-    connect(this, &NetworkManager::forwardConfigLoaded, m_worker, &NetworkManagerWorker::configLoaded);
+    connect(this, &NetworkManager::configLoaded, m_worker, &NetworkManagerWorker::configLoaded);
     connect(this, &NetworkManager::activateInactiveNetworkingInterfaces, m_worker, &NetworkManagerWorker::activateInactiveNetworkingInterfaces);
     m_workerThread->start();
 }
@@ -39,68 +31,6 @@ NetworkManager::~NetworkManager()
 {
     m_workerThread->quit();
     m_workerThread->wait();
-}
-
-void NetworkManager::configLoaded()
-{
-    m_configLoaded = true;
-    emit activateInactiveNetworkingInterfaces();
-    emit forwardConfigLoaded();
-}
-
-void NetworkManager::networkingInterfacesChanged()
-{
-    if (m_configLoaded)
-        emit activateInactiveNetworkingInterfaces();
-}
-
-void NetworkManager::servicesChanged()
-{
-#ifdef TIMETERMOS
-    QList<QNetworkSettingsService *> services = qobject_cast<QNetworkSettingsServiceModel *>(m_manager->services()->sourceModel())->getModel();
-    qDebug() << "TtNetworkManager: found" << services.size() << "services";
-
-    int i = 0;
-    for (const auto &service : services) {
-        i++;
-
-        if (service->type() == QNetworkSettingsType::Wifi)
-            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is a wireless network";
-        else {
-            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is not a wireless network";
-            continue;
-        }
-
-        QString stateString = "";
-        switch (service->state()) {
-        case QNetworkSettingsState::Idle:
-            stateString = "Idle";
-            break;
-        case QNetworkSettingsState::Failure:
-            stateString = "Failure";
-            break;
-        case QNetworkSettingsState::Association:
-            stateString = "Association";
-            break;
-        case QNetworkSettingsState::Configuration:
-            stateString = "Configuration";
-            break;
-        case QNetworkSettingsState::Ready:
-            stateString = "Ready";
-            break;
-        case QNetworkSettingsState::Disconnect:
-            stateString = "Disconnect";
-            break;
-        case QNetworkSettingsState::Online:
-            stateString = "Online";
-            break;
-        case QNetworkSettingsState::Undefined:
-            stateString = "Undefined";
-            break;
-        }
-        qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "currently has state" << stateString;
-    }
-#endif
 }
 
 void NetworkManager::networkStateRetrieved(NetworkState state)
@@ -134,6 +64,11 @@ NetworkManagerWorker::NetworkManagerWorker(QObject *parent)
     : m_manager(new QNetworkSettingsManager(this))
 #endif
 {
+#ifdef TIMETERMOS
+    QObject::connect(m_manager, &QNetworkSettingsManager::interfacesChanged, this, &NetworkManagerWorker::networkingInterfacesChanged);
+    QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManagerWorker::servicesChanged);
+#endif
+
 }
 
 void NetworkManagerWorker::start()
@@ -146,12 +81,6 @@ void NetworkManagerWorker::timerEvent(QTimerEvent *event)
 {
     if (event->timerId() == m_checkNetworkStateTimerId)
         retrieveNewNetworkState();
-}
-
-void NetworkManagerWorker::configLoaded()
-{
-    m_configLoaded = true;
-    emit retrieveNewNetworkState();
 }
 
 void NetworkManagerWorker::retrieveNewNetworkState()
@@ -233,3 +162,64 @@ void NetworkManagerWorker::activateInactiveNetworkingInterfaces()
 #endif
 }
 
+void NetworkManagerWorker::servicesChanged()
+{
+#ifdef TIMETERMOS
+    QList<QNetworkSettingsService *> services = qobject_cast<QNetworkSettingsServiceModel *>(m_manager->services()->sourceModel())->getModel();
+    qDebug() << "TtNetworkManager: found" << services.size() << "services";
+
+    int i = 0;
+    for (const auto &service : services) {
+        i++;
+
+        if (service->type() == QNetworkSettingsType::Wifi)
+            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is a wireless network";
+        else {
+            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is not a wireless network";
+            continue;
+        }
+
+        QString stateString = "";
+        switch (service->state()) {
+        case QNetworkSettingsState::Idle:
+            stateString = "Idle";
+            break;
+        case QNetworkSettingsState::Failure:
+            stateString = "Failure";
+            break;
+        case QNetworkSettingsState::Association:
+            stateString = "Association";
+            break;
+        case QNetworkSettingsState::Configuration:
+            stateString = "Configuration";
+            break;
+        case QNetworkSettingsState::Ready:
+            stateString = "Ready";
+            break;
+        case QNetworkSettingsState::Disconnect:
+            stateString = "Disconnect";
+            break;
+        case QNetworkSettingsState::Online:
+            stateString = "Online";
+            break;
+        case QNetworkSettingsState::Undefined:
+            stateString = "Undefined";
+            break;
+        }
+        qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "currently has state" << stateString;
+    }
+#endif
+}
+
+void NetworkManagerWorker::networkingInterfacesChanged()
+{
+    if (m_configLoaded)
+        emit activateInactiveNetworkingInterfaces();
+}
+
+void NetworkManagerWorker::configLoaded()
+{
+    m_configLoaded = true;
+    activateInactiveNetworkingInterfaces();
+    retrieveNewNetworkState();
+}

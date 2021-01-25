@@ -42,6 +42,8 @@ public slots:
     void configLoaded();
     void retrieveNewNetworkState();
     void activateInactiveNetworkingInterfaces();
+    void networkingInterfacesChanged();
+    void servicesChanged();
 
 protected:
     void timerEvent(QTimerEvent *event) override;
@@ -67,27 +69,17 @@ signals:
     void stateChanged(NetworkState);
     void onlineChanged(bool online);
     void retrieveNewNetworkState();
-    void forwardConfigLoaded();
     void activateInactiveNetworkingInterfaces();
-
-public slots:
     void configLoaded();
 
 private slots:
-    void networkingInterfacesChanged();
-    void servicesChanged();
     void networkStateRetrieved(NetworkState state);
 
 private:
-    bool m_configLoaded = false;
     std::optional<NetworkState> m_lastState = std::nullopt;
 
     QThread *m_workerThread;
     NetworkManagerWorker *m_worker = nullptr;
-
-#ifdef TIMETERMOS
-    QNetworkSettingsManager *m_manager;
-#endif
 };
 
 Q_DECLARE_METATYPE(NetworkState)
