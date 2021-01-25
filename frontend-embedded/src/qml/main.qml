@@ -35,7 +35,9 @@ ApplicationWindow {
                 const endOfWeek = new Date().endOfWeek()
                 internals.getAppointments(startOfWeek, endOfWeek)
             }
+        }
 
+        onCardUidChanged: function (uid) {
             logsPopup.cardUidChanged(uid)
         }
 

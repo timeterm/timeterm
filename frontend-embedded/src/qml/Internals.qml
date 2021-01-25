@@ -11,6 +11,7 @@ Item {
     id: internalsItem
 
     signal cardRead(string uid)
+    signal cardUidChanged(string uid) // only used for LogsView
     signal timetableReceived(var timetable)
     signal timetableRequestFailed
     signal choiceUpdateSucceeded
@@ -31,6 +32,7 @@ Item {
 
     function setApiClientCardUid(uid) {
         apiClient.cardId = uid
+        cardUidChanged(uid)
     }
 
     Connections {
