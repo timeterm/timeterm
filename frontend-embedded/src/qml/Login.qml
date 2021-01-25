@@ -10,8 +10,10 @@ Page {
     Image {
         id: card
         x: parent.width * 0.75 - paintedWidth
+        width: parent.width * 0.4
         anchors.verticalCenter: parent.verticalCenter
         source: "qrc:/assets/images/card.svg"
+        fillMode: Image.PreserveAspectFit
         visible: false
     }
 
@@ -29,6 +31,6 @@ Page {
 
     MouseArea {
         anchors.fill: cardShadow
-        onClicked: internals.cardRead("12345678")
+        onClicked: internals.cardRead("1234567")
     }
 }

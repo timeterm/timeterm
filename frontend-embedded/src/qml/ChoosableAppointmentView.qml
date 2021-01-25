@@ -311,6 +311,7 @@ Popup {
             height: parent.height * 0.5
             enabled: !!enrollIntoParticipationId
                         && (enrollIntoParticipationAllowedActions === "All" || enrollIntoParticipationAllowedActions === "Switch")
+            font.pixelSize: textSize * 0.75
             text: "Inschrijven"
 
             background: Rectangle {
@@ -332,6 +333,7 @@ Popup {
                         && enrollIntoParticipationId !== unenrollFromParticipationId
                         && (appointment.allowedStudentActions === "All" || appointment.allowedStudentActions === "Switch")
                         && (enrollIntoParticipationAllowedActions === "All" || enrollIntoParticipationAllowedActions === "Switch")
+            font.pixelSize: textSize * 0.75
             text: "Wijzigen"
 
             background: Rectangle {
@@ -350,6 +352,7 @@ Popup {
             id: unsubscribe
             enabled: !!unenrollFromParticipationId
                         && appointment.allowedStudentActions === "All"
+            font.pixelSize: textSize * 0.75
             text: "Uitschrijven"
 
             background: Rectangle {

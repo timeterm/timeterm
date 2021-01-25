@@ -200,7 +200,7 @@ Page {
                 radius: parent.width * 0.20
                 samples: 32
                 color: "#BEBEC0"
-                source: secondRect
+                source: thirdRect
                 visible: !logsViewButton.checked
             }
 
@@ -248,15 +248,6 @@ Page {
 
             text: "<font color=\"#424242\">Logs</font>"
         }
-
-        layer.enabled: true
-        layer.effect: DropShadow {
-            color: "#40000000"
-            horizontalOffset: width * 0.02
-            verticalOffset: 0
-            radius: width * 0.10
-            samples: 32
-        }
     }
 
     Button {
@@ -270,7 +261,7 @@ Page {
         anchors.bottomMargin: menuBar.width * 0.125
 
         background: Rectangle {
-            id: thirdRect
+            id: fourthRect
             color: "#E5E5E5"
             radius: parent.width * 0.10
 
@@ -278,25 +269,25 @@ Page {
         }
 
         DropShadow {
-            anchors.fill: thirdRect
+            anchors.fill: fourthRect
             transparentBorder: true
             horizontalOffset: parent.width * 0.10
             verticalOffset: parent.width * 0.10
             radius: parent.width * 0.20
             samples: 32
             color: "#BEBEC0"
-            source: thirdRect
+            source: fourthRect
         }
 
         DropShadow {
-            anchors.fill: thirdRect
+            anchors.fill: fourthRect
             transparentBorder: true
             horizontalOffset: -parent.width * 0.10
             verticalOffset: -parent.width * 0.10
             radius: parent.width * 0.20
             samples: 32
             color: "#FFFFFF"
-            source: thirdRect
+            source: fourthRect
         }
 
         icon.color: "#424242"

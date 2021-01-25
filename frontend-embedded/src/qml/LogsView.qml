@@ -5,35 +5,34 @@ import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.0
 import Timeterm.Logging 1.0
 
-import "../js/TimeFunctions.js" as TimeFunctions
-
 Page {
-    anchors.fill: parent
-    padding: 32
+    id: logsPage
+    width: stack.width
+    height: stack.height
 
     background: Rectangle {
         color: "#FFFFFF"
     }
 
-    Flickable {
-        anchors.fill: parent
-        contentHeight: messageList.height
+//    Flickable {
+//        anchors.fill: parent
+//        contentHeight: messageList.height
 
-        Text {
-            width: parent.width
+//        Text {
+//            width: parent.width
 
-            id: messageList 
-            font.family: "Fira Code"
-            wrapMode: Text.Wrap
-            text: LogManager.messages.join("\n")
-        }
-    }
+//            id: messageList
+//            font.family: "Fira Code"
+//            wrapMode: Text.Wrap
+//            text: LogManager.messages.join("\n")
+//        }
+//    }
 
-    Connections {
-        target: LogManager
+//    Connections {
+//        target: LogManager
 
-        function onMessagesChanged() {
-            messageList.text = LogManager.messages.join("\n")
-        }
-    }
+//        function onMessagesChanged() {
+//            messageList.text = LogManager.messages.join("\n")
+//        }
+//    }
 }

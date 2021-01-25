@@ -12,7 +12,9 @@ Item {
 
     signal cardRead(string uid)
     signal timetableReceived(var timetable)
+    signal timetableRequestFailed
     signal choiceUpdateSucceeded
+    signal choiceUpdateFailed
     signal networkStateChanged(var networkState)
 
     function getAppointments(start, end) {
@@ -68,8 +70,16 @@ Item {
             internalsItem.timetableReceived(timetable)
         }
 
+        onTimetableRequestFailed: function (timetable) {
+            internalsItem.timetableRequestFailed()
+        }
+
         onChoiceUpdateSucceeded: function () {
             internalsItem.choiceUpdateSucceeded()
+        }
+
+        onChoiceUpdateFailed: function () {
+            internalsItem.choiceUpdateFailed()
         }
 
         onNewNetworkingServices: function (services) {

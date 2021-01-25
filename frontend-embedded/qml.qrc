@@ -25,5 +25,7 @@
         <file>assets/icons/bug.svg</file>
         <file>src/qml/ChoosableAppointmentView.qml</file>
         <file>src/qml/TapToolTip.qml</file>
+        <file>src/qml/ErrorPopup.qml</file>
+        <file>src/qml/LogsView.qml</file>
     </qresource>
 </RCC>

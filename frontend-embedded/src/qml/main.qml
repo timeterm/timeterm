@@ -7,9 +7,9 @@ import "../js/TimeFunctions.js" as TimeFunction
 ApplicationWindow {
     id: mainWindow
     visible: true
-    visibility: Qt.WindowFullScreen
-    width: 1024
-    height: 600
+    //visibility: Qt.WindowFullScreen
+    width: 1280
+    height: 800
     title: qsTr("Timeterm")
 
     header: HeaderComponent {
@@ -48,15 +48,27 @@ ApplicationWindow {
             }
         }
 
+        onTimetableRequestFailed: function () {
+            errorPopup.open()
+        }
+
         onChoiceUpdateSucceeded: function () {
             const startOfWeek = new Date().startOfWeek()
             const endOfWeek = new Date().endOfWeek()
             internals.getAppointments(startOfWeek, endOfWeek)
         }
 
+        onChoiceUpdateFailed: function () {
+            errorPopup.open()
+        }
+
         onNetworkStateChanged: function (state) {
             header.networkStateChanged(state)
         }
+    }
+
+    ErrorPopup {
+        id: errorPopup
     }
 
     // Use this to check if there was some action
