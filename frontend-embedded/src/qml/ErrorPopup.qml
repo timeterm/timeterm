@@ -30,6 +30,7 @@ Popup {
     }
 
     onOpened: errorTimer.restart()
+    onClosed: logoutTimer.restart()
 
     Timer {
         id: errorTimer

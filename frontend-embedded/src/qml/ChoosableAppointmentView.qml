@@ -378,6 +378,8 @@ Popup {
         }
     }
 
+    onClosed: logoutTimer.restart()
+
     // Use this to check if there was some action
     MouseArea {
         anchors.fill: parent
