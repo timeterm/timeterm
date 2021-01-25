@@ -86,7 +86,7 @@ private:
     QString m_stream;
     QString m_consumerId;
     JetStreamConsumerType::Enum m_type = JetStreamConsumerType::Pull;
-    QThread m_workerThread;
+    QThread *m_workerThread;
     QSharedPointer<NatsConnectionHolder> m_connHolder;
 };
 

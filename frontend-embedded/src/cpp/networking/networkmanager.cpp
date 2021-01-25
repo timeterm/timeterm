@@ -68,7 +68,6 @@ NetworkManagerWorker::NetworkManagerWorker(QObject *parent)
     QObject::connect(m_manager, &QNetworkSettingsManager::interfacesChanged, this, &NetworkManagerWorker::networkingInterfacesChanged);
     QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManagerWorker::servicesChanged);
 #endif
-
 }
 
 void NetworkManagerWorker::start()

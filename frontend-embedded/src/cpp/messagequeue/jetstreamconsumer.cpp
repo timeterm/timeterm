@@ -13,13 +13,14 @@ namespace MessageQueue
 
 JetStreamConsumer::JetStreamConsumer(QObject *parent)
     : QObject(parent)
+    , m_workerThread(new QThread(parent))
 {
 }
 
 JetStreamConsumer::~JetStreamConsumer()
 {
-    m_workerThread.quit();
-    m_workerThread.wait();
+    m_workerThread->quit();
+    m_workerThread->wait();
 }
 
 QString JetStreamConsumer::subject() const
@@ -43,26 +44,22 @@ void JetStreamConsumer::start()
     }
     auto conn = m_connHolder;
 
-    QtConcurrent::run(
-        [this, conn](JetStreamConsumerType::Enum type, const QString &stream, const QString &consumer) {
-            switch (type) {
-            case JetStreamConsumerType::Push:
-                qCritical("Push consumers are currently not supported");
-                break;
-            case JetStreamConsumerType::Pull:
-                stop();
-                auto worker = new JetStreamPullConsumerWorker(conn, stream, consumer);
-                worker->moveToThread(&m_workerThread);
+    switch (m_type) {
+    case JetStreamConsumerType::Push:
+        qCritical("Push consumers are currently not supported");
+        break;
+    case JetStreamConsumerType::Pull:
+        stop();
+        auto worker = new JetStreamPullConsumerWorker(conn, m_stream, m_consumerId);
+        worker->moveToThread(m_workerThread);
 
-                connect(&m_workerThread, &QThread::finished, worker, &QObject::deleteLater);
-                connect(&m_workerThread, &QThread::started, worker, &JetStreamPullConsumerWorker::start);
-                connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessage);
+        connect(m_workerThread, &QThread::finished, worker, &QObject::deleteLater);
+        connect(m_workerThread, &QThread::started, worker, &JetStreamPullConsumerWorker::start);
+        connect(worker, &JetStreamPullConsumerWorker::messageReceived, this, &JetStreamConsumer::handleMessage);
 
-                m_workerThread.start();
-                break;
-            }
-        },
-        m_type, m_stream, m_consumerId);
+        m_workerThread->start();
+        break;
+    }
 }
 
 void JetStreamConsumer::connectDecoder(Decoder *decoder) const
@@ -72,9 +69,9 @@ void JetStreamConsumer::connectDecoder(Decoder *decoder) const
 
 void JetStreamConsumer::stop()
 {
-    if (m_workerThread.isRunning()) {
-        m_workerThread.quit();
-        m_workerThread.wait();
+    if (m_workerThread->isRunning()) {
+        m_workerThread->quit();
+        m_workerThread->wait();
     }
 }
 
