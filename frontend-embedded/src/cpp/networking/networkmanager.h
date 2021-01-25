@@ -13,12 +13,14 @@ class NetworkState
     Q_PROPERTY(bool isOnline MEMBER isOnline)
     Q_PROPERTY(bool isWired MEMBER isWired)
     Q_PROPERTY(int signalStrength MEMBER signalStrength)
+    Q_PROPERTY(QString ip MEMBER ip)
 
 public:
     bool isConnected = false;
     bool isOnline = false;
     bool isWired = false;
     int signalStrength = 0;
+    QString ip;
 };
 
 bool operator==(const NetworkState &a, const NetworkState &b);
