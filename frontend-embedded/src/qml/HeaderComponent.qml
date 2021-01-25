@@ -53,10 +53,10 @@ Item {
             anchors.rightMargin: parent.height * 0.5
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            verticalAlignment: "AlignVCenter"
             color: textColor
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
-            antialiasing: true
         }
 
         Image {
@@ -67,11 +67,10 @@ Item {
             anchors.bottom: parent.bottom
             sourceSize.width: parent.height * 0.6
             sourceSize.height: parent.height * 0.6
+            source: "../../assets/icons/wifi-strength-off-outline.svg"
             fillMode: Image.PreserveAspectFit
             antialiasing: true
             function setWiFiIcon(rssi, connected) {
-                if (connected === undefined)
-                    connected = true
                 if (!connected) {
                     wifi.source = "../../assets/icons/wifi-strength-off-outline.svg"
                 } else {

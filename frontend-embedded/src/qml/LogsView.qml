@@ -9,6 +9,7 @@ Page {
     id: logsPage
     width: stack.width
     height: stack.height
+    padding: 32
 
     background: Rectangle {
         color: "#FFFFFF"
