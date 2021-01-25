@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 
 ToolTip {
     delay: Qt.styleHints.mousePressAndHoldInterval
+    y: -50
     text: parent.text
 
     background: Rectangle {
