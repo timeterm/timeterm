@@ -14,25 +14,25 @@ Page {
         color: "#FFFFFF"
     }
 
-//    Flickable {
-//        anchors.fill: parent
-//        contentHeight: messageList.height
+    Flickable {
+        anchors.fill: parent
+        contentHeight: messageList.height
 
-//        Text {
-//            width: parent.width
+        Text {
+            width: parent.width
 
-//            id: messageList
-//            font.family: "Fira Code"
-//            wrapMode: Text.Wrap
-//            text: LogManager.messages.join("\n")
-//        }
-//    }
+            id: messageList
+            font.family: "Fira Code"
+            wrapMode: Text.Wrap
+            text: LogManager.messages.join("\n")
+        }
+    }
 
-//    Connections {
-//        target: LogManager
+    Connections {
+        target: LogManager
 
-//        function onMessagesChanged() {
-//            messageList.text = LogManager.messages.join("\n")
-//        }
-//    }
+        function onMessagesChanged() {
+            messageList.text = LogManager.messages.join("\n")
+        }
+    }
 }
