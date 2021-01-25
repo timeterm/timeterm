@@ -23,8 +23,9 @@ Page {
             width: parent.width
 
             id: messageList
-            font.family: "Fira Code"
+            font.family: "Inconsolata"
             wrapMode: Text.Wrap
+            font.pixelSize: mainWindow.height * 0.03
             text: LogManager.messages.join("\n")
         }
     }
