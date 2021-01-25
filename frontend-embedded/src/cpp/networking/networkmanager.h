@@ -48,6 +48,10 @@ protected:
 private:
     bool m_configLoaded = false;
     int m_checkNetworkStateTimerId = 0;
+
+#ifdef TIMETERMOS
+    QNetworkSettingsManager *m_manager;
+#endif
 };
 
 class NetworkManager: public QObject

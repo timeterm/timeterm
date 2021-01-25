@@ -157,6 +157,9 @@ bool operator!=(const NetworkState &a, const NetworkState &b)
 }
 
 NetworkManagerWorker::NetworkManagerWorker(QObject *parent)
+#ifdef TIMETERMOS
+    : m_manager(new QNetworkSettingsManager(this))
+#endif
 {
 }
 
@@ -183,6 +186,8 @@ void NetworkManagerWorker::retrieveNewNetworkState()
     auto state = NetworkState();
 #ifdef TIMETERMOS
     qDebug() << "Getting network state";
+    if (!m_manager) return;
+
     auto *svc = m_manager->currentWifiConnection();
     if (svc != nullptr) {
         qDebug() << "Got current Wi-Fi connection";
