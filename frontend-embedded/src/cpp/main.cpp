@@ -70,6 +70,7 @@ int runApp(int argc, char *argv[])
         return logMgr;
     });
     qmlRegisterType<NetworkManager>("Timeterm.Networking", 1, 0, "NetworkManager");
+    qRegisterMetaType<NetworkState>();
     qmlRegisterType<Systemd>("Timeterm.Systemd", 1, 0, "Systemd");
 
     QQmlApplicationEngine engine;

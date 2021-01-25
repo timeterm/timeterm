@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QThread>
 
 #ifdef TIMETERMOS
 #include <QNetworkSettingsManager>
@@ -26,36 +27,59 @@ public:
 bool operator==(const NetworkState &a, const NetworkState &b);
 bool operator!=(const NetworkState &a, const NetworkState &b);
 
+class NetworkManagerWorker: public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit NetworkManagerWorker(QObject *parent = nullptr);
+
+signals:
+    void networkStateRetrieved(NetworkState);
+
+public slots:
+    void start();
+    void configLoaded();
+    void retrieveNewNetworkState();
+
+protected:
+    void timerEvent(QTimerEvent *event) override;
+
+private:
+    bool m_configLoaded = false;
+    int m_checkNetworkStateTimerId = 0;
+};
+
 class NetworkManager: public QObject
 {
     Q_OBJECT
 
 public:
     explicit NetworkManager(QObject *parent = nullptr);
-
-    Q_INVOKABLE NetworkState getNetworkState();
+    ~NetworkManager() override;
 
 signals:
     void stateChanged(NetworkState);
     void onlineChanged(bool online);
+    void retrieveNewNetworkState();
+    void forwardConfigLoaded();
+
+public slots:
+    void configLoaded();
 
 private slots:
     void networkingInterfacesChanged();
     void servicesChanged();
-
-public slots:
-    void configLoaded();
-    void checkNetworkState();
-
-protected:
-    void timerEvent(QTimerEvent *event) override;
+    void networkStateRetrieved(NetworkState state);
 
 private:
     void activateInactiveNetworkingInterfaces();
 
     bool m_configLoaded = false;
-    int m_checkNetworkStateTimerId = 0;
     std::optional<NetworkState> m_lastState = std::nullopt;
+
+    QThread *m_workerThread;
+    NetworkManagerWorker *m_worker = nullptr;
 
 #ifdef TIMETERMOS
     QNetworkSettingsManager *m_manager;

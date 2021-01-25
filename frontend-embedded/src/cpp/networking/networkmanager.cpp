@@ -14,6 +14,7 @@
 
 NetworkManager::NetworkManager(QObject *parent)
     : QObject(parent)
+    , m_workerThread(new QThread(this))
 #ifdef TIMETERMOS
     , m_manager(new QNetworkSettingsManager(this))
 #endif
@@ -23,15 +24,27 @@ NetworkManager::NetworkManager(QObject *parent)
     QObject::connect(m_manager, &QNetworkSettingsManager::servicesChanged, this, &NetworkManager::servicesChanged);
 #endif
 
-    checkNetworkState();
-    m_checkNetworkStateTimerId = startTimer(5000);
+    m_worker = new NetworkManagerWorker();
+    m_worker->moveToThread(m_workerThread);
+    connect(m_workerThread, &QThread::started, m_worker, &NetworkManagerWorker::start);
+    connect(m_workerThread, &QThread::finished, m_worker, &NetworkManagerWorker::deleteLater);
+    connect(m_worker, &NetworkManagerWorker::networkStateRetrieved, this, &NetworkManager::networkStateRetrieved);
+    connect(this, &NetworkManager::retrieveNewNetworkState, m_worker, &NetworkManagerWorker::retrieveNewNetworkState);
+    connect(this, &NetworkManager::forwardConfigLoaded, m_worker, &NetworkManagerWorker::configLoaded);
+    m_workerThread->start();
+}
+
+NetworkManager::~NetworkManager()
+{
+    m_workerThread->quit();
+    m_workerThread->wait();
 }
 
 void NetworkManager::configLoaded()
 {
     m_configLoaded = true;
     activateInactiveNetworkingInterfaces();
-    checkNetworkState();
+    emit forwardConfigLoaded();
 }
 
 void NetworkManager::networkingInterfacesChanged()
@@ -117,7 +130,55 @@ void NetworkManager::servicesChanged()
 #endif
 }
 
-NetworkState NetworkManager::getNetworkState()
+void NetworkManager::networkStateRetrieved(NetworkState state)
+{
+    qDebug() << "New network state retrieved";
+    if (!m_lastState.has_value() || *m_lastState != state) {
+        if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
+            emit onlineChanged(state.isOnline);
+        }
+
+        m_lastState = state;
+        emit stateChanged(state);
+    }
+}
+
+bool operator==(const NetworkState &a, const NetworkState &b)
+{
+    return a.isConnected == b.isConnected
+        && a.isOnline == b.isOnline
+        && a.isWired == b.isWired
+        && a.signalStrength == b.signalStrength;
+}
+
+bool operator!=(const NetworkState &a, const NetworkState &b)
+{
+    return !(a == b);
+}
+
+NetworkManagerWorker::NetworkManagerWorker(QObject *parent)
+{
+}
+
+void NetworkManagerWorker::start()
+{
+    qDebug() << "NetworkManagerWorker: starting timers...";
+    m_checkNetworkStateTimerId = startTimer(5000);
+}
+
+void NetworkManagerWorker::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_checkNetworkStateTimerId)
+        retrieveNewNetworkState();
+}
+
+void NetworkManagerWorker::configLoaded()
+{
+    m_configLoaded = true;
+    emit retrieveNewNetworkState();
+}
+
+void NetworkManagerWorker::retrieveNewNetworkState()
 {
     auto state = NetworkState();
 #ifdef TIMETERMOS
@@ -162,37 +223,6 @@ NetworkState NetworkManager::getNetworkState()
         state.isConnected = true;
     }
 #endif
-    return state;
+    emit networkStateRetrieved(state);
 }
 
-void NetworkManager::timerEvent(QTimerEvent *event)
-{
-    if (event->timerId() == m_checkNetworkStateTimerId)
-        checkNetworkState();
-}
-
-void NetworkManager::checkNetworkState()
-{
-    auto state = getNetworkState();
-    if (!m_lastState.has_value() || *m_lastState != state) {
-        if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
-            emit onlineChanged(state.isOnline);
-        }
-
-        m_lastState = state;
-        emit stateChanged(state);
-    }
-}
-
-bool operator==(const NetworkState &a, const NetworkState &b)
-{
-    return a.isConnected == b.isConnected
-        && a.isOnline == b.isOnline
-        && a.isWired == b.isWired
-        && a.signalStrength == b.signalStrength;
-}
-
-bool operator!=(const NetworkState &a, const NetworkState &b)
-{
-    return !(a == b);
-}
