@@ -35,6 +35,8 @@ ApplicationWindow {
                 const endOfWeek = new Date().endOfWeek()
                 internals.getAppointments(startOfWeek, endOfWeek)
             }
+
+            logsPopup.cardUidChanged(uid)
         }
 
         onTimetableReceived: function (timetable) {
@@ -64,11 +66,16 @@ ApplicationWindow {
 
         onNetworkStateChanged: function (state) {
             header.networkStateChanged(state)
+            logsPopup.networkStateChanged(state)
         }
     }
 
     ErrorPopup {
         id: errorPopup
+    }
+
+    LogsView {
+        id: logsPopup
     }
 
     // Use this to check if there was some action
