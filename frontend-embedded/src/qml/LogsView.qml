@@ -81,6 +81,7 @@ Popup {
     }
 
     Flickable {
+        id: logsFlickable
         anchors.top: logsHeader.bottom
         anchors.left: parent.left
         anchors.right: parent.right
@@ -98,6 +99,39 @@ Popup {
             wrapMode: Text.Wrap
             font.pixelSize: mainWindow.height * 0.03
             text: LogManager.messages.join("\n")
+        }
+
+        // Only show the scrollbars when the view is moving.
+        states: State {
+            name: "ShowScrollBar"
+            when: logsFlickable.movingVertically
+            PropertyChanges { target: verticalScrollBar; opacity: 1 }
+        }
+
+        transitions: Transition {
+            NumberAnimation { properties: "opacity"; duration: 400 }
+        }
+    }
+
+    Rectangle {
+        id: verticalScrollBar
+        anchors.top: logsFlickable.top
+        anchors.right: logsFlickable.right
+        anchors.bottom: logsFlickable.bottom
+        width: 10
+        opacity: 0
+
+        color: "gray"
+        radius: width / 2 - 1
+
+        Rectangle {
+            id: scrollbar
+            y: logsFlickable.visibleArea.yPosition * logsFlickable.height
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: logsFlickable.visibleArea.heightRatio * logsFlickable.height
+            color: "blue"
+            radius: width / 2 - 1
         }
     }
 
