@@ -20,7 +20,7 @@ Popup {
         if (state.ip === "") {
             ip.text = ""
         } else {
-            ip.text = "Ip: " + state.ip
+            ip.text = "IP: " + state.ip
         }
     }
 
@@ -28,7 +28,7 @@ Popup {
         if (uid === "") {
             cardUid.text = ""
         } else {
-            cardUid.text = "CardUid: " + uid
+            cardUid.text = "Card UID: " + uid
         }
     }
 

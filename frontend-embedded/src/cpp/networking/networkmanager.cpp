@@ -35,7 +35,6 @@ NetworkManager::~NetworkManager()
 
 void NetworkManager::networkStateRetrieved(NetworkState state)
 {
-    qDebug() << "New network state retrieved";
     if (!m_lastState.has_value() || *m_lastState != state) {
         if (!m_lastState.has_value() || (*m_lastState).isOnline != state.isOnline) {
             emit onlineChanged(state.isOnline);
@@ -86,18 +85,13 @@ void NetworkManagerWorker::retrieveNewNetworkState()
 {
     auto state = NetworkState();
 #ifdef TIMETERMOS
-    qDebug() << "Getting network state";
     if (!m_manager) return;
 
     auto *svc = m_manager->currentWifiConnection();
     if (svc != nullptr) {
-        qDebug() << "Got current Wi-Fi connection";
         state.isOnline = svc->state() == QNetworkSettingsState::Online;
-        qDebug() << "Is online:" << state.isOnline;
         state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
-        qDebug() << "Is connected:" << state.isConnected;
         state.signalStrength = svc->wirelessConfig()->signalStrength();
-        qDebug() << "Signal strength:" << state.signalStrength;
 
         if (svc->ipv4() != nullptr && svc->ipv4()->address() != "")
             state.ip = svc->ipv4()->address();
@@ -107,12 +101,9 @@ void NetworkManagerWorker::retrieveNewNetworkState()
 
     svc = m_manager->currentWiredConnection();
     if (svc != nullptr && !state.isOnline) {
-        qDebug() << "Got current wired connection";
         state.isOnline = svc->state() == QNetworkSettingsState::Online;
-        qDebug() << "Is online:" << state.isOnline;
         if (!state.isConnected) {
             state.isConnected = state.isOnline || (svc->state() == QNetworkSettingsState::Ready);
-            qDebug() << "Is connected:" << state.isConnected;
         }
 
         if (svc->ipv4() != nullptr && svc->ipv4()->address() != "")
@@ -120,8 +111,9 @@ void NetworkManagerWorker::retrieveNewNetworkState()
         else if (svc->ipv6() != nullptr && svc->ipv6()->address() != "")
             state.ip = svc->ipv6()->address();
     }
-    qDebug() << "Done getting network state";
 #else
+    // Sleep here for a while so we can recognize when threading has been borked
+    // (in that case the UI would freeze for 3 seconds about every 5 seconds).
     QThread::sleep(3);
     if (m_configLoaded) {
         state.isOnline = true;
@@ -137,26 +129,15 @@ void NetworkManagerWorker::activateInactiveNetworkingInterfaces()
 {
 #ifdef TIMETERMOS
     auto interfaces = m_manager->interfaces()->getModel();
-    qDebug() << "TtNetworkManager: found" << interfaces.size() << "interfaces";
 
     int i = 0;
     for (auto &iface : interfaces) {
         i++;
 
-        if (iface->type() == QNetworkSettingsType::Wifi)
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is a wireless interface";
-        else {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not a wireless interface";
-            continue;
-        }
+        if (iface->type() != QNetworkSettingsType::Wifi) continue;
 
-        if (!iface->powered()) {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is not yet powered, powering it on";
-            iface->setPowered(true);
-        } else {
-            qDebug() << "TtNetworkManager: interface" << i << "," << iface->name() << "is already powered, scanning";
-            iface->scanServices();
-        }
+        if (!iface->powered()) iface->setPowered(true);
+        else iface->scanServices();
     }
 #endif
 }
@@ -165,18 +146,12 @@ void NetworkManagerWorker::servicesChanged()
 {
 #ifdef TIMETERMOS
     QList<QNetworkSettingsService *> services = qobject_cast<QNetworkSettingsServiceModel *>(m_manager->services()->sourceModel())->getModel();
-    qDebug() << "TtNetworkManager: found" << services.size() << "services";
 
     int i = 0;
     for (const auto &service : services) {
         i++;
 
-        if (service->type() == QNetworkSettingsType::Wifi)
-            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is a wireless network";
-        else {
-            qDebug() << "TtNetworkManager: service" << i << "," << service->name() << "is not a wireless network";
-            continue;
-        }
+        if (service->type() != QNetworkSettingsType::Wifi) continue;
 
         QString stateString = "";
         switch (service->state()) {
