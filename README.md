@@ -32,7 +32,7 @@ Een (poster)presentatie staat gepland voor 12 februari 2020.
 - `os/` - Broncode voor Timeterm OS (wat draait op het embedded apparaat), gebaseerd op Boot2Qt (BitBake)
 - `proto/` - Beschrijvingen van berichten die gebruik maken van (Google) Protocol Buffers
 
-Het project maakt gebruik van GitLab CI. Alleen de gewijzigde componenten worden gebouwd mits ze aangepast zijn.
+Het project maakt gebruik van GitLab CI. Alleen de gewijzigde componenten worden gebouwd.
 
 ## Het backend opstarten (development)
 
