@@ -17,11 +17,15 @@ Page {
     property var startOfWeek
     property var endOfWeek
 
+    property var map
+
     background: Rectangle {
         color: "#FFFFFF"
     }
 
     function setTimetable(timetable) {
+        map = new Map()
+
         weekAppointments.startFirstAppointment = null
         weekAppointments.endLastAppointment = null
         weekAppointments.contentHeight = 0
@@ -59,12 +63,24 @@ Page {
 
                 let finishWeekAppointment = function (weekAppointment) {
                     if (weekAppointment.status === Component.Ready) {
-                        weekAppointment.incubateObject(weekAppointments.contentItem, {
+                        let incubator = weekAppointment.incubateObject(weekAppointments.contentItem, {
                             appointment: timetable.data[i],
                             startFirstAppointment: weekAppointments.startFirstAppointment,
                             secondToPixelRatio: weekPage.secondToPixelRatio,
                             weekAppointmentWidth: weekAppointments.weekAppointmentWidth
                         })
+                        if (incubator.status !== Component.Ready) {
+                            let aptId = timetable.data[i].id
+                            incubator.onStatusChanged = function(status) {
+                                if (status === Component.Ready) {
+                                    //print ("Object", incubator.object, "is now ready!");
+                                    map.set(aptId, incubator.object)
+                                }
+                            }
+                        } else {
+                            //print ("Object", incubator.object, "is ready immediately!");
+                            map.set(timetable.data[i].id, incubator.object)
+                        }
                     } else if (weekAppointment.status === Component.Error) {
                         console.log("Could not create weekAppointment:", weekAppointment.errorString())
                     }
@@ -269,6 +285,23 @@ Page {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.centerIn: parent
                 font.pixelSize: textSize
+            }
+        }
+    }
+
+    Timer {
+        interval: 100
+        running: true
+        repeat: true
+        onTriggered: {
+            let idToDelete = map.keys().next().value
+            if (idToDelete !== undefined) {
+                console.log("Deleting: " + idToDelete)
+                let itemToDelete = map.get(idToDelete)
+                itemToDelete.destroy()
+                map.delete(idToDelete)
+            } else {
+                console.log("Size of map: " + map.size)
             }
         }
     }
