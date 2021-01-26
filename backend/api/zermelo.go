@@ -249,7 +249,7 @@ func (s *Server) enrollZermelo(c echo.Context) error {
 		if !upart.AllowedStudentActions.CanSwitch() {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized to switch participation")
 		}
-		if upart.IsStudentEnrolled != nil || !*upart.IsStudentEnrolled {
+		if upart.IsStudentEnrolled == nil || !*upart.IsStudentEnrolled {
 			return echo.NewHTTPError(http.StatusForbidden, "Student is not enrolled in participation to unenroll from")
 		}
 		canUnenroll = upart.AllowedStudentActions == zermelo.AllowedStudentActionsAll
