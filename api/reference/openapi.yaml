@@ -127,7 +127,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NatsCredentials"
 
-  /devcice/{id}/config/networks:
+  /device/{id}/config/networks:
     get:
       operationId: getAllNetworkingServices
       summary: Get all networking services (for a device)
