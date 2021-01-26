@@ -1,8 +1,5 @@
-import QtQuick 2.12
+import QtQuick 2.15
 import QtQuick.Controls 2.12
-import QtQml.Models 2.12
-import QtQuick.Layouts 1.12
-import QtGraphicalEffects 1.0
 import Timeterm.Logging 1.0
 
 Popup {
@@ -101,37 +98,8 @@ Popup {
             text: LogManager.messages.join("\n")
         }
 
-        // Only show the scrollbars when the view is moving.
-        states: State {
-            name: "ShowScrollBar"
-            when: logsFlickable.movingVertically
-            PropertyChanges { target: verticalScrollBar; opacity: 1 }
-        }
-
-        transitions: Transition {
-            NumberAnimation { properties: "opacity"; duration: 400 }
-        }
-    }
-
-    Rectangle {
-        id: verticalScrollBar
-        anchors.top: logsFlickable.top
-        anchors.right: logsFlickable.right
-        anchors.bottom: logsFlickable.bottom
-        width: 10
-        opacity: 0
-
-        color: "gray"
-        radius: width / 2 - 1
-
-        Rectangle {
-            id: scrollbar
-            y: logsFlickable.visibleArea.yPosition * logsFlickable.height
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: logsFlickable.visibleArea.heightRatio * logsFlickable.height
-            color: "blue"
-            radius: width / 2 - 1
+        ScrollBar.vertical: ScrollBar {
+            minimumSize: 0.1
         }
     }
 
