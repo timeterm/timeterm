@@ -49,11 +49,11 @@ We gaan er vanuit dat je toegang hebt tot [Docker Compose](https://docs.docker.c
 5. `backend $ cd ../nats-manager`
 6. `nats-manager $ ./nats-manager`  
    Voor deze stap moet je nats-manager al gebouwd hebben en je omgevingsvariabelen moeten ook juist ingesteld zijn.
-	 nats-manager en het backend laden automatisch omgevingsvariabelen het bestand `.env`.
+	 nats-manager en het backend laden automatisch omgevingsvariabelen uit het bestand `.env`.
 	 Er is een bestand `.env.example` in de map van nats-manager toegevoegd waarin voorbeeldwaarden voor de vereiste
 	 omgevingsvariabelen staan.
 7. (in een andere terminalsessie/venster) `timeterm $ cd backend`
 8. `backend $ docker-compose up -d nats`
 9. `backend $ ./backend`  
-   Voor deze stap geldt ook dat de omgevingsvariabelen juist ingesteld moeten zijn. Dit kan hier ook met `.env` gedaan worden.
+   Voor deze stap geldt ook dat de omgevingsvariabelen juist ingesteld moeten zijn. Dit kan hier ook met een `.env`-bestand gedaan worden.
 
