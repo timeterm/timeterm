@@ -66,9 +66,11 @@ public:
     void setContent(const QString &content);
     [[nodiscard]] QString content() const;
     void setAllowedStudentActions(const QString &allowedStudentActions);
-    [[nodiscard]] QString allowedStudentActions();
+    [[nodiscard]] QString allowedStudentActions() const;
     void appendAlternative(const ZermeloAppointment &appointment);
-    QList<ZermeloAppointment> alternatives();
+    [[nodiscard]] QList<ZermeloAppointment> alternatives() const;
+
+    Q_INVOKABLE bool equals(const ZermeloAppointment &other) const;
 
     void read(const QJsonObject &json);
     void write(QJsonObject &json) const;
@@ -97,5 +99,7 @@ private:
     QString m_allowedStudentActions;
     QList<ZermeloAppointment> m_alternatives;
 };
+
+bool operator==(const ZermeloAppointment &a, const ZermeloAppointment &b);
 
 Q_DECLARE_METATYPE(ZermeloAppointment)

@@ -17,37 +17,76 @@ Page {
     property var startOfWeek
     property var endOfWeek
 
-    property var map
+    property var map: new Map()
+    property var emptyChoiceAppointmentComponents: []
+    property var currentAptMap: new Map()
 
     background: Rectangle {
         color: "#FFFFFF"
     }
 
     function setTimetable(timetable) {
-        map = new Map()
-
         weekAppointments.startFirstAppointment = null
         weekAppointments.endLastAppointment = null
         weekAppointments.contentHeight = 0
 
-        for (var childCount = weekAppointments.contentItem.children.length; childCount > 0; childCount--) {
-            if (weekAppointments.contentItem.children[childCount-1] instanceof WeekViewAppointment) {
-                weekAppointments.contentItem.children[childCount-1].destroy()
+        let newAptMap = new Map()
+        let update = []
+
+        console.log(`New timetable contains appointments with IDs [${timetable.data.map((apt) => apt.id).join(", ")}]`)
+        for (let apt of timetable.data) {
+            if (apt.id !== 0) newAptMap.set(apt.id, apt)
+            else update.push(apt)
+        }
+
+        for (let apt of newAptMap.values()) {
+            if (!map.has(apt.id)) {
+                update.push(apt)
+            } else if (currentAptMap.has(apt.id)) {
+                let old = currentAptMap.get(apt.id)
+                if (!old.equals(apt)) {
+                    update.push(apt)
+                }
             }
         }
+
+        console.log(`Updating [${update.map((apt) => apt.id).join(", ")}]`)
+        for (let id of map.keys()) {
+            if (!newAptMap.has(id)) {
+                console.log(`Destroying appointment with id ${id}`)
+                map.get(id).destroy()
+                map.delete(id)
+            }
+        }
+
+        for (let apt of update) {
+            if (map.has(apt.id)) {
+                console.log(`Destroying appointment with id ${apt.id}`)
+                map.get(apt.id).destroy()
+                map.delete(apt.id)
+            } else {
+                console.log(`Can't destroy appointment with id ${apt.id} because it doesn't exist in the map`)
+            }
+        }
+
+        for (let aptComponent of emptyChoiceAppointmentComponents) {
+            console.log(`Destroying empty choice appointment`)
+            aptComponent.destroy()
+        }
+        emptyChoiceAppointmentComponents = []
 
         if (!startOfWeek || !endOfWeek) {
             startOfWeek = new Date().startOfWeek()
             endOfWeek = new Date().endOfWeek()
         }
 
-        for (var i = 0; i < timetable.data.length; i++) {
-            if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
-                if (!weekAppointments.startFirstAppointment || timetable.data[i].startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
-                    weekAppointments.startFirstAppointment = timetable.data[i].startTime.getMillisecondsInDay()
+        for (let apt of timetable.data) {
+            if (apt.startTime.getTime() >= startOfWeek && apt.endTime.getTime() < endOfWeek) {
+                if (!weekAppointments.startFirstAppointment || apt.startTime.getMillisecondsInDay() < weekAppointments.startFirstAppointment) {                                                          // first weekAppointment in the list
+                    weekAppointments.startFirstAppointment = apt.startTime.getMillisecondsInDay()
                 }
-                if (!weekAppointments.endLastAppointment || timetable.data[i].endTime.getMillisecondsInDay() > weekAppointments.endLastAppointment) {
-                    weekAppointments.endLastAppointment = timetable.data[i].endTime.getMillisecondsInDay()
+                if (!weekAppointments.endLastAppointment || apt.endTime.getMillisecondsInDay() > weekAppointments.endLastAppointment) {
+                    weekAppointments.endLastAppointment = apt.endTime.getMillisecondsInDay()
                 }
             }
         }
@@ -58,46 +97,49 @@ Page {
                                                 + weekPage.height * 0.08
         }
 
-        for (var i = 0; i < timetable.data.length; i++) {
-            if (timetable.data[i].startTime.getTime() >= startOfWeek && timetable.data[i].endTime.getTime() < endOfWeek) {
+        let finishWeekAppointment = function(weekAppointment) {
+            if (weekAppointment.status === Component.Ready) {
+                for (let apt of update) {
+                    if (apt.startTime.getTime() >= startOfWeek && apt.endTime.getTime() < endOfWeek) {
+                       let incubator = weekAppointment.incubateObject(weekAppointments.contentItem, {
+                           appointment: apt,
+                           startFirstAppointment: weekAppointments.startFirstAppointment,
+                           secondToPixelRatio: weekPage.secondToPixelRatio,
+                           weekAppointmentWidth: weekAppointments.weekAppointmentWidth
+                       })
 
-                let finishWeekAppointment = function (weekAppointment) {
-                    if (weekAppointment.status === Component.Ready) {
-                        let incubator = weekAppointment.incubateObject(weekAppointments.contentItem, {
-                            appointment: timetable.data[i],
-                            startFirstAppointment: weekAppointments.startFirstAppointment,
-                            secondToPixelRatio: weekPage.secondToPixelRatio,
-                            weekAppointmentWidth: weekAppointments.weekAppointmentWidth
-                        })
-                        if (incubator.status !== Component.Ready) {
-                            let aptId = timetable.data[i].id
-                            incubator.onStatusChanged = function(status) {
-                                if (status === Component.Ready) {
-                                    //print ("Object", incubator.object, "is now ready!");
-                                    map.set(aptId, incubator.object)
-                                }
-                            }
-                        } else {
-                            //print ("Object", incubator.object, "is ready immediately!");
-                            map.set(timetable.data[i].id, incubator.object)
-                        }
-                    } else if (weekAppointment.status === Component.Error) {
-                        console.log("Could not create weekAppointment:", weekAppointment.errorString())
+                       let aptId = apt.id
+                       let finishIncubation = function (status) {
+                           if (status === Component.Ready) {
+                               if (aptId !== 0) map.set(aptId, incubator.object)
+                               else emptyChoiceAppointmentComponents.push(incubator.object)
+                           }
+                       }
+
+                       if (incubator.status !== Component.Ready) {
+                           incubator.onStatusChanged = finishIncubation
+                       } else {
+                           finishIncubation(incubator.status)
+                       }
                     }
                 }
 
-                let weekAppointment = Qt.createComponent("WeekViewAppointment.qml")
-                if (weekAppointment.status !== Component.Null && weekAppointment.status !== Component.Loading) {
-                    finishWeekAppointment(weekAppointment)
-                } else {
-                    weekAppointment.statusChanged.connect(finishWeekAppointment)
+                if (!!weekAppointments.startFirstAppointment) {
+                    fillWeekTimeLine()
                 }
+                weekAppointments.visible = true
+                currentAptMap = newAptMap
+            } else if (weekAppointment.status === Component.Error) {
+                console.log("Could not create weekAppointment:", weekAppointment.errorString())
             }
         }
-        if (!!weekAppointments.startFirstAppointment) {
-            fillWeekTimeLine()
+
+        let weekAppointment = Qt.createComponent("WeekViewAppointment.qml")
+        if (weekAppointment.status !== Component.Null && weekAppointment.status !== Component.Loading) {
+            finishWeekAppointment(weekAppointment)
+        } else {
+            weekAppointment.statusChanged.connect(finishWeekAppointment)
         }
-        weekAppointments.visible = true
     }
 
     function fillWeekTimeLine() {
@@ -285,23 +327,6 @@ Page {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.centerIn: parent
                 font.pixelSize: textSize
-            }
-        }
-    }
-
-    Timer {
-        interval: 100
-        running: true
-        repeat: true
-        onTriggered: {
-            let idToDelete = map.keys().next().value
-            if (idToDelete !== undefined) {
-                console.log("Deleting: " + idToDelete)
-                let itemToDelete = map.get(idToDelete)
-                itemToDelete.destroy()
-                map.delete(idToDelete)
-            } else {
-                console.log("Size of map: " + map.size)
             }
         }
     }

@@ -66,7 +66,7 @@ Popup {
             anchors.bottom: parent.bottom
             verticalAlignment: "AlignVCenter"
             color: headerTextColor
-            text: "Keuze-uren"
+            text: "Keuze-uren " + appointment.id
             fontSizeMode: Text.Fit
             font.pixelSize: textSize
         }

@@ -334,7 +334,7 @@ void ZermeloAppointment::appendAlternatives(const QList<ZermeloAppointment> &app
     m_alternatives.append(appointments);
 }
 
-QList<ZermeloAppointment> ZermeloAppointment::alternatives()
+QList<ZermeloAppointment> ZermeloAppointment::alternatives() const
 {
     return m_alternatives;
 }
@@ -357,7 +357,34 @@ void ZermeloAppointment::setAllowedStudentActions(const QString &allowedStudentA
         m_allowedStudentActions = allowedStudentActions;
 }
 
-QString ZermeloAppointment::allowedStudentActions()
+QString ZermeloAppointment::allowedStudentActions() const
 {
     return m_allowedStudentActions;
+}
+
+bool ZermeloAppointment::equals(const ZermeloAppointment &other) const
+{
+    return m_id == other.m_id
+        && m_participationId == other.m_participationId
+        && m_appointmentInstance == other.m_appointmentInstance
+        && m_startTimeSlotName == other.m_endTimeSlotName
+        && m_capacity == other.m_capacity
+        && m_availableSpace == other.m_availableSpace
+        && m_startTime == other.m_startTime
+        && m_endTime == other.m_endTime
+        && m_subjects == other.m_subjects
+        && m_groups == other.m_groups
+        && m_locations == other.m_locations
+        && m_teachers == other.m_teachers
+        && m_isOnline == other.m_isOnline
+        && m_isOptional == other.m_isOptional
+        && m_isStudentEnrolled == other.m_isStudentEnrolled
+        && m_content == other.m_content
+        && m_allowedStudentActions == other.m_allowedStudentActions
+        && m_alternatives == other.m_alternatives;
+}
+
+bool operator==(const ZermeloAppointment &a, const ZermeloAppointment &b)
+{
+    return a.equals(b);
 }
