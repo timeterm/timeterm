@@ -33,7 +33,6 @@ Page {
         let newAptMap = new Map()
         let update = []
 
-        console.log(`New timetable contains appointments with IDs [${timetable.data.map((apt) => apt.id).join(", ")}]`)
         for (let apt of timetable.data) {
             if (apt.id !== 0) newAptMap.set(apt.id, apt)
             else update.push(apt)
@@ -48,17 +47,14 @@ Page {
             }
         }
 
-        console.log(`Updating [${update.map((apt) => apt.id).join(", ")}]`)
         for (let id of currentAptMap.keys()) {
             if (!newAptMap.has(id)) {
-                console.log(`Destroying appointment with id ${id} because it's not used anymore`)
                 map.get(id).destroy()
                 map.delete(id)
             }
         }
 
         for (let aptComponent of emptyChoiceAppointmentComponents) {
-            console.log(`Destroying empty choice appointment`)
             aptComponent.destroy()
         }
         emptyChoiceAppointmentComponents = []
@@ -99,12 +95,9 @@ Page {
                         let aptId = apt.id
                         let finishIncubation = function(status) {
                             if (status === Component.Ready) {
-                                console.log(`Incubation for appointment with id ${aptId} has finished [${incubator.object}]`)
                                 if (aptId !== 0) { 
-                                    if (map.has(aptId)) {
+                                    if (map.has(aptId))
                                         map.get(aptId).destroy()
-                                        console.log(`Destroyed appointment with id ${aptId} because it had to be replaced by its updated version`)
-                                    }
                                     map.set(aptId, incubator.object)
                                 }
                                 else emptyChoiceAppointmentComponents.push(incubator.object)
@@ -165,7 +158,7 @@ Page {
                         textSize: weekPage.textSize
                     })
                 } else if (weekTimeLineItem.status === Component.Error) {
-                    console.log("Could not create lineItem:", weekTimeLineItem.errorString())
+                    console.error("Could not create lineItem:", weekTimeLineItem.errorString())
                 }
             }
 
