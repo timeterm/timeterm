@@ -123,9 +123,8 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 				(!optional && !canceled) ||
 				apt.Participation.AttendanceType == zermelo.AttendanceTypeMandatory {
 				if current != nil {
-					alternatives = append(alternatives, current)
+					alternatives = append(alternatives, current, apiAppointment)
 				}
-				current = apiAppointment
 				continue
 			}
 
