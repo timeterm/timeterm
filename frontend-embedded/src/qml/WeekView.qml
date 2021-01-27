@@ -35,18 +35,14 @@ Page {
 
         console.log(`New timetable contains appointments with IDs [${timetable.data.map((apt) => apt.id).join(", ")}]`)
         for (let apt of timetable.data) {
-            if (apt.id !== 0) {
-                newAptMap.set(apt.id, apt)
-            }
+            if (apt.id !== 0) newAptMap.set(apt.id, apt)
             else update.push(apt)
         }
 
         for (let apt of newAptMap.values()) {
             if (currentAptMap.has(apt.id)) {
                 let old = currentAptMap.get(apt.id)
-                if (!old.equals(apt)) {
-                    update.push(apt)
-                }
+                if (!old.equals(apt)) update.push(apt)
             } else {
                 update.push(apt)
             }
