@@ -124,7 +124,7 @@ func (s *Server) getZermeloAppointments(c echo.Context) error {
 				apt.Participation.AttendanceType == zermelo.AttendanceTypeMandatory {
 				if current != nil {
 					alternatives = append(alternatives, current)
-					if current.IsStudentEnrolled && enrolled {
+					if current.IsStudentEnrolled != nil && *current.IsStudentEnrolled && enrolled {
 						// The user has been enrolled into multiple appointments,
 						// so we're adding both to the alternatives list to prevent
 						// confusion (we can't make one the main appointment).
