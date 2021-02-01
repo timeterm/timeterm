@@ -195,7 +195,7 @@ type enrollAction int
 
 const (
 	enrollActionNone   enrollAction = 0
-	enrollActionEnroll enrollAction = 1 << (iota - 1)
+	enrollActionEnroll enrollAction = 1 << iota
 	enrollActionUnenroll
 	enrollActionSwitch enrollAction = enrollActionEnroll | enrollActionUnenroll
 )
