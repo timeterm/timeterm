@@ -118,7 +118,18 @@ func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func
 func debounce(ctx context.Context, f func(), d time.Duration) func() {
 	var mu sync.Mutex
 	var t *time.Timer
-	trigger := func() {
+
+	go func() {
+		<-ctx.Done()
+		mu.Lock()
+		defer mu.Unlock()
+
+		if t != nil && t.Stop() {
+			go f()
+		}
+	}()
+
+	return func() {
 		select {
 		case <-ctx.Done():
 			return
@@ -133,18 +144,4 @@ func debounce(ctx context.Context, f func(), d time.Duration) func() {
 		}
 		t = time.AfterFunc(d, f)
 	}
-
-	go func() {
-		<-ctx.Done()
-		mu.Lock()
-		defer mu.Unlock()
-
-		if t != nil {
-			if t.Stop() {
-				go f()
-			}
-		}
-	}()
-
-	return trigger
 }
