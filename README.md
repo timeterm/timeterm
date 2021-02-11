@@ -13,7 +13,8 @@ Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zi
 Het project is woensdag 16 december 2020 opgeleverd voor BM3a. Er is toen een tag met de naam 'bm3a' aangemaakt.
 Klik [hier](https://gitlab.com/timeterm/timeterm/-/tree/bm3a) om de broncode op dat moment in GitLab te bekijken.
 
-Een (poster)presentatie staat gepland voor 12 februari 2020.
+Het project is donderdag 11 februari 2020 opgeleberd voor BM3b (12 februari 2020). Er is toen een tag met de naam 'bm3b' aangemaakt.
+Klik [hier](https://gitlab.com/timeterm/timeterm/-/tree/bm3b) om de broncode op dat moment in GitLab te bekijken.
 
 ## Projectstructuur
 
