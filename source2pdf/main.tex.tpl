@@ -10,10 +10,12 @@
 \usepackage{multicol}
 \usepackage{titlesec}
 \usepackage{minted}
-\usepackage{hyperref}
+\usepackage[xetex]{hyperref}
 \usepackage{pdfpages}
 \usepackage{etoolbox}
 \usepackage{xpatch}
+
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
 
 \renewcommand\theFancyVerbLine{\footnotesize\arabic{FancyVerbLine}}
 
@@ -33,8 +35,21 @@
 \section{Broncode}
 
 {{ range .Sources }}
-\subsection{\texorpdfstring{\nolinkurl{{ printf `{%s}` (texEscapeFull .Path) }}}{{ printf `{%s}` (texEscapeFull .Path) }}}
-\inputminted[fontsize=\footnotesize,breakanywhere,linenos,tabsize=2,breaklines,breaksymbolleft={\color{gray}\texttt{↳}},breaksymbolright={\color{gray}\texttt{⎦}}]{{ printf `{%s}` .Language }}{{ printf `{../../%s}` (texEscapeMintedPath .Path) }}
+	\subsection{
+		\texorpdfstring{
+			\nolinkurl{{ printf `{%s}` (texEscapeFull .Path) }}
+		}{{ printf `{%s}` (texEscapeFull .Path) }}
+	}
+	
+	\inputminted[
+		fontsize=\footnotesize,
+		breakanywhere,
+		linenos,
+		tabsize=2,
+		breaklines,
+		breaksymbolleft={\color{gray}\texttt{↳}},
+		breaksymbolright={\color{gray}\texttt{⎦}},
+	]{{ printf `{%s}` .Language }}{{ printf `{../../%s}` (texEscapeMintedPath .Path) }}
 {{ end }}
 
 \end{document}
