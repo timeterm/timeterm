@@ -380,7 +380,7 @@ func (s *Server) newOrganizationZermeloClient(ctx context.Context, organizationI
 		return nil, errors.New("organization has no Zermelo token configured")
 	}
 
-	return zermelo.NewOrganizationClient(s.log, org.ZermeloInstitution, token)
+	return zermelo.NewOrganizationClient(s.log, s.msgw, organizationID, org.ZermeloInstitution, token)
 }
 
 type connectZermeloOrganizationParams struct {
