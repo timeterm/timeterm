@@ -1,9 +1,11 @@
 package secrets
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 	vault "github.com/hashicorp/vault/api"
@@ -37,6 +39,10 @@ func (w *Wrapper) createNetworkingServiceSecretPath(id uuid.UUID) string {
 
 func (w *Wrapper) createOrganizationZermeloTokenSecretPath(organizationID uuid.UUID) string {
 	return fmt.Sprintf("%s/data/%s/zermelo/tokens/organization/%s", w.mount, w.prefix, organizationID)
+}
+
+func (w *Wrapper) createOrganizationLogsKeySecretPath(organizationID uuid.UUID) string {
+	return fmt.Sprintf("%s/data/%s/logskey/%s", w.mount, w.prefix, organizationID)
 }
 
 func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
@@ -126,5 +132,61 @@ func (w *Wrapper) UpsertOrganizationZermeloToken(id uuid.UUID, token []byte) err
 			"token": string(token),
 		},
 	})
+	return err
+}
+
+func (w *Wrapper) GetOrganizationLogsKeySecret(organizationID uuid.UUID) ([]byte, error) {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+	secret, err := w.c.Logical().Read(secretPath)
+	if err != nil {
+		return nil, err
+	}
+	if secret == nil {
+		return nil, err
+	}
+
+	secretData, ok := secret.Data["data"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid secret data (may not be present)")
+	}
+	bytes, ok := secretData["key"].(string)
+	if !ok {
+		return nil, errors.New("logs key not present in secret")
+	}
+
+	key, err := base64.StdEncoding.DecodeString(bytes)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode key")
+	}
+
+	return []byte(key), nil
+}
+
+func (w *Wrapper) NewOrganizationLogsKeySecret(organizationID uuid.UUID) error {
+	// The key is an AES(-256) key, so we're going for 32 bytes.
+	key := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, key); err != nil {
+		return fmt.Errorf("could not generate key: %w", err)
+	}
+	return w.UpsertOrganizationLogsKeySecret(organizationID, key)
+}
+
+func (w *Wrapper) UpsertOrganizationLogsKeySecret(organizationID uuid.UUID, key []byte) error {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+
+	_, err := w.c.Logical().Write(secretPath, map[string]interface{}{
+		"data": map[string]interface{}{
+			"key": base64.StdEncoding.EncodeToString(key),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("could not write logs key to Vault: %w", err)
+	}
+	return nil
+}
+
+func (w *Wrapper) DeleteOrganizationLogsKeySecret(organizationID uuid.UUID) error {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+	_, err := w.c.Logical().Delete(secretPath)
 	return err
 }

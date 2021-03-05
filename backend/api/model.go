@@ -10,6 +10,7 @@ import (
 	devcfgpb "gitlab.com/timeterm/timeterm/proto/go/devcfg"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/messages"
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
@@ -833,4 +834,44 @@ func (p *StringPatch) UnmarshalJSON(b []byte) error {
 
 func (p StringPatch) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.Value)
+}
+
+type AdminMessageSeverity string
+
+const (
+	AdminMessageSeverityError AdminMessageSeverity = "error"
+	AdminMessageSeverityInfo  AdminMessageSeverity = "info"
+)
+
+type AdminMessage struct {
+	OrganizationID uuid.UUID              `json:"organizationId"`
+	LoggedAt       time.Time              `json:"loggedAt"`
+	Severity       AdminMessageSeverity   `json:"severity"`
+	Verbosity      int                    `json:"verbosity"`
+	Summary        string                 `json:"summary"`
+	Message        string                 `json:"message"`
+	Fields         map[string]interface{} `json:"fields"`
+}
+
+func adminMessageFrom(m messages.AdminMessage) AdminMessage {
+	return AdminMessage{
+		OrganizationID: m.OrganizationID,
+		LoggedAt:       m.LoggedAt,
+		Severity:       severityFrom(m.Severity),
+		Verbosity:      m.Verbosity,
+		Summary:        m.Summary,
+		Message:        m.Message,
+		Fields:         m.Fields,
+	}
+}
+
+func severityFrom(m messages.Severity) AdminMessageSeverity {
+	switch m {
+	case messages.SeverityError:
+		return AdminMessageSeverityError
+	default:
+		fallthrough
+	case messages.SeverityInfo:
+		return AdminMessageSeverityInfo
+	}
 }

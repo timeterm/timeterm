@@ -11,10 +11,11 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/nats-io/nats.go"
 
-	"gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
+	nmsdk "gitlab.com/timeterm/timeterm/nats-manager/pkg/sdk"
 
 	authn "gitlab.com/timeterm/timeterm/backend/auhtn"
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/messages"
 	"gitlab.com/timeterm/timeterm/backend/mq"
 	"gitlab.com/timeterm/timeterm/backend/secrets"
 	"gitlab.com/timeterm/timeterm/backend/templates"
@@ -27,6 +28,7 @@ type Server struct {
 	mqw  *mq.Wrapper
 	secr *secrets.Wrapper
 	nm   *nmsdk.Client
+	msgw *messages.Wrapper
 }
 
 func newEcho(log logr.Logger) (*echo.Echo, error) {
@@ -46,7 +48,7 @@ func newEcho(log logr.Logger) (*echo.Echo, error) {
 	return e, nil
 }
 
-func NewServer(db *database.Wrapper, log logr.Logger, secr *secrets.Wrapper) (Server, error) {
+func NewServer(log logr.Logger, db *database.Wrapper, secr *secrets.Wrapper) (Server, error) {
 	log = log.WithName("Server")
 
 	e, err := newEcho(log)
@@ -80,10 +82,11 @@ func NewServer(db *database.Wrapper, log logr.Logger, secr *secrets.Wrapper) (Se
 		secr: secr,
 		mqw:  mqw,
 		nm:   nmsdk.NewClient(nc),
+		msgw: messages.NewWrapper(log, db, secr),
 	}
 	server.registerRoutes()
 
-	authnr, err := authn.New(db, log)
+	authnr, err := authn.New(log, db, secr)
 	if err != nil {
 		return server, err
 	}
@@ -121,6 +124,10 @@ func (s *Server) registerRoutes() {
 	devHeartbeatGroup := s.echo.Group("/device/:id/heartbeat")
 	devHeartbeatGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
 	devHeartbeatGroup.PUT("", s.updateLastHeartbeat)
+
+	msgGroup := s.echo.Group("/message")
+	msgGroup.GET("", s.getAdminMessages)
+	msgGroup.GET("/:sec/:nanosec", s.getAdminMessage)
 
 	orgGroup := g.Group("/organization")
 	orgGroup.PATCH("/:id", s.patchOrganization)
@@ -178,4 +185,3 @@ func (s *Server) Run(ctx context.Context) error {
 		return ctx.Err()
 	}
 }
-

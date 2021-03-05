@@ -252,6 +252,7 @@ type fixture struct {
 
 // Close frees all the resources that the fixture has used (currently a database).
 func (f fixture) Close() {
+	assert.NoError(f.t, migrate(f.dbw.db, f.dbw.options.migrationsURL, 1))
 	assert.NoError(f.t, f.dbw.Close())
 	forceDropDB(f.t, f.dbName)
 }

@@ -210,10 +210,16 @@ paths:
         "200":
           description: No content
 
-  /organization/{organizationId}:
+  /organization/{id}:
     get:
       operationId: getOrganization
       summary: Get an organization
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK
@@ -225,6 +231,12 @@ paths:
       operationId: updateOrganization
       summary: Update an organization
       description: Update an organization. Request body is interpreted as JSON Merge Patch [[RFC 7396](https://tools.ietf.org/html/rfc7396)].
+      parameters:
+        - name: id
+          in: path 
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -237,6 +249,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Organization"
+
+  /message:
+    get:
+      operationId: getAdminMessages
+      summary: Get admin messages (for the current organization)
+      parameters:
+        - name: fromTimestamp
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: maxAmount
+          in: query
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminMessage"
+
+  /message/{sec}/{nanosec}:
+    get:
+      operationId: getAdminMessage
+      summary: Get admin message (for the current organization)
+      parameters:
+        - name: sec
+          in: path
+          schema:
+            type: integer
+            format: int64
+        - name: nanosec
+          in: path
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMessage"
   
   /networking/service:
     get:
@@ -276,10 +338,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/NetworkingService"
 
-  /networking/service/{serviceId}:
+  /networking/service/{id}:
     get:
       operationId: getNetworkingService
       summary: Get a networking service
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK
@@ -291,6 +359,12 @@ paths:
     delete:
       operationId: deleteNetworkingService
       summary: Delete a networking service
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: No content
@@ -298,6 +372,12 @@ paths:
     put:
       operationId: replaceNetworkingService
       summary: Replace a networking service
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -377,6 +457,12 @@ paths:
     get:
       operationId: getStudent
       summary: Get a student
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK
@@ -388,6 +474,12 @@ paths:
       operationId: updateStudent
       summary: Update a student
       description: Update an student. Request body is interpreted as JSON Merge Patch [[RFC 7396](https://tools.ietf.org/html/rfc7396)].
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -413,10 +505,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
   
-  /user/:id:
+  /user/{id}:
     patch:
       operationId: patchUser
       summary: Patch a user
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
       requestBody:
         content:
           application/json:
@@ -542,6 +640,34 @@ components:
           type: string
         email:
           type: string
+
+    AdminMessage:
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        loggedAt:
+          properties:
+            seconds:
+              type: integer
+              format: int64
+            nanos:
+              type: integer
+              format: int64
+        severity:
+          type: string
+          enum:
+            - error
+            - info
+        verbosity:
+          type: integer
+        summary:
+          type: string
+        message:
+          type: string
+        fields:
+          # This can contain anything that the backend puts in it.
+          type: object
 
     Appointments:
       required:

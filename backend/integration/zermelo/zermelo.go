@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -13,7 +14,9 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
 
+	"gitlab.com/timeterm/timeterm/backend/messages"
 	"gitlab.com/timeterm/timeterm/backend/pkg/jsontypes"
 )
 
@@ -28,13 +31,21 @@ func mustLoadLocation(name string) *time.Location {
 }
 
 type OrganizationClient struct {
-	Client  *http.Client
-	Token   []byte
-	BaseURL *url.URL
-	log     logr.Logger
+	Client         *http.Client
+	Token          []byte
+	BaseURL        *url.URL
+	organizationID uuid.UUID
+	log            logr.Logger
+	msgw           *messages.Wrapper
 }
 
-func NewOrganizationClient(log logr.Logger, institution string, token []byte) (*OrganizationClient, error) {
+func NewOrganizationClient(
+	log logr.Logger,
+	msgw *messages.Wrapper,
+	organizationID uuid.UUID,
+	institution string,
+	token []byte,
+) (*OrganizationClient, error) {
 	baseURL, err := url.Parse(fmt.Sprintf("https://%s.zportal.nl/api/v3/", institution))
 	if err != nil {
 		return nil, err
@@ -48,9 +59,11 @@ func NewOrganizationClient(log logr.Logger, institution string, token []byte) (*
 				Value: fmt.Sprintf("Bearer %s", string(token)),
 			},
 		},
-		Token:   token,
-		BaseURL: baseURL,
-		log:     log,
+		Token:          token,
+		BaseURL:        baseURL,
+		organizationID: organizationID,
+		log:            log,
+		msgw:           msgw,
 	}, nil
 }
 
@@ -242,6 +255,7 @@ func (c *OrganizationClient) GetAppointments(
 	defer func() { _ = hrsp.Body.Close() }()
 
 	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointments for users [%v]", req.PossibleStudents)
 		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
 	}
 
@@ -250,6 +264,50 @@ func (c *OrganizationClient) GetAppointments(
 		return nil, fmt.Errorf("could not decode Zermelo response: %w", err)
 	}
 	return &rsp, nil
+}
+
+func (c *OrganizationClient) logFailedRequest(hreq *http.Request, hrsp *http.Response, msg string, a ...interface{}) {
+	dumpedReq, err := httputil.DumpRequestOut(hreq, true)
+	var dumpedReqStr string
+	if err != nil {
+		dumpedReqStr = prefixLines(string(dumpedReq), "\t")
+	} else {
+		dumpedReqStr = "*** request dump failed ***"
+	}
+
+	dumpedRsp, err := httputil.DumpResponse(hrsp, true)
+	var dumpedRspStr string
+	if err != nil {
+		dumpedRspStr = prefixLines(string(dumpedRsp), "\t")
+	} else {
+		dumpedRspStr = "*** response dump failed ***"
+	}
+
+	const messageFormat = `Request to Zermelo failed
+
+=== request ===
+%s
+
+=== respone ===
+%s
+`
+
+	c.msgw.
+		Start(c.organizationID).Error().
+		Summaryf(msg, a...).
+		Messagef(messageFormat, dumpedReqStr, dumpedRspStr).
+		Log()
+}
+
+func prefixLines(of, with string) string {
+	var b strings.Builder
+	lines := strings.Split(of, "\n")
+	for _, line := range lines {
+		b.WriteString(with)
+		b.WriteString(line)
+		b.WriteByte('\n')
+	}
+	return b.String()
 }
 
 type AppointmentParticipationsRequest struct {
@@ -280,6 +338,11 @@ func (c *OrganizationClient) GetAppointmentParticipations(
 		return nil, fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	defer func() { _ = hrsp.Body.Close() }()
+
+	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointment participations for user %s", req.Student)
+		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
+	}
 
 	var rsp AppointmentParticipationsResponse
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {

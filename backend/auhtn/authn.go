@@ -20,6 +20,7 @@ import (
 	microsoftoauth2 "golang.org/x/oauth2/microsoft"
 
 	"gitlab.com/timeterm/timeterm/backend/database"
+	"gitlab.com/timeterm/timeterm/backend/secrets"
 	"gitlab.com/timeterm/timeterm/backend/templates"
 )
 
@@ -30,13 +31,14 @@ type Issuer struct {
 
 type Authorizer struct {
 	dbw     *database.Wrapper
+	secr    *secrets.Wrapper
 	log     logr.Logger
 	issuers map[string]Issuer
 
 	redirectURL *url.URL
 }
 
-func New(dbw *database.Wrapper, log logr.Logger) (*Authorizer, error) {
+func New(log logr.Logger, dbw *database.Wrapper, secr *secrets.Wrapper) (*Authorizer, error) {
 	redirectURL, err := url.Parse(os.Getenv("OIDC_REDIRECT_URL"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid OIDC_REDIRECT_URL: %w", err)
@@ -300,6 +302,11 @@ func (a *Authorizer) HandleOauth2Callback(c echo.Context) error {
 		})
 		if err != nil {
 			a.log.Error(err, "could not create user")
+			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create user"))
+		}
+
+		if err = a.secr.NewOrganizationLogsKeySecret(user.OrganizationID); err != nil {
+			a.log.Error(err, "could not create organization logs key")
 			return redirectToOrigin(c, redirectURL, StatusError, errorMsg("Could not create user"))
 		}
 	} else {

@@ -409,3 +409,59 @@ func (w *Wrapper) GetStudentByCard(ctx context.Context, uid []byte, organization
 
 	return student, err
 }
+
+type GetAdminMessagesOpts struct {
+	OrganizationID uuid.UUID
+	Limit          *uint64
+	FromTimestamp  *time.Time
+}
+
+func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpts) ([]AdminMessage, error) {
+	limit := min(or(opts.Limit, 50), 100)
+
+	var fromTimestamp time.Time
+	if opts.FromTimestamp != nil {
+		fromTimestamp = *opts.FromTimestamp
+	} else {
+		fromTimestamp = time.Now()
+	}
+
+	conds := sq.And{
+		sq.Eq{"organization_id": opts.OrganizationID},
+	}
+
+	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
+		return b.
+			From("admin_message").
+			Where(conds).
+			PlaceholderFormat(sq.Dollar)
+	}
+
+	devsSql, args, err := buildQuery(sq.Select(`*`)).
+		Where(sq.Lt{"logged_at": fromTimestamp}).
+		Limit(limit).
+		OrderBy("logged_at DESC").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []AdminMessage
+	err = w.db.SelectContext(ctx, &messages, devsSql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
+
+func (w *Wrapper) GetAdminMessage(ctx context.Context, tm time.Time, organizationID uuid.UUID) (AdminMessage, error) {
+	var message AdminMessage
+
+	err := w.db.GetContext(ctx, &message, `
+		SELECT * FROM admin_message
+		WHERE logged_at = $1 AND organization_id = $2
+	`, tm, organizationID)
+
+	return message, err
+}

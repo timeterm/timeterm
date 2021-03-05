@@ -1,6 +1,6 @@
 module gitlab.com/timeterm/timeterm/backend
 
-go 1.15
+go 1.16
 
 replace (
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb => ./pkg/natspb
@@ -43,7 +43,6 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392
 	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20201126233918-771906719818 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.25.0
