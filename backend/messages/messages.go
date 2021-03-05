@@ -30,6 +30,42 @@ func NewWrapper(log logr.Logger, dbw *database.Wrapper, secr *secrets.Wrapper) *
 	}
 }
 
+type AdminMessage struct {
+	OrganizationID uuid.UUID
+	LoggedAt       time.Time
+	Severity       Severity
+	Verbosity      int
+	Summary        string
+	Message        string
+	Fields         map[string]interface{}
+}
+
+func (w *Wrapper) Decrypt(organizationID uuid.UUID, messages []database.AdminMessage) ([]AdminMessage, error) {
+	logsKey, err := w.secr.GetOrganizationLogsKeySecret(organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("could not get organization logs secret: %w", err)
+	}
+
+	decrypted := make([]AdminMessage, 0, len(messages))
+	for i, msg := range messages {
+		data, err := decrypt(msg.Nonce, msg.Data, logsKey)
+		if err != nil {
+			return nil, fmt.Errorf("could not decrypt message %d: %w", i, err)
+		}
+		decrypted = append(decrypted, AdminMessage{
+			OrganizationID: msg.OrganizationID,
+			LoggedAt:       msg.LoggedAt,
+			Severity:       severityFromDB(msg.Severity),
+			Verbosity:      msg.Verbosity,
+			Summary:        data.Summary,
+			Message:        data.Message,
+			Fields:         data.Fields,
+		})
+	}
+
+	return decrypted, nil
+}
+
 type Severity int
 
 const (
@@ -37,7 +73,7 @@ const (
 	SeverityInfo
 )
 
-func convertSeverity(s Severity) database.AdminMessageSeverity {
+func severityToDB(s Severity) database.AdminMessageSeverity {
 	switch s {
 	case SeverityError:
 		return database.AdminMessageSeverityError
@@ -45,6 +81,17 @@ func convertSeverity(s Severity) database.AdminMessageSeverity {
 		fallthrough
 	case SeverityInfo:
 		return database.AdminMessageSeverityInfo
+	}
+}
+
+func severityFromDB(s database.AdminMessageSeverity) Severity {
+	switch s {
+	case database.AdminMessageSeverityError:
+		return SeverityError
+	default:
+		fallthrough
+	case database.AdminMessageSeverityInfo:
+		return SeverityInfo
 	}
 }
 
@@ -132,7 +179,7 @@ func (e Entry) log() error {
 	err = e.w.dbw.CreateAdminMessage(ctx, database.AdminMessage{
 		OrganizationID: e.organizationID,
 		LoggedAt:       time.Now(),
-		Severity:       convertSeverity(e.severity),
+		Severity:       severityToDB(e.severity),
 		Verbosity:      e.verbosity,
 		Nonce:          nonce,
 		Data:           encrypted,
@@ -172,4 +219,29 @@ func (d encryptedData) encrypt(key []byte) ([]byte, []byte, error) {
 	}
 
 	return nonce, aesgcm.Seal(nil, nonce, bytes, nil), nil
+}
+
+func decrypt(nonce, data, key []byte) (encryptedData, error) {
+	var ed encryptedData
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return ed, fmt.Errorf("could not create AES cipher: %w", err)
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return ed, fmt.Errorf("could not create AES GCM cipher: %w", err)
+	}
+
+	bytes, err := aesgcm.Open(nil, nonce, data, nil)
+	if err != nil {
+		return ed, fmt.Errorf("could not decrypt data: %w", err)
+	}
+
+	if err = json.Unmarshal(bytes, &ed); err != nil {
+		return ed, fmt.Errorf("could not unmarshal decrypted data: %w", err)
+	}
+
+	return ed, nil
 }
