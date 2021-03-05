@@ -62,6 +62,28 @@ type NetworkingService struct {
 	Name           string
 }
 
+type AdminMessageSeverity string
+
+const (
+	AdminMessageSeverityError AdminMessageSeverity = "error"
+	AdminMessageSeverityInfo  AdminMessageSeverity = "info"
+)
+
+type AdminMessage struct {
+	OrganizationID uuid.UUID
+	LoggedAt       time.Time
+	Severity       AdminMessageSeverity
+	Verbosity      int
+	Nonce          []byte
+	Data           []byte
+}
+
+type AdminMessageData struct {
+	Summary   string
+	Message   string
+	ExtraData map[string]interface{}
+}
+
 func (w *Wrapper) CreateOrganization(ctx context.Context,
 	name string,
 	zermeloInstitution string,
@@ -288,6 +310,15 @@ func (w *Wrapper) CreateDeviceRegistrationToken(ctx context.Context, organizatio
 	`, tokenHash, organizationID)
 
 	return token, err
+}
+
+func (w *Wrapper) CreateAdminMessage(ctx context.Context, msg AdminMessage) error {
+	_, err := w.db.ExecContext(ctx, `
+		INSERT INTO "admin_message" ("organization_id", "logged_at", "severity", "verbosity", "data")
+		VALUES ($1, $2, $3, $4, $5)
+	`, msg.OrganizationID, msg.LoggedAt, msg.Severity, msg.Verbosity, msg.Data)
+
+	return err
 }
 
 func hashToken(token uuid.UUID) ([]byte, error) {

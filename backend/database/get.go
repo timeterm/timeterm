@@ -409,3 +409,71 @@ func (w *Wrapper) GetStudentByCard(ctx context.Context, uid []byte, organization
 
 	return student, err
 }
+
+type GetAdminMessagesOpts struct {
+	OrganizationID uuid.UUID
+	Limit          *uint64
+	Offset         *uint64
+}
+
+type PaginatedAdminMessages struct {
+	Pagination
+	AdminMessages []*AdminMessage
+}
+
+func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpts) (PaginatedAdminMessages, error) {
+	messages := PaginatedAdminMessages{
+		Pagination: Pagination{
+			Limit:  min(or(opts.Limit, 50), 100),
+			Offset: or(opts.Offset, 0),
+		},
+	}
+
+	conds := sq.And{
+		sq.Eq{"organization_id": opts.OrganizationID},
+	}
+
+	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
+		return b.
+			From("admin_message").
+			Where(conds).
+			PlaceholderFormat(sq.Dollar)
+	}
+
+	devsSql, args, err := buildQuery(sq.Select(`*`)).
+		Limit(messages.Pagination.Limit).
+		Offset(messages.Pagination.Offset).
+		OrderBy("logged_at ASC").
+		ToSql()
+	if err != nil {
+		return messages, err
+	}
+
+	err = w.db.SelectContext(ctx, &messages.AdminMessages, devsSql, args...)
+	if err != nil {
+		return messages, err
+	}
+
+	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
+	if err != nil {
+		return messages, err
+	}
+
+	err = w.db.GetContext(ctx, &messages.Total, totalSql, args...)
+	if err != nil {
+		return messages, err
+	}
+
+	return messages, nil
+}
+
+func (w *Wrapper) GetAdminMessage(ctx context.Context, tm time.Time, organizationID uuid.UUID) (AdminMessage, error) {
+	var message AdminMessage
+
+	err := w.db.GetContext(ctx, &message, `
+		SELECT * FROM admin_message
+		WHERE logged_at = $1 AND organization_id = $2
+	`, tm, organizationID)
+
+	return message, err
+}

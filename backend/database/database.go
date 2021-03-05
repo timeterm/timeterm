@@ -15,12 +15,13 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-const version = 21
+const version uint = 22
 
 // Wrapper wraps the PostgreSQL database.
 type Wrapper struct {
-	db     *sqlx.DB
-	logger logr.Logger
+	db      *sqlx.DB
+	options wrapperOpts
+	logger  logr.Logger
 
 	stopJanitor func()
 }
@@ -71,12 +72,12 @@ func New(url string, log logr.Logger, opts ...WrapperOpt) (*Wrapper, error) {
 
 	db.MapperFunc(nameMapper)
 
-	err = migrate(db, options.migrationsURL)
+	err = migrate(db, options.migrationsURL, version)
 	if err != nil {
 		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
-	wrapper := &Wrapper{db: db, logger: log}
+	wrapper := &Wrapper{db: db, logger: log, options: options}
 
 	if options.janitorOn {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -107,7 +108,7 @@ func connect(url string) (*sqlx.DB, error) {
 	return sqlx.Connect("postgres", url)
 }
 
-func migrate(db *sqlx.DB, sourceURL string) error {
+func migrate(db *sqlx.DB, sourceURL string, targetVersion uint) error {
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{
 		MigrationsTable: "migrations",
 		DatabaseName:    "timeterm",
@@ -121,13 +122,13 @@ func migrate(db *sqlx.DB, sourceURL string) error {
 		return err
 	}
 
-	return doMigrate(migrate)
+	return doMigrate(migrate, targetVersion)
 }
 
-func doMigrate(migrate *gomigrate.Migrate) error {
+func doMigrate(migrate *gomigrate.Migrate, targetVersion uint) error {
 	currentVersion, isDirty, err := migrate.Version()
-	if (err == nil && (isDirty || currentVersion != version)) || errors.Is(err, gomigrate.ErrNilVersion) {
-		err = migrate.Migrate(version)
+	if (err == nil && (isDirty || currentVersion != targetVersion)) || errors.Is(err, gomigrate.ErrNilVersion) {
+		err = migrate.Migrate(targetVersion)
 	}
 	return err
 }

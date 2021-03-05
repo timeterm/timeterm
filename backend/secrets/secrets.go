@@ -39,6 +39,10 @@ func (w *Wrapper) createOrganizationZermeloTokenSecretPath(organizationID uuid.U
 	return fmt.Sprintf("%s/data/%s/zermelo/tokens/organization/%s", w.mount, w.prefix, organizationID)
 }
 
+func (w *Wrapper) createOrganizationLogsKeySecretPath(organizationID uuid.UUID) string {
+	return fmt.Sprintf("%s/data/%s/logskey/%s", w.mount, w.prefix, organizationID)
+}
+
 func (w *Wrapper) GetNetworkingService(id uuid.UUID) (*devcfgpb.NetworkingService, error) {
 	secretPath := w.createNetworkingServiceSecretPath(id)
 	secret, err := w.c.Logical().Read(secretPath)
@@ -126,5 +130,49 @@ func (w *Wrapper) UpsertOrganizationZermeloToken(id uuid.UUID, token []byte) err
 			"token": string(token),
 		},
 	})
+	return err
+}
+
+func (w *Wrapper) GetOrganizationLogsKeySecret(organizationID uuid.UUID) ([]byte, error) {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+	secret, err := w.c.Logical().Read(secretPath)
+	if err != nil {
+		return nil, err
+	}
+	if secret == nil {
+		return nil, err
+	}
+
+	secretData, ok := secret.Data["data"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid secret data (may not be present)")
+	}
+	bytes, ok := secretData["key"].(string)
+	if !ok {
+		return nil, errors.New("logs key not present in secret")
+	}
+
+	key, err := base64.StdEncoding.DecodeString(bytes)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode key")
+	}
+
+	return []byte(key), nil
+}
+
+func (w *Wrapper) UpsertOrganizationLogsKeySecret(organizationID uuid.UUID, key []byte) error {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+
+	_, err := w.c.Logical().Write(secretPath, map[string]interface{}{
+		"data": map[string]interface{}{
+			"key": base64.StdEncoding.EncodeToString(key),
+		},
+	})
+	return err
+}
+
+func (w *Wrapper) DeleteOrganizationLogsKeySecret(organizationID uuid.UUID) error {
+	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
+	_, err := w.c.Logical().Delete(secretPath)
 	return err
 }
