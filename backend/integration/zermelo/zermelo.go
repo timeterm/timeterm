@@ -254,9 +254,8 @@ func (c *OrganizationClient) GetAppointments(
 	}
 	defer func() { _ = hrsp.Body.Close() }()
 
-	c.logFailedRequest(hreq, hrsp, "Could not retrieve appointments for user %s", req.PossibleStudents)
-
 	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointments for users [%v]", req.PossibleStudents)
 		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
 	}
 
@@ -339,6 +338,11 @@ func (c *OrganizationClient) GetAppointmentParticipations(
 		return nil, fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	defer func() { _ = hrsp.Body.Close() }()
+
+	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointment participations for user %s", req.Student)
+		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
+	}
 
 	var rsp AppointmentParticipationsResponse
 	if err = json.NewDecoder(hrsp.Body).Decode(&rsp); err != nil {
