@@ -1,9 +1,11 @@
 package secrets
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 	vault "github.com/hashicorp/vault/api"
@@ -160,6 +162,15 @@ func (w *Wrapper) GetOrganizationLogsKeySecret(organizationID uuid.UUID) ([]byte
 	return []byte(key), nil
 }
 
+func (w *Wrapper) NewOrganizationLogsKeySecret(organizationID uuid.UUID) error {
+	// The key is an AES(-256) key, so we're going for 32 bytes.
+	key := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, key); err != nil {
+		return fmt.Errorf("could not generate key: %w", err)
+	}
+	return w.UpsertOrganizationLogsKeySecret(organizationID, key)
+}
+
 func (w *Wrapper) UpsertOrganizationLogsKeySecret(organizationID uuid.UUID, key []byte) error {
 	secretPath := w.createOrganizationLogsKeySecretPath(organizationID)
 
@@ -168,7 +179,10 @@ func (w *Wrapper) UpsertOrganizationLogsKeySecret(organizationID uuid.UUID, key 
 			"key": base64.StdEncoding.EncodeToString(key),
 		},
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("could not write logs key to Vault: %w", err)
+	}
+	return nil
 }
 
 func (w *Wrapper) DeleteOrganizationLogsKeySecret(organizationID uuid.UUID) error {

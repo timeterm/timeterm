@@ -255,11 +255,11 @@ paths:
       operationId: getAdminMessages
       summary: Get admin messages (for the current organization)
       parameters:
-        - name: offset
+        - name: fromTimestamp
           in: query
           schema:
             type: integer
-            format: uint64
+            format: int64
         - name: maxAmount
           in: query
           schema:
@@ -271,7 +271,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedAdminMessages"
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminMessage"
 
   /message/{sec}/{nanosec}:
     get:
@@ -661,7 +665,7 @@ components:
           type: string
         message:
           type: string
-        extraData:
+        fields:
           # This can contain anything that the backend puts in it.
           type: object
 
@@ -851,15 +855,6 @@ components:
         total:
           type: integer
           format: uint64
-
-    PaginatedAdminMessages:
-      allOf:
-        - $ref: "#/components/schemas/Pagination"
-        - properties:
-            data:
-              type: array
-              items:
-                $ref: "#/components/schemas/AdminMessage"
 
     PaginatedDevices:
       allOf:

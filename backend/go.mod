@@ -1,6 +1,6 @@
 module gitlab.com/timeterm/timeterm/backend
 
-go 1.15
+go 1.16
 
 replace (
 	gitlab.com/timeterm/timeterm/backend/pkg/natspb => ./pkg/natspb

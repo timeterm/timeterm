@@ -54,7 +54,7 @@ func realMain(log logr.Logger) error {
 		return fmt.Errorf("could not create secrets wrapper: %w", err)
 	}
 
-	server, err := api.NewServer(db, log, secr)
+	server, err := api.NewServer(log, db, secr)
 	if err != nil {
 		return fmt.Errorf("could not create API server: %w", err)
 	}

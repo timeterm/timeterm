@@ -413,20 +413,17 @@ func (w *Wrapper) GetStudentByCard(ctx context.Context, uid []byte, organization
 type GetAdminMessagesOpts struct {
 	OrganizationID uuid.UUID
 	Limit          *uint64
-	Offset         *uint64
+	FromTimestamp  *time.Time
 }
 
-type PaginatedAdminMessages struct {
-	Pagination
-	AdminMessages []*AdminMessage
-}
+func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpts) ([]AdminMessage, error) {
+	limit := min(or(opts.Limit, 50), 100)
 
-func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpts) (PaginatedAdminMessages, error) {
-	messages := PaginatedAdminMessages{
-		Pagination: Pagination{
-			Limit:  min(or(opts.Limit, 50), 100),
-			Offset: or(opts.Offset, 0),
-		},
+	var fromTimestamp time.Time
+	if opts.FromTimestamp != nil {
+		fromTimestamp = *opts.FromTimestamp
+	} else {
+		fromTimestamp = time.Now()
 	}
 
 	conds := sq.And{
@@ -441,27 +438,18 @@ func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpt
 	}
 
 	devsSql, args, err := buildQuery(sq.Select(`*`)).
-		Limit(messages.Pagination.Limit).
-		Offset(messages.Pagination.Offset).
-		OrderBy("logged_at ASC").
+		Where(sq.Lt{"logged_at": fromTimestamp}).
+		Limit(limit).
+		OrderBy("logged_at DESC").
 		ToSql()
 	if err != nil {
-		return messages, err
+		return nil, err
 	}
 
-	err = w.db.SelectContext(ctx, &messages.AdminMessages, devsSql, args...)
+	var messages []AdminMessage
+	err = w.db.SelectContext(ctx, &messages, devsSql, args...)
 	if err != nil {
-		return messages, err
-	}
-
-	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
-	if err != nil {
-		return messages, err
-	}
-
-	err = w.db.GetContext(ctx, &messages.Total, totalSql, args...)
-	if err != nil {
-		return messages, err
+		return nil, err
 	}
 
 	return messages, nil
