@@ -162,7 +162,7 @@ func (e echoLogrLogger) Panicj(j log.JSON) {
 
 	txt, err := json.Marshal(j)
 	if err != nil {
-		panic("(echoLogrLogr).Panicj called (but it failed to serialize provided JSON)")
+		panic("(echoLogrLogger).Panicj called (but it failed to serialize provided JSON)")
 	}
 	panic(txt)
 }
