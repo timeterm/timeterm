@@ -291,7 +291,7 @@ paths:
           in: path
           schema:
             type: integer
-            format: int64
+            format: int32
       responses:
         "200":
           description: OK
@@ -653,7 +653,7 @@ components:
               format: int64
             nanos:
               type: integer
-              format: int64
+              format: int32
         severity:
           type: string
           enum:

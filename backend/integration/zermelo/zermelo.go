@@ -281,12 +281,12 @@ func (c *OrganizationClient) logFailedRequest(hreq *http.Request, hrsp *http.Res
 		dumpedRspStr = prefixLines(string(dumpedRsp), "\t")
 	}
 
-	const messageFormat = `Request to Zermelo failed
+	const messageFormat = `request to Zermelo failed
 
 === request ===
 %s
 
-=== respone ===
+=== response ===
 %s
 `
 
