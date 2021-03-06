@@ -255,7 +255,7 @@ func (c *OrganizationClient) GetAppointments(
 	defer func() { _ = hrsp.Body.Close() }()
 
 	if hrsp.StatusCode != http.StatusOK {
-		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointments for users [%v]", req.PossibleStudents)
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointments for users %v", req.PossibleStudents)
 		return nil, fmt.Errorf("got a response with status code %d (%s)", hrsp.StatusCode, hrsp.Status)
 	}
 
@@ -267,20 +267,18 @@ func (c *OrganizationClient) GetAppointments(
 }
 
 func (c *OrganizationClient) logFailedRequest(hreq *http.Request, hrsp *http.Response, msg string, a ...interface{}) {
-	dumpedReq, err := httputil.DumpRequestOut(hreq, true)
 	var dumpedReqStr string
-	if err != nil {
-		dumpedReqStr = prefixLines(string(dumpedReq), "\t")
+	if dumpedReq, err := httputil.DumpRequestOut(hreq, true); err != nil {
+		dumpedRspStr = "*** request dump failed: " + err.Error() + " ***"
 	} else {
-		dumpedReqStr = "*** request dump failed ***"
+		dumpedReqStr = prefixLines(string(dumpedReq), "\t")
 	}
 
-	dumpedRsp, err := httputil.DumpResponse(hrsp, true)
 	var dumpedRspStr string
-	if err != nil {
-		dumpedRspStr = prefixLines(string(dumpedRsp), "\t")
+	if dumpedRsp, err := httputil.DumpResponse(hrsp, true); err != nil {
+		dumpedRspStr = "*** response dump failed: " + err.Error() + " ***"
 	} else {
-		dumpedRspStr = "*** response dump failed ***"
+		dumpedRspStr = prefixLines(string(dumpedRsp), "\t")
 	}
 
 	const messageFormat = `Request to Zermelo failed

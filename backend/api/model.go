@@ -843,9 +843,20 @@ const (
 	AdminMessageSeverityInfo  AdminMessageSeverity = "info"
 )
 
+type NanoTime time.Time
+
+func (t NanoTime) MarshalJSON() ([]byte, error) {
+	jsonObj := struct {
+		Seconds int64 `json:"seconds"`
+		Nanos   int64 `json:"nanos"`
+	}{t.Unix(), t.UnixNano()}
+
+	return json.Marshal(jsonObj)
+}
+
 type AdminMessage struct {
 	OrganizationID uuid.UUID              `json:"organizationId"`
-	LoggedAt       time.Time              `json:"loggedAt"`
+	LoggedAt       NanoTime               `json:"loggedAt"`
 	Severity       AdminMessageSeverity   `json:"severity"`
 	Verbosity      int                    `json:"verbosity"`
 	Summary        string                 `json:"summary"`
@@ -856,7 +867,7 @@ type AdminMessage struct {
 func adminMessageFrom(m messages.AdminMessage) AdminMessage {
 	return AdminMessage{
 		OrganizationID: m.OrganizationID,
-		LoggedAt:       m.LoggedAt,
+		LoggedAt:       NanoTime(m.LoggedAt),
 		Severity:       severityFrom(m.Severity),
 		Verbosity:      m.Verbosity,
 		Summary:        m.Summary,
