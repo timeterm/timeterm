@@ -46,6 +46,7 @@ func New(log logr.Logger, dbw *database.Wrapper, secr *secrets.Wrapper) (*Author
 
 	a := &Authorizer{
 		dbw:         dbw,
+		secr:        secr,
 		log:         log,
 		issuers:     make(map[string]Issuer),
 		redirectURL: redirectURL,
