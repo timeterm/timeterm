@@ -55,8 +55,13 @@ func NewOrganizationClient(
 		Client: &http.Client{
 			Transport: &SetHeaderRoundTripper{
 				log:   log,
-				Key:   "Authorization",
-				Value: fmt.Sprintf("Bearer %s", string(token)),
+				Key:   "User-Agent",
+				Value: "Timeterm-Backend/1.0.0",
+				Next: &SetHeaderRoundTripper{
+					log:   log,
+					Key:   "Authorization",
+					Value: fmt.Sprintf("Bearer %s", token),
+				},
 			},
 		},
 		Token:          token,
