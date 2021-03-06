@@ -125,7 +125,7 @@ func (s *Server) registerRoutes() {
 	devHeartbeatGroup.Use(authn.DeviceLoginMiddleware(s.db, s.log))
 	devHeartbeatGroup.PUT("", s.updateLastHeartbeat)
 
-	msgGroup := s.echo.Group("/message")
+	msgGroup := g.Group("/message")
 	msgGroup.GET("", s.getAdminMessages)
 	msgGroup.GET("/:sec/:nanosec", s.getAdminMessage)
 
