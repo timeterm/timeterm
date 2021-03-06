@@ -315,7 +315,7 @@ func (w *Wrapper) CreateDeviceRegistrationToken(ctx context.Context, organizatio
 func (w *Wrapper) CreateAdminMessage(ctx context.Context, msg AdminMessage) error {
 	_, err := w.db.ExecContext(ctx, `
 		INSERT INTO "admin_message" ("organization_id", "logged_at", "severity", "verbosity", "nonce", "data")
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`, msg.OrganizationID, msg.LoggedAt, msg.Severity, msg.Verbosity, msg.Nonce, msg.Data)
 
 	return err
