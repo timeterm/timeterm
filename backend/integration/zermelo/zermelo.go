@@ -376,6 +376,7 @@ func (c *OrganizationClient) GetAppointmentParticipation(
 	defer func() { _ = hrsp.Body.Close() }()
 
 	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not retrieve appointment participation %d", id)
 		return nil, StatusError{Code: hrsp.StatusCode}
 	}
 
@@ -422,6 +423,9 @@ func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *Chang
 		return fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	if hrsp.StatusCode != http.StatusOK {
+		c.logFailedRequest(hreq, hrsp, "Could not change appointment participation %d enrollment status to %t",
+			req.ParticipationID, req.Enrolled,
+		)
 		return fmt.Errorf("failed to change participation: %w", StatusError{Code: hrsp.StatusCode})
 	}
 
