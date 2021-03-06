@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -417,12 +418,15 @@ func (c *OrganizationClient) ChangeParticipation(ctx context.Context, req *Chang
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
+	hreq.Header.Set("Content-Type", "application/json")
 
 	hrsp, err := c.Client.Do(hreq)
 	if err != nil {
 		return fmt.Errorf("could not do request to Zermelo: %w", err)
 	}
 	if hrsp.StatusCode != http.StatusOK {
+		// Make sure the request body gets logged properly
+		hreq.Body = io.NopCloser(bytes.NewReader(body))
 		c.logFailedRequest(hreq, hrsp, "Could not change appointment participation %d enrollment status to %t",
 			req.ParticipationID, req.Enrolled,
 		)
