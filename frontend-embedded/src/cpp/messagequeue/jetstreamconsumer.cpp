@@ -202,7 +202,7 @@ void JetStreamPullConsumerWorker::getNextMessage()
         }
 
         const char *err = nats_GetLastError(&status);
-        qWarning() << "Could not request JetStream message:" << natsStatus_GetText(status) << "(detail:)" << err;
+        qWarning().nospace() << "Could not request JetStream message (with subject " << jsSubj << "): " << natsStatus_GetText(status) << " (detail:) " << err;
         return;
     }
 

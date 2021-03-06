@@ -269,7 +269,7 @@ func (c *OrganizationClient) GetAppointments(
 func (c *OrganizationClient) logFailedRequest(hreq *http.Request, hrsp *http.Response, msg string, a ...interface{}) {
 	var dumpedReqStr string
 	if dumpedReq, err := httputil.DumpRequestOut(hreq, true); err != nil {
-		dumpedRspStr = "*** request dump failed: " + err.Error() + " ***"
+		dumpedReqStr = "*** request dump failed: " + err.Error() + " ***"
 	} else {
 		dumpedReqStr = prefixLines(string(dumpedReq), "\t")
 	}

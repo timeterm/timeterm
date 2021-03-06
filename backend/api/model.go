@@ -846,10 +846,11 @@ const (
 type NanoTime time.Time
 
 func (t NanoTime) MarshalJSON() ([]byte, error) {
+	tm := time.Time(t)
 	jsonObj := struct {
 		Seconds int64 `json:"seconds"`
 		Nanos   int64 `json:"nanos"`
-	}{t.Unix(), t.UnixNano()}
+	}{tm.Unix(), tm.UnixNano()}
 
 	return json.Marshal(jsonObj)
 }
