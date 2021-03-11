@@ -7,7 +7,6 @@ import "../js/TimeFunctions.js" as TimeFunction
 ApplicationWindow {
     id: mainWindow
     visible: true
-    //visibility: Qt.WindowFullScreen
     width: 1280
     height: 800
     title: qsTr("Timeterm")

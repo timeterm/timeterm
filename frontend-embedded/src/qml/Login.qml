@@ -28,9 +28,4 @@ Page {
         color: "#40000000"
         source: card
     }
-
-    MouseArea {
-        anchors.fill: cardShadow
-        onClicked: internals.cardRead("1234567")
-    }
 }
