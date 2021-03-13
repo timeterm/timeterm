@@ -159,7 +159,7 @@ Page {
             radius: 5
         }
 
-        text: "🠔"
+        text: "<"
         font.pixelSize: textSize
 
         onClicked: function() {
@@ -185,7 +185,7 @@ Page {
             radius: 5
         }
 
-        text: "🠖"
+        text: ">"
         font.pixelSize: textSize
 
         onClicked: function() {

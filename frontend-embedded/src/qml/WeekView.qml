@@ -204,7 +204,7 @@ Page {
                 anchors.bottom: parent.bottom
                 width: height
 
-                text: "🠔"
+                text: "<"
                 font.pixelSize: textSize
 
                 background: Rectangle {
@@ -235,7 +235,7 @@ Page {
                 anchors.bottom: parent.bottom
                 width: height
 
-                text: "🠖"
+                text: ">"
                 font.pixelSize: textSize
 
                 background: Rectangle {
