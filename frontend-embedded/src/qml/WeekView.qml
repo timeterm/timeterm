@@ -26,6 +26,8 @@ Page {
     }
 
     function setTimetable(timetable) {
+        weekNumber.text = new Date().addDays(internals.dayOffset).getWeek()
+
         weekAppointments.startFirstAppointment = null
         weekAppointments.endLastAppointment = null
         weekAppointments.contentHeight = 0
@@ -185,52 +187,67 @@ Page {
         flickableDirection: Flickable.HorizontalAndVerticalFlick 
         clip: true
 
-        Button{
+        Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
-            width: weekPage.width * 0.04
+            width: weekPage.width * 0.1
             height: weekPage.width * 0.04
 
-            background: Rectangle {
-                color: "#c4ffab"
-                border.color: "#70ff33"
-                border.width: 1
-                radius: 5
+            color: "#c4ffab"
+            border.color: "#70ff33"
+            border.width: 1
+            radius: 5
+
+            Button{
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: height
+
+                text: "🠔"
+                font.pixelSize: textSize
+
+                background: Rectangle {
+                    color: "#00FFFFFF"
+                }
+
+                onClicked: function() {
+                    internals.dayOffset -= 7
+                    const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+                    const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+                    internals.getAppointments(startOfWeek, endOfWeek)
+                }
             }
 
-            text: "🠔"
-            font.pixelSize: textSize
+            Text {
+                id: weekNumber
+                anchors.centerIn: parent
+                font.pixelSize: textSize
 
-            onClicked: function() {
-                internals.dayOffset -= 7
-                const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
-                const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
-                internals.getAppointments(startOfWeek, endOfWeek)
-            }
-        }
-
-        Button{
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.leftMargin: weekPage.width * 0.06
-            width: weekPage.width * 0.04
-            height: weekPage.width * 0.04
-
-            background: Rectangle {
-                color: "#c4ffab"
-                border.color: "#70ff33"
-                border.width: 1
-                radius: 5
+                Component.onCompleted: function() {
+                    text = new Date().addDays(internals.dayOffset).getWeek()
+                }
             }
 
-            text: "🠖"
-            font.pixelSize: textSize
+            Button{
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: height
 
-            onClicked: function() {
-                internals.dayOffset += 7
-                const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
-                const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
-                internals.getAppointments(startOfWeek, endOfWeek)
+                text: "🠖"
+                font.pixelSize: textSize
+
+                background: Rectangle {
+                    color: "#00FFFFFF"
+                }
+
+                onClicked: function() {
+                    internals.dayOffset += 7
+                    const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+                    const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+                    internals.getAppointments(startOfWeek, endOfWeek)
+                }
             }
         }
 
