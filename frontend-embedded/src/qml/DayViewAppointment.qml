@@ -44,7 +44,7 @@ Rectangle {
     height: (appointment.endTime.getMillisecondsInDay() - appointment.startTime.getMillisecondsInDay())
             / 1000 * secondToPixelRatio - 5 // - 5 because of the spacing between appointments
 
-    width: dayHeader.width
+    width: stack.width - dayPage.width * 0.1 - dayPage.height * 0.06
     anchors.right: parent.right
 
     color: setBackgroundColor()

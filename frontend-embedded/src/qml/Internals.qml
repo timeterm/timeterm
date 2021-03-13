@@ -10,6 +10,8 @@ import Timeterm.Systemd 1.0
 Item {
     id: internalsItem
 
+    property var dayOffset
+
     signal cardRead(string uid)
     signal cardUidChanged(string uid) // only used for LogsView
     signal timetableReceived(var timetable)

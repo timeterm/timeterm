@@ -185,6 +185,55 @@ Page {
         flickableDirection: Flickable.HorizontalAndVerticalFlick 
         clip: true
 
+        Button{
+            anchors.left: parent.left
+            anchors.top: parent.top
+            width: weekPage.width * 0.04
+            height: weekPage.width * 0.04
+
+            background: Rectangle {
+                color: "#c4ffab"
+                border.color: "#70ff33"
+                border.width: 1
+                radius: 5
+            }
+
+            text: "🠔"
+            font.pixelSize: textSize
+
+            onClicked: function() {
+                internals.dayOffset -= 7
+                const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+                const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+                internals.getAppointments(startOfWeek, endOfWeek)
+            }
+        }
+
+        Button{
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.leftMargin: weekPage.width * 0.06
+            width: weekPage.width * 0.04
+            height: weekPage.width * 0.04
+
+            background: Rectangle {
+                color: "#c4ffab"
+                border.color: "#70ff33"
+                border.width: 1
+                radius: 5
+            }
+
+            text: "🠖"
+            font.pixelSize: textSize
+
+            onClicked: function() {
+                internals.dayOffset += 7
+                const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+                const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+                internals.getAppointments(startOfWeek, endOfWeek)
+            }
+        }
+
         Rectangle {
             id: weekTimeLine
             anchors.topMargin: weekPage.height * 0.08

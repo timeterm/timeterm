@@ -125,19 +125,74 @@ Page {
 
     Rectangle {
         id: dayHeader
-        width: parent.width - dayPage.width * 0.1 - dayPage.height * 0.06
+        //width: parent.width - dayPage.width * 0.1 - dayPage.height * 0.06
         height: parent.height * 0.06
         anchors.top: parent.top
-        anchors.right: parent.right
+        anchors.left: previous.right
+        anchors.right: next.left
         anchors.margins: dayPage.height * 0.02
         color: "#b5b5b5"
         radius: 5
+
         Text {
-            text: new Date().toLocaleString(Qt.locale("nl_NL"), "dddd")
+            text: new Date().addDays(internals.dayOffset).toLocaleString(Qt.locale("nl_NL"), "dddd d MMMM")
             anchors.verticalCenter: parent.verticalCenter
             anchors.centerIn: parent
             font.pixelSize: textSize
             font.capitalization: Font.Capitalize
+        }
+    }
+
+    Button{
+        id: previous
+        height: parent.height * 0.06
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.leftMargin: dayPage.width * 0.1 + dayPage.height * 0.04
+        anchors.margins: dayPage.height * 0.02
+        width: height
+
+        background: Rectangle {
+            color: "#c4ffab"
+            border.color: "#70ff33"
+            border.width: 1
+            radius: 5
+        }
+
+        text: "🠔"
+        font.pixelSize: textSize
+
+        onClicked: function() {
+            internals.dayOffset -= 1
+            const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+            const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+            internals.getAppointments(startOfWeek, endOfWeek)
+        }
+    }
+
+    Button{
+        id: next
+        height: parent.height * 0.06
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: dayPage.height * 0.02
+        width: height
+
+        background: Rectangle {
+            color: "#c4ffab"
+            border.color: "#70ff33"
+            border.width: 1
+            radius: 5
+        }
+
+        text: "🠖"
+        font.pixelSize: textSize
+
+        onClicked: function() {
+            internals.dayOffset += 1
+            const startOfWeek = new Date().addDays(internals.dayOffset).startOfWeek()
+            const endOfWeek = new Date().addDays(internals.dayOffset).endOfWeek()
+            internals.getAppointments(startOfWeek, endOfWeek)
         }
     }
 

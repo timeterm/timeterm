@@ -5,6 +5,11 @@ Date.prototype.addHours = function (h) {
     return this;
 }
 
+Date.prototype.addDays = function (d) {
+    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
+    return this;
+}
+
 Date.prototype.isFullHour = function () {
     return this.getMinutes() === 0 && this.getSeconds() === 0 && this.getMilliseconds() === 0;
 }

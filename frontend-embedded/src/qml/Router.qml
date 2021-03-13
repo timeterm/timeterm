@@ -245,14 +245,14 @@ Page {
 
         DayView {
             id: dayView
-            startOfDay: new Date().setHours(0, 0, 0, 0)
-            endOfDay: new Date().setHours(24, 0, 0, 0)
+            startOfDay: new Date().addDays(internals.dayOffset).setHours(0, 0, 0, 0)
+            endOfDay: new Date().addDays(internals.dayOffset).setHours(24, 0, 0, 0)
         }
 
         WeekView {
             id: weekView
-            startOfWeek: new Date().startOfWeek()
-            endOfWeek: new Date().endOfWeek()
+            startOfWeek: new Date().addDays(internals.dayOffset).startOfWeek()
+            endOfWeek: new Date().addDays(internals.dayOffset).endOfWeek()
         }
     }
 

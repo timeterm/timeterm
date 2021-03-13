@@ -33,6 +33,7 @@ ApplicationWindow {
                 const startOfWeek = new Date().startOfWeek()
                 const endOfWeek = new Date().endOfWeek()
                 internals.getAppointments(startOfWeek, endOfWeek)
+                internals.dayOffset = 0
             }
         }
 
@@ -56,8 +57,8 @@ ApplicationWindow {
         }
 
         onChoiceUpdateSucceeded: function () {
-            const startOfWeek = new Date().startOfWeek()
-            const endOfWeek = new Date().endOfWeek()
+            const startOfWeek = new Date().startOfWeek().addDays(internals.dayOffset)
+            const endOfWeek = new Date().endOfWeek().addDays(internals.dayOffset)
             internals.getAppointments(startOfWeek, endOfWeek)
         }
 
