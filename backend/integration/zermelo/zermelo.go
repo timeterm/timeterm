@@ -47,7 +47,7 @@ func NewOrganizationClient(
 	institution string,
 	token []byte,
 ) (*OrganizationClient, error) {
-	baseURL, err := url.Parse(fmt.Sprintf("https://%s.zportal.nl/api/v3/", institution))
+	baseURL, err := url.Parse(fmt.Sprintf("https://%s.zportal.nl/api/v3/", url.PathEscape(institution)))
 	if err != nil {
 		return nil, err
 	}
