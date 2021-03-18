@@ -84,35 +84,39 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 		conds = append(conds, sq.Expr("name LIKE '%' || ? || '%'", cleanSearch(*opts.NameSearch)))
 	}
 
-	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
-		return b.
-			From("device").
-			Where(conds).
-			PlaceholderFormat(sq.Dollar)
-	}
-
-	devsSql, args, err := buildQuery(sq.Select(`*`)).
+	devsSql, args, err := sq.
+		Select(`*, COUNT(*) as subtotal, COUNT(*) OVER() as total`).
+		From("device").
+		Where(conds).
 		Limit(devs.Pagination.Limit).
 		Offset(devs.Pagination.Offset).
 		OrderBy("name ASC").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return devs, err
 	}
 
-	err = w.db.SelectContext(ctx, &devs.Devices, devsSql, args...)
+	rows, err := w.db.QueryxContext(ctx, devsSql, args...)
 	if err != nil {
 		return devs, err
 	}
 
-	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
-	if err != nil {
-		return devs, err
-	}
+	for rows.Next() {
+		var dev struct {
+			Device
+			Subtotal int
+			Total    uint64
+		}
+		if err = rows.StructScan(&dev); err != nil {
+			return devs, err
+		}
 
-	err = w.db.GetContext(ctx, &devs.Total, totalSql, args...)
-	if err != nil {
-		return devs, err
+		if len(devs.Devices) == 0 {
+			devs.Devices = make([]*Device, 0, dev.Subtotal)
+		}
+		devs.Devices = append(devs.Devices, &dev.Device)
+		devs.Total = dev.Total
 	}
 
 	return devs, nil
@@ -141,37 +145,41 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 		sq.Eq{"student.organization_id": opts.OrganizationID},
 	}
 
-	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
-		return b.
-			From("student").
-			Where(conds).
-			PlaceholderFormat(sq.Dollar)
-	}
-
-	devsSql, args, err := buildQuery(sq.Select(`student.*, (COUNT(student_card.*) > 0) AS has_card_associated`)).
+	studentsSql, args, err := sq.
+		Select(`student.*, (COUNT(student_card.*) > 0) AS has_card_associated, COUNT(*) as subtotal, COUNT(*) OVER() as total`).
+		From("student").
+		Where(conds).
 		LeftJoin("student_card ON student_card.student_id = student.id").
 		Limit(students.Pagination.Limit).
 		Offset(students.Pagination.Offset).
 		OrderBy("zermelo_user ASC").
 		GroupBy("student.id").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return students, err
 	}
 
-	err = w.db.SelectContext(ctx, &students.Students, devsSql, args...)
+	rows, err := w.db.QueryxContext(ctx, studentsSql, args...)
 	if err != nil {
 		return students, err
 	}
 
-	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
-	if err != nil {
-		return students, err
-	}
+	for rows.Next() {
+		var student struct {
+			Student
+			Subtotal int
+			Total    uint64
+		}
+		if err = rows.StructScan(&student); err != nil {
+			return students, err
+		}
 
-	err = w.db.GetContext(ctx, &students.Total, totalSql, args...)
-	if err != nil {
-		return students, err
+		if len(students.Students) == 0 {
+			students.Students = make([]Student, 0, student.Subtotal)
+		}
+		students.Students = append(students.Students, student.Student)
+		students.Total = student.Total
 	}
 
 	return students, nil
@@ -304,7 +312,7 @@ type PaginatedNetworkingServices struct {
 }
 
 func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingServicesOpts) (PaginatedNetworkingServices, error) {
-	netwServices := PaginatedNetworkingServices{
+	services := PaginatedNetworkingServices{
 		Pagination: Pagination{
 			Limit:  min(or(opts.Limit, 50), 100),
 			Offset: or(opts.Offset, 0),
@@ -315,38 +323,42 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 		sq.Eq{"organization_id": opts.OrganizationID},
 	}
 
-	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
-		return b.
-			From("networking_service").
-			Where(conds).
-			PlaceholderFormat(sq.Dollar)
-	}
-
-	netwServSql, args, err := buildQuery(sq.Select(`*`)).
-		Limit(netwServices.Pagination.Limit).
-		Offset(netwServices.Pagination.Offset).
+	servicesSql, args, err := sq.
+		Select(`*, COUNT(*) as subtotal, COUNT(*) OVER() as subtotal`).
+		From("networking_service").
+		Where(conds).
+		Limit(services.Pagination.Limit).
+		Offset(services.Pagination.Offset).
 		OrderBy("name ASC").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		return netwServices, err
+		return services, err
 	}
 
-	err = w.db.SelectContext(ctx, &netwServices.NetworkingServices, netwServSql, args...)
+	rows, err := w.db.QueryxContext(ctx, servicesSql, args...)
 	if err != nil {
-		return netwServices, err
+		return services, err
 	}
 
-	totalSql, args, err := buildQuery(sq.Select("COUNT(*)")).ToSql()
-	if err != nil {
-		return netwServices, err
+	for rows.Next() {
+		var service struct {
+			NetworkingService
+			Subtotal int
+			Total    uint64
+		}
+		if err = rows.StructScan(&service); err != nil {
+			return services, err
+		}
+
+		if len(services.NetworkingServices) == 0 {
+			services.NetworkingServices = make([]NetworkingService, 0, service.Subtotal)
+		}
+		services.NetworkingServices = append(services.NetworkingServices, service.NetworkingService)
+		services.Total = service.Total
 	}
 
-	err = w.db.GetContext(ctx, &netwServices.Total, totalSql, args...)
-	if err != nil {
-		return netwServices, err
-	}
-
-	return netwServices, nil
+	return services, nil
 }
 
 func (w *Wrapper) GetAllNetworkingServices(ctx context.Context, organizationID uuid.UUID) ([]NetworkingService, error) {
@@ -430,24 +442,20 @@ func (w *Wrapper) GetAdminMessages(ctx context.Context, opts GetAdminMessagesOpt
 		sq.Eq{"organization_id": opts.OrganizationID},
 	}
 
-	buildQuery := func(b sq.SelectBuilder) sq.SelectBuilder {
-		return b.
-			From("admin_message").
-			Where(conds).
-			PlaceholderFormat(sq.Dollar)
-	}
-
-	devsSql, args, err := buildQuery(sq.Select(`*`)).
+	msgsSql, args, err := sq.Select(`*`).
+		From("admin_message").
+		Where(conds).
 		Where(sq.Lt{"logged_at": fromTimestamp}).
 		Limit(limit).
 		OrderBy("logged_at DESC").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 
 	var messages []AdminMessage
-	err = w.db.SelectContext(ctx, &messages, devsSql, args...)
+	err = w.db.SelectContext(ctx, &messages, msgsSql, args...)
 	if err != nil {
 		return nil, err
 	}
