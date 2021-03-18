@@ -55,7 +55,7 @@ type Pagination struct {
 
 type PaginatedDevices struct {
 	Pagination
-	Devices []*Device
+	Devices []Device
 }
 
 type GetDevicesOpts struct {
@@ -113,9 +113,9 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 		}
 
 		if len(devs.Devices) == 0 {
-			devs.Devices = make([]*Device, 0, dev.Subtotal)
+			devs.Devices = make([]Device, 0, dev.Subtotal)
 		}
-		devs.Devices = append(devs.Devices, &dev.Device)
+		devs.Devices = append(devs.Devices, dev.Device)
 		devs.Total = dev.Total
 	}
 

@@ -100,7 +100,7 @@ func (w *Wrapper) GetNetworkConfigUpdatedDebounce(organizationID uuid.UUID) func
 	debfn := debounce(ctx, func() {
 		log := w.log.WithValues("organizationId", organizationID)
 
-		if err := w.dbw.WalkDevices(context.Background(), organizationID, func(d *database.Device) bool {
+		if err := w.dbw.WalkDevices(context.Background(), organizationID, func(d database.Device) bool {
 			log = log.WithValues("deviceId", d.ID)
 			if err := w.RetrieveNewNetworkingConfig(d.ID); err != nil {
 				log.Error(err, "could not send message to device to retrieve new networking config")

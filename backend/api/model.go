@@ -691,7 +691,7 @@ func lastHeartbeatToPrimaryDeviceStatus(t sql.NullTime) PrimaryDeviceStatus {
 	return PrimaryDeviceStatusOffline
 }
 
-func DeviceFrom(device *database.Device) Device {
+func DeviceFrom(device database.Device) Device {
 	return Device{
 		ID:             device.ID,
 		OrganizationID: device.OrganizationID,
@@ -700,7 +700,7 @@ func DeviceFrom(device *database.Device) Device {
 	}
 }
 
-func CreateDeviceResponseFrom(device *database.Device, token uuid.UUID) CreateDeviceResponse {
+func CreateDeviceResponseFrom(device database.Device, token uuid.UUID) CreateDeviceResponse {
 	return CreateDeviceResponse{
 		Device: DeviceFrom(device),
 		Token:  token,
@@ -715,7 +715,7 @@ func DeviceToDB(device Device) database.Device {
 	}
 }
 
-func DevicesFrom(dbDevices []*database.Device) []Device {
+func DevicesFrom(dbDevices []database.Device) []Device {
 	apiDevices := make([]Device, len(dbDevices))
 
 	for i, dev := range dbDevices {

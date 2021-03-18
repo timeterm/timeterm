@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (w *Wrapper) WalkDevices(ctx context.Context, organizationID uuid.UUID, f func(dev *Device) bool) error {
+func (w *Wrapper) WalkDevices(ctx context.Context, organizationID uuid.UUID, f func(dev Device) bool) error {
 	var offset uint64
 	for {
 		devs, err := w.GetDevices(ctx, GetDevicesOpts{
