@@ -325,7 +325,7 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 	}
 
 	servicesSql, args, err := sq.
-		Select(`*, COUNT(*) as subtotal, COUNT(*) OVER() as subtotal`).
+		Select(`*, COUNT(*) as subtotal, COUNT(*) OVER() as total`).
 		From("networking_service").
 		Where(conds).
 		Limit(services.Pagination.Limit).
