@@ -1,3 +1,7 @@
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: build
 build:
 	CGO_ENABLED=0 installsuffix=cgo go build -o timeterm -ldflags "-extldflags '-static' -s"

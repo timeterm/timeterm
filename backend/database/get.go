@@ -91,6 +91,7 @@ func (w *Wrapper) GetDevices(ctx context.Context, opts GetDevicesOpts) (Paginate
 		Limit(devs.Pagination.Limit).
 		Offset(devs.Pagination.Offset).
 		OrderBy("name ASC").
+		GroupBy("id").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -153,7 +154,7 @@ func (w *Wrapper) GetStudents(ctx context.Context, opts GetStudentsOpts) (Pagina
 		Limit(students.Pagination.Limit).
 		Offset(students.Pagination.Offset).
 		OrderBy("zermelo_user ASC").
-		GroupBy("student.id").
+		GroupBy("id").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -330,6 +331,7 @@ func (w *Wrapper) GetNetworkingServices(ctx context.Context, opts GetNetworkingS
 		Limit(services.Pagination.Limit).
 		Offset(services.Pagination.Offset).
 		OrderBy("name ASC").
+		GroupBy("id").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
