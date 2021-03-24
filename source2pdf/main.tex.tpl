@@ -14,6 +14,7 @@
 \usepackage{pdfpages}
 \usepackage{etoolbox}
 \usepackage{xpatch}
+\usepackage{bookmark}
 
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
 

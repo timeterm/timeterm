@@ -76,12 +76,27 @@ func main() {
 			ParseFiles("main.tex.tpl"))
 	sources, err := getSources(ignore{
 		dirs: []ignoreFunc{
+			exact("../mfrc522/docs/api"),
 			exact("../mfrc522/docs/ext"),
+			exact("../mfrc522/docs/doxyoutput"),
+			exact("../mfrc522/docs/_build"),
 			exact("../source-pdf"),
 			exact("../docs/themes"),
+			exact("../docs/public"),
+			prepareWildcard("../os/build-*"),
+			exact("../os/sstate-cache"),
+			exact("../os/downloads"),
+			func(s string) bool {
+				if strings.HasPrefix(s, "../os/sources") {
+					return !strings.HasPrefix(s, "../os/sources/meta-timeterm")
+				}
+				return false
+			},
+			prepareWildcard("*/*build-*"),
 			lit("3rdparty"),
 			lit("assets"),
 			lit("build"),
+			lit("node_modules"),
 		},
 		files: []ignoreFunc{
 			exact("../design/js/CCapture.js"),
@@ -90,10 +105,12 @@ func main() {
 			exact("../design/js/webm-writer-0.2.0.js"),
 			exact("../mfrc522/src/mfrc522.cpp"),
 			exact("../mfrc522/include/mfrc522.h"),
+			exact("../os/setup-environment.sh"),
 			hasExt(".code-workspace"),
 			hasExt(".ico"),
 			hasExt(".json"),
 			hasExt(".lock"),
+			hasExt(".log"),
 			hasExt(".mtl"),
 			hasExt(".obj"),
 			hasExt(".pb.go"),
@@ -104,6 +121,7 @@ func main() {
 			hasExt(".svg"),
 			hasExt(".ttf"),
 			hasExt(".xml"),
+			lit(".eslintcache"),
 			lit(".env"),
 			lit(".gitignore"),
 			lit("CMakeLists.txt.user"),

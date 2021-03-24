@@ -1,6 +1,8 @@
 package main
 
-import "strings"
+import (
+	"strings"
+)
 
 func prepareWildcard(s string) func(string) bool {
 	if len(s) == 0 {
@@ -18,7 +20,7 @@ func prepareWildcard(s string) func(string) bool {
 	}
 
 	start := 0
-	end := len(parts) - 1
+	end := len(parts)
 	strictPrefix := s[0] != '*'
 	strictSuffix := s[len(s)-1] != '*'
 	if strictPrefix {
