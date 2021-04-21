@@ -6,15 +6,17 @@ Timeterm is een embedded roostersysteem voor scholen, wat op het moment alleen s
 
 Timeterm is open-source, maar niet alle delen vallen onder dezelfde licentie. Zie de verschillende mappen voor de verschillende licenties die gebruikt zijn. De root van de repository valt onder Apache 2.
 
-© 2020 Kees Blok, Robert van der Maas en Rutger Broekhoff
+© 2021 Kees Blok, Robert van der Maas en Rutger Broekhoff
 
 ## Oplevering
 
 Het project is woensdag 16 december 2020 opgeleverd voor BM3a. Er is toen een tag met de naam 'bm3a' aangemaakt.
 Klik [hier](https://gitlab.com/timeterm/timeterm/-/tree/bm3a) om de broncode op dat moment in GitLab te bekijken.
 
-Het project is donderdag 11 februari 2020 opgeleverd voor BM3b (12 februari 2020). Er is toen een tag met de naam 'bm3b' aangemaakt.
+Het project is donderdag 11 februari 2021 opgeleverd voor BM3b (12 februari 2021). Er is toen een tag met de naam 'bm3b' aangemaakt.
 Klik [hier](https://gitlab.com/timeterm/timeterm/-/tree/bm3b) om de broncode op dat moment in GitLab te bekijken.
+
+Het project won de tweede prijs en de publieksprijs voor de 3i Award (VWO) in 2021 (zie [https://3i-award.nl/winnaars/](https://3i-award.nl/winnaars/)).
 
 ## Projectstructuur
 
