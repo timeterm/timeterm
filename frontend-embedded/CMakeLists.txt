@@ -35,9 +35,21 @@ list(TRANSFORM QT_LINK_TARGETS PREPEND "Qt5::")
 
 find_package(Qt5 COMPONENTS ${QT_COMPONENTS} REQUIRED)
 
-#if(TIMETERMOS)
+if(TIMETERMOS)
     qt5_add_dbus_interface(GENERATED_SOURCES dbus/org.freedesktop.systemd1.xml ttsystemd)
-#endif()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  list(APPEND CMAKE_CXX_FLAGS "-fno-omit-frame-pointer")
+endif()
+
+if(ENABLE_ASAN)
+  list(APPEND CMAKE_CXX_FLAGS "-fsanitize=address")
+endif()
+
+if(ENABLE_TSAN)
+  list(APPEND CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize=thread")
+endif()
 
 set(TS_FILES frontend-embedded_nl_NL.ts)
 set(SOURCE_FILES
